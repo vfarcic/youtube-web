@@ -1,4 +1,14 @@
 {
+  "name": "youtube-web",
+  "version": "1.0.0",
+  "description": "YouTube Web Application with comprehensive testing",
+  "scripts": {
+    "test": "node tests/test-runner.js",
+    "test:unit": "node tests/test-runner.js",
+    "test:integration": "node tests/integration-test-runner.js",
+    "test:all": "node tests/complete-test-runner.js",
+    "test:health": "node tests/backend-health-check.js"
+  },
   "dependencies": {
     "puppeteer": "^24.9.0"
   }
