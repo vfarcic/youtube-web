@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps Toolkit YouTube Automation</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header with Logo and Navigation -->
+    <header class="app-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <a href="#" class="logo-link" onclick="showView('dashboard')">
+                    <img src="img/logo-wide-transparent.png" alt="YouTube Automation Platform" class="logo">
+                </a>
+            </div>
+            <!-- Navigation Tabs moved to header -->
+            <nav class="header-nav">
+                <button class="tab-btn active" onclick="showView('dashboard')">
+                    <i class="fas fa-chart-line"></i>
+                    Dashboard
+                </button>
+                <button class="tab-btn" onclick="showView('video-list')">
+                    <i class="fas fa-video"></i>
+                    Video List
+                </button>
+                <button class="tab-btn" onclick="showView('video-edit')">
+                    <i class="fas fa-edit"></i>
+                    Video Edit
+                </button>
+                <button class="tab-btn" onclick="showView('create-video')">
+                    <i class="fas fa-plus-circle"></i>
+                    Create Video
+                </button>
+            </nav>
+            <div class="header-actions">
+                <!-- Removed notification button, settings button, and user avatar -->
+            </div>
+        </div>
+    </header>
+
+    <!-- Dashboard View Mockup -->
+    <div id="dashboard" class="mockup-view active">
+        <div class="view-header">
+            <h2><i class="fas fa-chart-line"></i> Dashboard Overview</h2>
+            <!-- <p>Welcome to your YouTube content management dashboard</p> --> <!-- Paragraph is already hidden by CSS -->
+        </div>
+        
+        <div class="mockup-section dashboard-stats-section">
+            <h2><i class="fas fa-chart-pie"></i> Statistics</h2>
+            <div class="stats-preview">
+                <div class="stat-card">12 Total Videos</div>
+                <div class="stat-card">3 In Progress</div>
+                <div class="stat-card">8 Published</div>
+                <div class="stat-card">1 Draft</div>
+            </div>
+        </div>
+
+        <div class="mockup-section">
+            <h2><i class="fas fa-tasks"></i> Videos in Progress</h2>
+            <div class="progress-videos-preview">
+                <div class="progress-video-card">
+                    <div class="progress-video-header">
+                        <h3>Kubernetes Advanced Tutorial</h3>
+                        <div class="video-status work">Work Phase</div>
+                    </div>
+                    <div class="progress-video-meta">
+                        <span class="publish-date">Scheduled: June 15, 2025</span>
+                        <span class="progress-indicator">3/7 tasks completed</span>
+                    </div>
+                    <div class="progress-bar-mini">
+                        <div class="progress-fill-mini" style="width: 43%"></div>
+                    </div>
+                </div>
+                
+                <div class="progress-video-card">
+                    <div class="progress-video-header">
+                        <h3>Docker Compose Deep Dive</h3>
+                        <div class="video-status definition">Definition Phase</div>
+                    </div>
+                    <div class="progress-video-meta">
+                        <span class="publish-date">Scheduled: June 22, 2025</span>
+                        <span class="progress-indicator">2/4 tasks completed</span>
+                    </div>
+                    <div class="progress-bar-mini">
+                        <div class="progress-fill-mini" style="width: 50%"></div>
+                    </div>
+                </div>
+                
+                <div class="progress-video-card">
+                    <div class="progress-video-header">
+                        <h3>Terraform Infrastructure</h3>
+                        <div class="video-status post-production">Post-Production</div>
+                    </div>
+                    <div class="progress-video-meta">
+                        <span class="publish-date">Scheduled: June 8, 2025</span>
+                        <span class="progress-indicator">4/5 tasks completed</span>
+                    </div>
+                    <div class="progress-bar-mini">
+                        <div class="progress-fill-mini" style="width: 80%"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="view-all-progress">
+                <button class="view-all-btn" onclick="showView('video-list')">
+                    <i class="fas fa-arrow-right"></i>
+                    View All Videos in Progress
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video List View Mockup -->
+    <div id="video-list" class="mockup-view">
+        <div class="view-header">
+            <h2><i class="fas fa-video"></i> Video Management</h2>
+            <p>Manage your video content across all production phases</p>
+        </div>
+        
+        <div class="mockup-section">
+            <h2>Phase Filter Bar</h2>
+            <div class="phase-filter">
+                <button class="phase-btn active">All (12)</button>
+                <button class="phase-btn">Initial (2)</button>
+                <button class="phase-btn">Work (3)</button>
+                <button class="phase-btn">Definition (2)</button>
+                <button class="phase-btn">Post-Production (3)</button>
+                <button class="phase-btn">Publishing (1)</button>
+                <button class="phase-btn">Post-Publish (1)</button>
+            </div>
+        </div>
+
+        <div class="mockup-section">
+            <h2>Video Cards Grid</h2>
+            <div class="videos-grid">
+                <div class="video-card">
+                    <div class="video-status work">Work Phase</div>
+                    <h3>Kubernetes Advanced Tutorial</h3>
+                    <p>Progress: 3/7 tasks completed</p>
+                    <div class="video-actions">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                        <button class="btn-move">Move</button>
+                    </div>
+                </div>
+                
+                <div class="video-card">
+                    <div class="video-status definition">Definition Phase</div>
+                    <h3>Docker Compose Deep Dive</h3>
+                    <p>Progress: 2/4 tasks completed</p>
+                    <div class="video-actions">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                        <button class="btn-move">Move</button>
+                    </div>
+                </div>
+                
+                <div class="video-card">
+                    <div class="video-status publishing">Publishing Phase</div>
+                    <h3>Terraform Infrastructure</h3>
+                    <p>Progress: 4/5 tasks completed</p>
+                    <div class="video-actions">
+                        <button class="btn-edit">Edit</button>
+                        <button class="btn-delete">Delete</button>
+                        <button class="btn-move">Move</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Video Edit View Mockup -->
+    <div id="video-edit" class="mockup-view">
+        <div class="view-header">
+            <h2><i class="fas fa-edit"></i> Video Editor</h2>
+            <p>Edit video details and track progress through production phases</p>
+        </div>
+        
+        <div class="mockup-section">
+            <h2>Phase Navigation Tabs</h2>
+            <div class="edit-tabs">
+                <button class="edit-tab">Initial</button>
+                <button class="edit-tab active">Work</button>
+                <button class="edit-tab">Definition</button>
+                <button class="edit-tab">Post-Production</button>
+                <button class="edit-tab">Publishing</button>
+                <button class="edit-tab">Post-Publish</button>
+            </div>
+        </div>
+
+        <div class="mockup-section">
+            <h2>Work Phase Fields (Example)</h2>
+            <div class="form-preview">
+                <div class="form-group">
+                    <label>✅ Code Done</label>
+                    <input type="checkbox" checked>
+                </div>
+                <div class="form-group">
+                    <label>⏳ Talking Head Done</label>
+                    <input type="checkbox">
+                </div>
+                <div class="form-group">
+                    <label>✅ Screen Recording Done</label>
+                    <input type="checkbox" checked>
+                </div>
+                <div class="form-group">
+                    <label>Related Videos</label>
+                    <textarea placeholder="Comma-separated list..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>⏳ Thumbnails Done</label>
+                    <input type="checkbox">
+                </div>
+                <div class="form-group">
+                    <label>File Location</label>
+                    <input type="text" placeholder="Google Drive link...">
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button class="btn-save">Save Changes</button>
+                <button class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+
+        <div class="mockup-section">
+            <h2>Progress Indicator</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 43%"></div>
+                <span class="progress-text">3 of 7 tasks completed (43%)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Video View Mockup -->
+    <div id="create-video" class="mockup-view">
+        <div class="view-header">
+            <h2><i class="fas fa-plus-circle"></i> Create New Video</h2>
+            <p>Start a new video project and set up the initial configuration</p>
+        </div>
+        
+        <div class="mockup-section">
+            <h2>Basic Information</h2>
+            <div class="form-preview">
+                <div class="form-group">
+                    <label>Video Name *</label>
+                    <input type="text" placeholder="Enter video name...">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select>
+                        <option>Select category...</option>
+                        <option>Kubernetes</option>
+                        <option>Docker</option>
+                        <option>Terraform</option>
+                        <option>AWS</option>
+                        <option>DevOps</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Starting Phase</label>
+                    <select>
+                        <option>Initial</option>
+                        <option>Work</option>
+                        <option>Definition</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-actions">
+                <button class="btn-create">Create Video</button>
+                <button class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+
+        <div class="mockup-section">
+            <h2>Template Options (Future Enhancement)</h2>
+            <div class="template-preview">
+                <div class="template-card">
+                    <h4>Tutorial Template</h4>
+                    <p>Pre-filled fields for tutorial videos</p>
+                </div>
+                <div class="template-card">
+                    <h4>Quick Demo Template</h4>
+                    <p>Streamlined workflow for demos</p>
+                </div>
+                <div class="template-card">
+                    <h4>Sponsored Content Template</h4>
+                    <p>Includes sponsorship fields</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="mockup.js"></script>
+</body>
+</html>
