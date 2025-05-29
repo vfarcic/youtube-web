@@ -1,0 +1,74 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":dependencyDashboard",
+    ":automergeDigest",
+    ":automergeBranch"
+  ],
+  "timezone": "UTC",
+  "schedule": ["before 6am on monday"],
+  "assignees": ["vfarcic"],
+  "reviewers": ["vfarcic"],
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "description": "Automerge patch updates for stable packages",
+      "matchUpdateTypes": ["patch"],
+      "matchPackagePatterns": ["^@types/", "eslint", "prettier"],
+      "automerge": true
+    },
+    {
+      "description": "Group Next.js related packages",
+      "matchPackageNames": ["next", "@next/", "eslint-config-next"],
+      "groupName": "Next.js",
+      "schedule": ["before 8am on monday"]
+    },
+    {
+      "description": "Group React packages",
+      "matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"],
+      "groupName": "React",
+      "schedule": ["before 8am on monday"]
+    },
+    {
+      "description": "Group ESLint packages",
+      "matchPackagePatterns": ["^eslint", "^@eslint/"],
+      "groupName": "ESLint",
+      "automerge": true
+    },
+    {
+      "description": "Group TypeScript packages",
+      "matchPackageNames": ["typescript", "@types/node"],
+      "groupName": "TypeScript",
+      "schedule": ["before 8am on monday"]
+    },
+    {
+      "description": "Group testing packages",
+      "matchPackagePatterns": ["jest", "testing-library", "puppeteer"],
+      "groupName": "Testing",
+      "automerge": true
+    },
+    {
+      "description": "Separate major updates with manual review",
+      "matchUpdateTypes": ["major"],
+      "automerge": false,
+      "schedule": ["before 8am on monday"],
+      "labels": ["dependencies", "major-update"]
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "automerge": true
+  },
+  "lockFileMaintenance": {
+    "enabled": true,
+    "schedule": ["before 6am on monday"]
+  },
+  "prConcurrentLimit": 3,
+  "prHourlyLimit": 2,
+  "commitMessageTopic": "{{depName}}",
+  "commitMessageExtra": "to v{{newVersion}}",
+  "commitMessageSuffix": "",
+  "semanticCommits": "enabled"
+}
