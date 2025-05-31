@@ -19,6 +19,7 @@ const { testHomepage } = require('./pages/homepage.test');
 const { testVideosPage } = require('./pages/videos.test');
 const { testCreatePage } = require('./pages/create.test');
 const { testEditPage } = require('./pages/edit.test');
+const { testApiErrorDetection } = require('./api-error-detection.test');
 
 async function runOptimizedTests() {
     console.log('🚀 OPTIMIZED TEST SUITE STARTING...');
@@ -42,6 +43,9 @@ async function runOptimizedTests() {
         await testVideosPage(page, counters);
         await testCreatePage(page, counters);
         await testEditPage(page, counters);
+        
+        // Execute API error detection tests
+        await testApiErrorDetection(page, counters);
         
     } catch (error) {
         console.error('❌ Test execution failed:', error);
