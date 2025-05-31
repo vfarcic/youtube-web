@@ -55,7 +55,37 @@ async function testVideosPage(page, counters) {
             clickChangesActive: false,
             placeholderUpdates: false,
             buttonFormatCorrect: true,
+            warningLogicCorrect: true,
         };
+
+        // Phase Filter Warning Tests
+        const warningIcons = document.querySelectorAll('.phase-btn svg[aria-label*="Warning"]');
+        const phaseWarningData = phaseButtons.map(btn => {
+            const text = btn.textContent;
+            const hasWarning = btn.querySelector('svg[aria-label*="Warning"]');
+            const match = text.match(/(\w+(?:\s\w+)*)\s\((\d+)\)/);
+            if (match) {
+                return {
+                    name: match[1],
+                    count: parseInt(match[2]),
+                    hasWarning: !!hasWarning
+                };
+            }
+            return null;
+        }).filter(Boolean);
+
+        // Check if warnings are correctly applied based on business rules
+        const publishPending = phaseWarningData.find(p => p.name === 'Publish Pending');
+        const editRequested = phaseWarningData.find(p => p.name === 'Edit Requested');
+        const materialDone = phaseWarningData.find(p => p.name === 'Material Done');
+
+        const correctWarnings = {
+            publishPending: publishPending ? (publishPending.count < 1 ? publishPending.hasWarning : !publishPending.hasWarning) : true,
+            editRequested: editRequested ? (editRequested.count < 1 ? editRequested.hasWarning : !editRequested.hasWarning) : true,
+            materialDone: materialDone ? (materialDone.count < 3 ? materialDone.hasWarning : !materialDone.hasWarning) : true
+        };
+
+        phaseFilterTests.warningLogicCorrect = correctWarnings.publishPending && correctWarnings.editRequested && correctWarnings.materialDone;
 
         if (phaseFilterBar && phaseButtons.length > 0) {
             const allButton = phaseButtons.find(btn => btn.textContent && btn.textContent.includes('All'));
@@ -203,6 +233,11 @@ async function testVideosPage(page, counters) {
             name: 'Phase button format correct', 
             result: videosPageResults.phaseFilter.buttonFormatCorrect,
             errorMessage: 'Videos Page: Phase button format (Name (count)) is incorrect. Buttons: ' + videosPageResults.meta.phaseButtonsText.join(', ')
+        },
+        { 
+            name: 'Phase warning logic correct', 
+            result: videosPageResults.phaseFilter.warningLogicCorrect,
+            errorMessage: 'Videos Page: Phase warning icons not correctly applied based on business rules'
         }
     ];
     

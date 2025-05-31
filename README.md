@@ -11,7 +11,8 @@ This application provides a web interface for YouTube content management with th
 - **Video Edit**: Modify existing videos
 
 ### Latest Features
-- **Phase Filter Bar**: Production-ready component with real API integration
+- **Phase Filter Bar**: Production-ready component with real API integration and warning indicators
+- **Warning Icons**: Visual alerts for phases with insufficient video counts (Publish Pending <1, Edit Requested <1, Material Done <3)
 - **Video Phase Management**: Filter videos by production phases (Published, Started, etc.)
 - **Visual Design System**: Consistent styling with yellow accent colors and mockup alignment
 
@@ -62,6 +63,7 @@ The project features a comprehensive automated testing suite with optimal perfor
 - ✅ Homepage structure and content validation
 - ✅ Navigation functionality across all pages
 - ✅ Video Management page with Phase Filter Bar
+- ✅ Phase Filter warning icon logic validation
 - ✅ Create page form detection
 - ✅ Edit page functionality
 - ✅ Performance metrics (page load times)
@@ -81,8 +83,8 @@ npm run test:guide
 ```
 
 ### Test Performance
-- **Execution Time**: ~1.2 seconds for 14 comprehensive tests
-- **Success Rate**: 100% (14/14 tests passing)
+- **Execution Time**: ~1.2 seconds for 15 comprehensive tests
+- **Success Rate**: 100% (15/15 tests passing)
 - **Optimization**: Batched DOM evaluations, minimal navigation
 - **Browser**: Headless Chrome with optimized flags
 
@@ -126,12 +128,13 @@ The application will be available at `http://localhost:3000`
 
 ## 📊 Current Status
 
-**Development Stage**: Phase Filter Bar Complete
+**Development Stage**: Phase Filter Bar with Warning System Complete
 - ✅ Project structure established
 - ✅ Navigation and routing configured
 - ✅ Video Management page with phase filtering
 - ✅ PhaseFilterBar component with API integration
-- ✅ Comprehensive test suite operational
+- ✅ Warning icon system for insufficient video counts
+- ✅ Comprehensive test suite operational (15 tests)
 - ✅ Visual design alignment with mockups
 - ✅ Production-ready error handling and fallbacks
 - 🚀 Ready for additional feature development (video CRUD operations, advanced filtering).
@@ -146,6 +149,6 @@ The application will be available at `http://localhost:3000`
 
 ## 📝 Notes
 
-This is a foundational implementation with a production-ready Phase Filter Bar component. The Video Management page features comprehensive phase filtering with real API integration, fallback handling, and visual design aligned with mockups. The robust testing infrastructure and clean architecture provide a solid foundation for continued feature development.
+This is a foundational implementation with a production-ready Phase Filter Bar component featuring warning indicators. The Video Management page features comprehensive phase filtering with real API integration, warning icons for phases with insufficient video counts, fallback handling, and visual design aligned with mockups. The robust testing infrastructure and clean architecture provide a solid foundation for continued feature development.
 
-The Phase Filter Bar implementation is complete with "Started" as default selection, stable button ordering, and production-ready error handling.
+The Phase Filter Bar implementation is complete with "Started" as default selection, warning system for insufficient videos, stable button ordering, and production-ready error handling.
