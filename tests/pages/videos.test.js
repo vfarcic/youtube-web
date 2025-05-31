@@ -41,6 +41,50 @@ async function testVideosPage(page, counters) {
         }
     });
     
+    // TDD TEST: PhaseFilterBar should render all phases from API (RED phase - should fail before fix)
+    const phasesApiTest = await page.evaluate(async () => {
+        try {
+            const response = await fetch('http://localhost:8080/api/videos/phases');
+            const data = await response.json();
+            
+            // Wait for phases to be rendered
+            let attempts = 0;
+            let phaseButtons = [];
+            while (attempts < 50) {
+                const phaseFilterBar = document.querySelector('.phase-filter');
+                if (phaseFilterBar) {
+                    phaseButtons = Array.from(phaseFilterBar.querySelectorAll('.phase-btn'));
+                    if (phaseButtons.length > 1) break;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                attempts++;
+            }
+            
+            // Expected: All phases from API + "All" button should be rendered
+            const expectedPhaseCount = data.phases ? data.phases.length + 1 : 1; // +1 for "All" button
+            const actualPhaseCount = phaseButtons.length;
+            
+            return {
+                expectedPhases: data.phases ? data.phases.length : 0,
+                actualPhaseButtons: actualPhaseCount,
+                expectedTotal: expectedPhaseCount,
+                apiResponseCorrect: !!data.phases,
+                phasesFromAPI: data.phases ? data.phases.map(p => p.name) : [],
+                buttonsRendered: phaseButtons.map(btn => btn.textContent.trim())
+            };
+        } catch (error) {
+            return {
+                error: error.message,
+                expectedPhases: 0,
+                actualPhaseButtons: 0,
+                expectedTotal: 1,
+                apiResponseCorrect: false,
+                phasesFromAPI: [],
+                buttonsRendered: []
+            };
+        }
+    });
+    
     const videosPageResults = await page.evaluate(async (maxAttempts) => {
         const evalStart = performance.now();
         
@@ -100,6 +144,7 @@ async function testVideosPage(page, counters) {
             placeholderUpdates: false,
             buttonFormatCorrect: true,
             warningLogicCorrect: true,
+            showsDifferentVideos: true,
         };
 
         // Phase Filter Warning Tests
@@ -197,7 +242,77 @@ async function testVideosPage(page, counters) {
             });
         }
         
-        // VideoGrid Tests
+        // TDD Test: Verify phase filtering shows different videos
+        if (phaseFilterBar && phaseButtons.length >= 2) {
+            // Get initial video titles from "Started" phase
+            const startedButton = phaseButtons.find(btn => btn.textContent && btn.textContent.includes('Started'));
+            const otherPhaseButton = phaseButtons.find(btn => btn !== startedButton && btn.textContent && !btn.textContent.includes('All'));
+            
+            if (startedButton && otherPhaseButton) {
+                // Ensure we're on "Started" phase initially
+                startedButton.click();
+                
+                // Wait for DOM to update and videos to load
+                let startedVideoCards = [];
+                let attempts = 0;
+                while (attempts < 50) { // 5 seconds max
+                    await delay(100);
+                    startedVideoCards = Array.from(document.querySelectorAll('.video-card'));
+                    if (startedVideoCards.length > 0) break;
+                    attempts++;
+                }
+                
+                // Capture video titles from Started phase
+                const startedVideoTitles = startedVideoCards.map(card => {
+                    const titleElement = card.querySelector('h3');
+                    return titleElement ? titleElement.textContent.trim() : '';
+                }).filter(title => title);
+                
+                // Switch to different phase
+                otherPhaseButton.click();
+                
+                // Wait for DOM to update and videos to load for other phase
+                let otherPhaseVideoCards = [];
+                attempts = 0;
+                while (attempts < 50) { // 5 seconds max
+                    await delay(100);
+                    otherPhaseVideoCards = Array.from(document.querySelectorAll('.video-card'));
+                    // Wait until the video count changes or we have videos
+                    if (otherPhaseVideoCards.length > 0 && otherPhaseVideoCards.length !== startedVideoCards.length) break;
+                    if (otherPhaseVideoCards.length > 0 && attempts > 10) break; // Give it at least 1 second
+                    attempts++;
+                }
+                
+                // Capture video titles from other phase
+                const otherPhaseVideoTitles = otherPhaseVideoCards.map(card => {
+                    const titleElement = card.querySelector('h3');
+                    return titleElement ? titleElement.textContent.trim() : '';
+                }).filter(title => title);
+                
+                // Test: The video titles should be different between phases
+                const titlesAreDifferent = JSON.stringify(startedVideoTitles.sort()) !== JSON.stringify(otherPhaseVideoTitles.sort());
+                const hasVideosInBothPhases = startedVideoTitles.length > 0 && otherPhaseVideoTitles.length > 0;
+                
+                // If both phases have videos, they should be different
+                // If one phase is empty and the other isn't, that's also valid (showing different content)
+                phaseFilterTests.showsDifferentVideos = titlesAreDifferent || (startedVideoTitles.length !== otherPhaseVideoTitles.length);
+                
+                // Debug logging for TDD
+                console.log(`TDD DEBUG - Started titles (${startedVideoTitles.length}):`, startedVideoTitles);
+                console.log(`TDD DEBUG - Other phase titles (${otherPhaseVideoTitles.length}):`, otherPhaseVideoTitles);
+                console.log(`TDD DEBUG - Different:`, titlesAreDifferent);
+                
+                // Reset to Started for consistency
+                startedButton.click();
+                await delay(200);
+            } else {
+                // Not enough phase buttons to test, default to true
+                phaseFilterTests.showsDifferentVideos = true;
+            }
+        } else {
+            // No phase filter bar or not enough buttons, default to true
+            phaseFilterTests.showsDifferentVideos = true;
+        }
         let videoGridTests = {
             gridExists: !!videoGrid,
             cardsRendered: videoCards.length > 0,
@@ -404,6 +519,18 @@ async function testVideosPage(page, counters) {
             name: 'Phase warning logic correct', 
             result: videosPageResults.phaseFilter.warningLogicCorrect,
             errorMessage: 'Videos Page: Phase warning icons not correctly applied based on business rules'
+        },
+        // TDD Test: Phase filtering shows different videos
+        { 
+            name: 'Phase filtering shows different videos (TDD)', 
+            result: videosPageResults.phaseFilter.showsDifferentVideos,
+            errorMessage: 'Videos Page: Changing phase filters does not show different videos - all phases show the same content'
+        },
+        // TDD Test: All phases from API should be rendered as buttons  
+        { 
+            name: 'All phases from API rendered as buttons (TDD)', 
+            result: phasesApiTest.actualPhaseButtons === phasesApiTest.expectedTotal && phasesApiTest.apiResponseCorrect,
+            errorMessage: `Videos Page: PhaseFilterBar not rendering all phases from API. Expected ${phasesApiTest.expectedTotal} buttons (${phasesApiTest.expectedPhases} phases + All), got ${phasesApiTest.actualPhaseButtons}. API phases: [${phasesApiTest.phasesFromAPI.join(', ')}], Rendered buttons: [${phasesApiTest.buttonsRendered.join(', ')}]`
         },
         // VideoGrid Tests
         { 

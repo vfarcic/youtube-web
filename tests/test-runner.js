@@ -14,6 +14,7 @@
  * Prerequisites: npm install puppeteer
  */
 
+// TODO: Convert to tests that are easier to read
 const { initializeBrowser, printTestSummary } = require('./utils/test-helpers');
 const { testHomepage } = require('./pages/homepage.test');
 const { testVideosPage } = require('./pages/videos.test');
