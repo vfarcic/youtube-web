@@ -1,3 +1,6 @@
 # Ignore VS Code specific files
 .vscode/
 node_modules/
+
+# Ignore Cursor IDE MCP configuration
+.cursor/mcp.json
