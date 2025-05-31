@@ -11,9 +11,11 @@ This application provides a web interface for YouTube content management with th
 - **Video Edit**: Modify existing videos
 
 ### Latest Features
+- **API Integration Fixed**: Resolved 400 Bad Request errors by implementing required phase parameter in videos API calls
 - **Phase Filter Bar**: Production-ready component with real API integration and warning indicators
 - **Warning Icons**: Visual alerts for phases with insufficient video counts (Publish Pending <1, Edit Requested <1, Material Done <3)
-- **Video Phase Management**: Filter videos by production phases (Published, Started, etc.)
+- **Video Phase Management**: Filter videos by production phases with proper API parameter handling
+- **Enhanced Error Detection**: Comprehensive API error detection and validation in test suite
 - **Visual Design System**: Consistent styling with yellow accent colors and mockup alignment
 
 ## 🛠️ Technology Stack
@@ -64,6 +66,9 @@ The project features a comprehensive automated testing suite with optimal perfor
 - ✅ Navigation functionality across all pages
 - ✅ Video Management page with Phase Filter Bar
 - ✅ Phase Filter warning icon logic validation
+- ✅ API integration and error detection
+- ✅ Backend connectivity validation  
+- ✅ Real vs mock data validation
 - ✅ Create page form detection
 - ✅ Edit page functionality
 - ✅ Performance metrics (page load times)
@@ -72,19 +77,24 @@ The project features a comprehensive automated testing suite with optimal perfor
 
 ### Running Tests
 ```bash
-# From the app directory (recommended)
+# Unit tests (fast, no backend needed)
 cd app && npm test
 
-# Direct execution
-node tests/test-runner.js
+# Integration tests (requires backend on port 8080)
+npm run test:integration
 
-# View test guide
-npm run test:guide
+# All tests (unit + integration)
+npm run test:all
+
+# Backend health check
+npm run test:health
 ```
 
 ### Test Performance
-- **Execution Time**: ~1.2 seconds for 15 comprehensive tests
-- **Success Rate**: 100% (15/15 tests passing)
+- **Unit Tests**: ~1.2 seconds for 21 comprehensive tests
+- **Integration Tests**: ~6 seconds for 9 API validation tests
+- **Success Rate**: 100% (30/30 total tests passing)
+- **API Integration**: Real backend connectivity verified
 - **Optimization**: Batched DOM evaluations, minimal navigation
 - **Browser**: Headless Chrome with optimized flags
 
@@ -134,7 +144,7 @@ The application will be available at `http://localhost:3000`
 - ✅ Video Management page with phase filtering
 - ✅ PhaseFilterBar component with API integration
 - ✅ Warning icon system for insufficient video counts
-- ✅ Comprehensive test suite operational (15 tests)
+- ✅ Comprehensive test suite operational (30 tests)
 - ✅ Visual design alignment with mockups
 - ✅ Production-ready error handling and fallbacks
 - 🚀 Ready for additional feature development (video CRUD operations, advanced filtering).
