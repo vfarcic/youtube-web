@@ -68,12 +68,8 @@ function setupInteractiveElements() {
     // Video card actions
     setupVideoCardActions();
     
-    // Edit tabs
-    setupEditTabs();
-    
     // Progress simulation
     setupProgressSimulation();
-
 }
 
 function setupHeaderDropdowns() {
@@ -135,8 +131,7 @@ function setupVideoCardActions() {
         const editBtn = card.querySelector('.btn-edit');
         if (editBtn) {
             editBtn.addEventListener('click', function() {
-                showView('video-edit');
-                showNotification('Editing video: ' + card.querySelector('h3').textContent, 'info');
+                showNotification('Video editing functionality coming soon! This will open an edit page for: ' + card.querySelector('h3').textContent, 'info');
             });
         }
         
@@ -161,23 +156,6 @@ function setupVideoCardActions() {
                 showMoveDialog(card.querySelector('h3').textContent);
             });
         }
-    });
-}
-
-function setupEditTabs() {
-    const editTabs = document.querySelectorAll('.edit-tab');
-    
-    editTabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            // Remove active class from all edit tabs
-            editTabs.forEach(t => t.classList.remove('active'));
-            
-            // Add active class to clicked tab
-            this.classList.add('active');
-            
-            // Simulate loading different phase content
-            showPhaseContent(this.textContent);
-        });
     });
 }
 
@@ -249,8 +227,7 @@ function setupProgressVideos() {
     progressVideoCards.forEach(card => {
         card.addEventListener('click', function() {
             const videoTitle = this.querySelector('h3').textContent;
-            showView('video-edit');
-            showNotification(`Editing: ${videoTitle}`, 'info');
+            showNotification(`Video editing coming soon for: ${videoTitle}`, 'info');
         });
         
         // Add hover effect cursor
@@ -304,19 +281,6 @@ function showMoveDialog(videoTitle) {
     
     if (selectedPhase && phases.includes(selectedPhase)) {
         showNotification(`Video moved to ${selectedPhase} phase`, 'success');
-    }
-}
-
-function showPhaseContent(phaseTitle) {
-    showNotification(`Loading ${phaseTitle} phase content...`, 'info');
-    
-    // Simulate loading different form fields based on phase
-    const formPreview = document.querySelector('.form-preview');
-    if (formPreview) {
-        formPreview.style.opacity = '0.5';
-        setTimeout(() => {
-            formPreview.style.opacity = '1';
-        }, 500);
     }
 }
 

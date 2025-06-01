@@ -26,7 +26,7 @@ async function testHomepage(page, counters) {
         );
         
         // Navigation Tests
-        const expectedPaths = ['/', '/videos', '/create', '/edit'];
+        const expectedPaths = ['/', '/videos', '/create'];
         const foundPaths = allLinks.map(link => link.getAttribute('href'));
         const hasAllPaths = expectedPaths.every(path => foundPaths.includes(path));
         

@@ -56,8 +56,7 @@ tests/
 ├── pages/                      # Page-specific test modules
 │   ├── homepage.test.js
 │   ├── videos.test.js
-│   ├── create.test.js
-│   └── edit.test.js
+│   └── create.test.js
 └── utils/
     └── test-helpers.js         # Shared test utilities
 ```
