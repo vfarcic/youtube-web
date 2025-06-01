@@ -614,38 +614,6 @@ body {
 .btn-delete:hover { background: var(--secondary-bg-color); border-color: #D33F3F; color: #D33F3F; }
 .btn-move:hover { background: var(--secondary-bg-color); border-color: #0E9F70; color: #0E9F70; }
 
-/* Video Edit Styles */
-.edit-tabs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid #e2e8f0;
-    padding-bottom: 1rem;
-}
-
-.edit-tab {
-    background: none;
-    border: none;
-    padding: 0.75rem 1.5rem;
-    cursor: pointer;
-    font-size: 0.9rem;
-    color: #64748b;
-    border-radius: 6px 6px 0 0;
-    transition: all 0.2s ease;
-}
-
-.edit-tab:hover {
-    background: var(--primary-bg-color);
-    color: var(--primary-accent-color);
-}
-
-.edit-tab.active {
-    background: linear-gradient(135deg, var(--primary-accent-color) 0%, var(--secondary-accent-color) 100%); /* Yellow gradient for active edit tab */
-    color: var(--text-on-accent-bg);
-    box-shadow: 0 2px 8px var(--card-shadow-color);
-}
-
 .form-preview {
     display: grid;
     gap: 1rem;
@@ -877,10 +845,6 @@ body {
     }
     
     .video-actions {
-        flex-direction: column;
-    }
-    
-    .edit-tabs {
         flex-direction: column;
     }
     

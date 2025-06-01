@@ -14,12 +14,10 @@
  * Prerequisites: npm install puppeteer
  */
 
-// TODO: Convert to tests that are easier to read
 const { initializeBrowser, printTestSummary } = require('./utils/test-helpers');
 const { testHomepage } = require('./pages/homepage.test');
 const { testVideosPage } = require('./pages/videos.test');
 const { testCreatePage } = require('./pages/create.test');
-const { testEditPage } = require('./pages/edit.test');
 const { testApiErrorDetection } = require('./api-error-detection.test');
 
 async function runOptimizedTests() {
@@ -43,7 +41,6 @@ async function runOptimizedTests() {
         await testHomepage(page, counters);
         await testVideosPage(page, counters);
         await testCreatePage(page, counters);
-        await testEditPage(page, counters);
         
         // Execute API error detection tests
         await testApiErrorDetection(page, counters);
