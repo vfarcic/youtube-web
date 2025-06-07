@@ -1,0 +1,425 @@
+# Task ID: 6
+# Title: Implement AspectEditForm Component
+# Status: pending
+# Dependencies: 2, 5
+# Priority: high
+# Description: Create a dynamic form component that renders the appropriate fields based on the selected editing aspect, with smart field type detection for improved user experience.
+# Details:
+Create a new component `components/AspectEditForm.tsx` that dynamically generates form fields based on the selected aspect, with intelligent field type detection:
+
+```typescript
+import React, { useState, useEffect } from 'react';
+import { VideoListItem, EditingAspect } from '../types/videoEditing';
+
+interface AspectEditFormProps {
+  video: VideoListItem;
+  aspect: EditingAspect;
+  onSave: (updatedFields: Partial<Video>) => Promise<void>;
+  onCancel: () => void;
+  onBack: () => void;  // Return to aspect selection
+}
+
+const AspectEditForm: React.FC<AspectEditFormProps> = ({
+  video,
+  aspect,
+  onSave,
+  onCancel,
+  onBack
+}) => {
+  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Initialize form with current values from video
+  useEffect(() => {
+    const initialData: Record<string, any> = {};
+    aspect.fields.forEach(field => {
+      initialData[field.name] = video[field.name] || '';
+    });
+    setFormData(initialData);
+  }, [video, aspect]);
+  
+  const handleChange = (fieldName: string, value: any) => {
+    setFormData(prev => ({ ...prev, [fieldName]: value }));
+    
+    // Clear error when field is edited
+    if (errors[fieldName]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    }
+  };
+  
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    aspect.fields.forEach(field => {
+      if (field.required && !formData[field.name]) {
+        newErrors[field.name] = `${field.label} is required`;
+      } else if (field.validation) {
+        const isValid = typeof field.validation === 'function' 
+          ? field.validation(formData[field.name])
+          : field.validation.test(formData[field.name]);
+          
+        if (!isValid) {
+          newErrors[field.name] = field.errorMessage || `Invalid ${field.label}`;
+        }
+      }
+    });
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    setIsSaving(true);
+    try {
+      await onSave(formData);
+      // Success handling
+    } catch (error) {
+      // Error handling
+      console.error('Error saving form:', error);
+      // Set API errors if available
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Smart field type detection
+  const getFieldType = (field: any, value: any) => {
+    // If field type is explicitly defined, use it
+    if (field.type) return field.type;
+    
+    // Date detection
+    if (field.name.toLowerCase().includes('date')) {
+      return 'datetime-local';
+    }
+    
+    // Boolean detection
+    if (
+      typeof value === 'boolean' ||
+      field.name.endsWith('Done') ||
+      field.name.startsWith('request') ||
+      field.name.endsWith('Sent') ||
+      field.name.startsWith('is') ||
+      field.name.startsWith('has')
+    ) {
+      return 'boolean';
+    }
+    
+    // Long text detection
+    if (typeof value === 'string' && value.length > 100) {
+      return 'textarea';
+    }
+    
+    // Array or object detection
+    if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+      return 'json';
+    }
+    
+    // Default to text input
+    return 'text';
+  };
+  
+  const renderField = (field: any) => {
+    const fieldType = getFieldType(field, formData[field.name]);
+    
+    switch (fieldType) {
+      case 'datetime-local':
+        return (
+          <input
+            type="datetime-local"
+            id={field.name}
+            value={formData[field.name] || ''}
+            onChange={e => handleChange(field.name, e.target.value)}
+            className={errors[field.name] ? 'is-invalid' : ''}
+          />
+        );
+      
+      case 'boolean':
+        return (
+          <div className="yes-no-toggle">
+            <label className="radio-btn">
+              <input
+                type="radio"
+                name={field.name}
+                checked={formData[field.name] === true}
+                onChange={() => handleChange(field.name, true)}
+              />
+              <span>Yes</span>
+            </label>
+            <label className="radio-btn">
+              <input
+                type="radio"
+                name={field.name}
+                checked={formData[field.name] === false}
+                onChange={() => handleChange(field.name, false)}
+              />
+              <span>No</span>
+            </label>
+          </div>
+        );
+      
+      case 'textarea':
+        return (
+          <textarea
+            id={field.name}
+            value={formData[field.name] || ''}
+            onChange={e => handleChange(field.name, e.target.value)}
+            className={errors[field.name] ? 'is-invalid' : ''}
+            rows={5}
+          />
+        );
+      
+      case 'json':
+        return (
+          <textarea
+            id={field.name}
+            value={typeof formData[field.name] === 'object' ? JSON.stringify(formData[field.name], null, 2) : formData[field.name] || ''}
+            onChange={e => {
+              try {
+                const value = e.target.value.trim();
+                // Try to parse as JSON, fallback to comma-separated values
+                const parsedValue = value.startsWith('[') || value.startsWith('{') 
+                  ? JSON.parse(value)
+                  : value.split(',').map(item => item.trim());
+                handleChange(field.name, parsedValue);
+              } catch (err) {
+                // If parsing fails, store as string
+                handleChange(field.name, e.target.value);
+              }
+            }}
+            className={errors[field.name] ? 'is-invalid' : ''}
+            rows={3}
+          />
+        );
+      
+      case 'select':
+        return (
+          <select
+            id={field.name}
+            value={formData[field.name] || ''}
+            onChange={e => handleChange(field.name, e.target.value)}
+            className={errors[field.name] ? 'is-invalid' : ''}
+          >
+            <option value="">Select...</option>
+            {field.options?.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        );
+      
+      case 'checkbox':
+        return (
+          <input
+            type="checkbox"
+            id={field.name}
+            checked={!!formData[field.name]}
+            onChange={e => handleChange(field.name, e.target.checked)}
+          />
+        );
+      
+      default:
+        return (
+          <input
+            type={fieldType}
+            id={field.name}
+            value={formData[field.name] || ''}
+            onChange={e => handleChange(field.name, e.target.value)}
+            className={errors[field.name] ? 'is-invalid' : ''}
+          />
+        );
+    }
+  };
+  
+  return (
+    <div className="aspect-edit-form">
+      <div className="form-header">
+        <button 
+          className="btn btn-sm btn-secondary" 
+          onClick={onBack}
+          aria-label="Back to aspect selection"
+        >
+          <span className="icon-arrow-left" aria-hidden="true"></span>
+          Back
+        </button>
+        <h3>{aspect.title}</h3>
+      </div>
+      
+      <form onSubmit={handleSubmit}>
+        {aspect.fields.map(field => (
+          <div key={field.name} className="form-group">
+            <label htmlFor={field.name}>{field.label}</label>
+            {renderField(field)}
+            {errors[field.name] && (
+              <div className="invalid-feedback">{errors[field.name]}</div>
+            )}
+          </div>
+        ))}
+        
+        <div className="form-actions">
+          <button 
+            type="button" 
+            className="btn btn-secondary" 
+            onClick={onCancel}
+            disabled={isSaving}
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            className="btn btn-primary" 
+            disabled={isSaving}
+          >
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};
+
+export default AspectEditForm;
+```
+
+Implement proper form validation with real-time feedback. Group related fields together for better organization. Use the mockup.js implementation as a reference for the smart field detection logic. The component should automatically detect and render appropriate input types:
+
+1. Date fields (containing "date") should render as datetime-local inputs with calendar pickers
+2. Boolean fields should render as styled Yes/No radio button groups
+3. Long text content should render as textareas
+4. Arrays and objects should have special JSON/comma-separated input handling
+
+Based on the mock analysis, implement these additional features:
+1. Field completion status indicators (green checkmarks/pending clocks)
+2. Styled Yes/No radio button groups using the .radio-group and .radio-option classes
+3. AI generation buttons for Definition aspect fields only
+4. Form validation with proper error states using .is-invalid and .invalid-feedback classes
+5. Dark theme with yellow accent colors (--primary-accent-color: #FFD700)
+6. Label formatting using formatFieldLabel() to convert camelCase to "Formatted Label"
+7. Smart data parsing between strings, arrays, objects, and booleans
+8. Integration with the getAspectFields(aspectKey) API endpoint
+
+# Test Strategy:
+Follow a TDD approach with these phases:
+
+### Phase 1: RED - Create Tests
+Create `tests/pages/aspect-edit-form.test.js` with comprehensive test suite:
+
+1. Form renders all fields from the selected aspect
+2. Form initializes with current values from the video object
+3. Validation works correctly for required fields and custom validation rules
+4. Form submission calls onSave with the correct updated fields
+5. Error messages are displayed correctly
+6. Loading state is shown during save operations
+7. Smart field detection correctly identifies and renders:
+   - Date fields as datetime-local inputs
+   - Boolean fields as Yes/No radio button groups
+   - Long text as textareas
+   - Arrays/objects with appropriate JSON handling
+8. Test that field type detection works with various naming patterns (fields ending with "Done", starting with "request", etc.)
+9. Field completion status indicators render correctly
+10. AI generation buttons appear only for Definition aspect fields
+11. Label formatting correctly converts camelCase to "Formatted Label"
+12. Form properly integrates with the getAspectFields API endpoint
+13. Accessibility compliance (labels, focus management)
+14. User interactions (typing, radio buttons, form submission)
+
+### Phase 2: GREEN - Implement Component
+Implement the component to pass all tests, following the mock implementation exactly.
+
+### Phase 3: REFACTOR - Polish & Integration
+Optimize the component for performance, accessibility, and integration with the AspectSelection component.
+
+# Subtasks:
+## 6.1. Create test suite for AspectEditForm [pending]
+### Dependencies: None
+### Description: Create comprehensive test suite following TDD approach in tests/pages/aspect-edit-form.test.js
+### Details:
+
+
+## 6.2. Implement basic AspectEditForm component structure [pending]
+### Dependencies: None
+### Description: Create the component with props interface, state management, and form rendering logic
+### Details:
+
+
+## 6.3. Implement smart field type detection [pending]
+### Dependencies: None
+### Description: Implement the getFieldType function based on mock implementation, handling all field types (date, boolean, textarea, JSON, text)
+### Details:
+
+
+## 6.4. Implement field rendering logic [pending]
+### Dependencies: None
+### Description: Create renderField function to generate appropriate input elements based on field type
+### Details:
+
+
+## 6.5. Add form validation and error handling [pending]
+### Dependencies: None
+### Description: Implement validateForm function with real-time feedback and error display
+### Details:
+
+
+## 6.6. Add field completion status indicators [pending]
+### Dependencies: None
+### Description: Implement visual indicators (checkmarks/clocks) for field completion status
+### Details:
+
+
+## 6.7. Implement styled Yes/No radio button groups [pending]
+### Dependencies: None
+### Description: Create styled radio button groups for boolean fields using the .radio-group and .radio-option classes
+### Details:
+
+
+## 6.8. Add AI generation buttons for Definition aspect [pending]
+### Dependencies: None
+### Description: Implement AI generation buttons that appear only for Definition aspect fields
+### Details:
+
+
+## 6.9. Implement label formatting [pending]
+### Dependencies: None
+### Description: Create formatFieldLabel function to convert camelCase to "Formatted Label"
+### Details:
+
+
+## 6.10. Integrate with API client [pending]
+### Dependencies: None
+### Description: Connect component with getAspectFields API endpoint for field metadata
+### Details:
+
+
+## 6.11. Implement form submission and API integration [pending]
+### Dependencies: None
+### Description: Complete handleSubmit function with proper API integration and error handling
+### Details:
+
+
+## 6.12. Add accessibility features [pending]
+### Dependencies: None
+### Description: Ensure component is fully accessible with proper labels, focus management, and ARIA attributes
+### Details:
+
+
+## 6.13. Apply visual styling [pending]
+### Dependencies: None
+### Description: Implement dark theme with yellow accent colors and match visual design from mock styles
+### Details:
+
+
+## 6.14. Refactor and optimize [pending]
+### Dependencies: None
+### Description: Optimize component for performance and integration with AspectSelection component
+### Details:
+
+

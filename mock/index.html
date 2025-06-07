@@ -225,6 +225,55 @@
         </div>
     </div>
 
+    <!-- Video Edit Modal -->
+    <div id="edit-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 id="edit-modal-title">Edit Video</h2>
+                <button class="modal-close" onclick="closeEditModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="modal-content">
+                <!-- Aspect Selection View -->
+                <div id="aspect-selection-view" class="edit-view active">
+                    <div class="view-header">
+                        <h3>Select Aspect to Edit</h3>
+                        <p>Choose which aspect of the video you want to modify</p>
+                    </div>
+                    
+                    <div class="aspects-grid" id="aspects-grid">
+                        <!-- Aspect cards will be generated here -->
+                    </div>
+                </div>
+                
+                <!-- Aspect Edit Form View -->
+                <div id="aspect-edit-view" class="edit-view">
+                    <div class="view-header">
+                        <button class="back-btn" onclick="showAspectSelection()">
+                            <i class="fas fa-arrow-left"></i> Back to Aspects
+                        </button>
+                        <h3 id="aspect-edit-title">Edit Aspect</h3>
+                    </div>
+                    
+                    <div class="aspect-form-container" id="aspect-form-container">
+                        <!-- Dynamic form will be generated here -->
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button class="btn-save" id="save-aspect-btn">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                        <button class="btn-cancel" onclick="showAspectSelection()">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="mockup.js"></script>
 </body>
 </html>

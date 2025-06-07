@@ -1,0 +1,129 @@
+# Task ID: 9
+# Title: Implement Edit State Management
+# Status: pending
+# Dependencies: 7, 8
+# Priority: medium
+# Description: Create a state management solution to handle the video editing workflow, including aspect selection, form state, and API integration.
+# Details:
+Create a custom hook `hooks/useVideoEdit.ts` to manage the edit state:
+
+```typescript
+import { useState, useCallback } from 'react';
+import { VideoListItem, EditingAspect, VideoEditState } from '../types/videoEditing';
+import videoEditApi from '../api/videoEditApi';
+
+export function useVideoEdit() {
+  const [editState, setEditState] = useState<VideoEditState>({
+    selectedVideo: null,
+    selectedAspect: null,
+    isEditing: false,
+    isDirty: false,
+    isSaving: false,
+    errors: {}
+  });
+  
+  // Start editing a video
+  const startEditing = useCallback((video: VideoListItem) => {
+    setEditState(prev => ({
+      ...prev,
+      selectedVideo: video,
+      isEditing: true,
+      selectedAspect: null,
+      isDirty: false,
+      errors: {}
+    }));
+  }, []);
+  
+  // Select an aspect to edit
+  const selectAspect = useCallback((aspect: EditingAspect) => {
+    setEditState(prev => ({
+      ...prev,
+      selectedAspect: aspect,
+      isDirty: false,
+      errors: {}
+    }));
+  }, []);
+  
+  // Save changes to an aspect
+  const saveAspect = useCallback(async (updatedFields: Partial<Video>) => {
+    const { selectedVideo, selectedAspect } = editState;
+    
+    if (!selectedVideo || !selectedAspect) return;
+    
+    setEditState(prev => ({ ...prev, isSaving: true, errors: {} }));
+    
+    try {
+      const updatedVideo = await videoEditApi.updateVideoAspect(
+        selectedVideo.name,
+        selectedAspect.endpoint,
+        updatedFields
+      );
+      
+      // Update the selected video with new data
+      setEditState(prev => ({
+        ...prev,
+        selectedVideo: { ...prev.selectedVideo, ...updatedVideo } as VideoListItem,
+        isSaving: false,
+        isDirty: false,
+        selectedAspect: null // Return to aspect selection
+      }));
+      
+      return updatedVideo;
+    } catch (error) {
+      // Handle API errors
+      const errorMessage = error.response?.data?.message || 'Failed to save changes';
+      
+      setEditState(prev => ({
+        ...prev,
+        isSaving: false,
+        errors: { api: errorMessage }
+      }));
+      
+      throw error;
+    }
+  }, [editState]);
+  
+  // Cancel editing
+  const cancelEditing = useCallback(() => {
+    setEditState(prev => ({
+      ...prev,
+      isEditing: false,
+      selectedVideo: null,
+      selectedAspect: null,
+      isDirty: false,
+      errors: {}
+    }));
+  }, []);
+  
+  // Go back to aspect selection
+  const backToAspectSelection = useCallback(() => {
+    setEditState(prev => ({
+      ...prev,
+      selectedAspect: null,
+      isDirty: false,
+      errors: {}
+    }));
+  }, []);
+  
+  return {
+    editState,
+    startEditing,
+    selectAspect,
+    saveAspect,
+    cancelEditing,
+    backToAspectSelection
+  };
+}
+```
+
+This hook encapsulates all the state management logic for the edit workflow. It handles starting the edit process, selecting aspects, saving changes, and error handling. Use React's Context API if you need to share this state across multiple components.
+
+# Test Strategy:
+Write unit tests to verify:
+1. Initial state is set correctly
+2. startEditing updates the state correctly
+3. selectAspect updates the selected aspect
+4. saveAspect calls the API and updates state on success
+5. saveAspect handles errors correctly
+6. cancelEditing and backToAspectSelection reset the state correctly
+7. Test the full workflow with mock API calls

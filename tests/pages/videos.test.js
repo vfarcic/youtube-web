@@ -381,11 +381,13 @@ async function testVideosPage(page, counters) {
             const moveButton = firstCard.querySelector('.btn-move');
             
             // Check if buttons exist but are properly marked as not implemented
-            const editMarkedNotImplemented = editButton && (editButton.disabled || editButton.textContent.includes('Coming Soon') || editButton.textContent.includes('Not Implemented'));
+            // Edit button is now functional, so only check Delete and Move
+            const editMarkedFunctional = editButton && !editButton.disabled && !editButton.textContent.includes('Coming Soon') && !editButton.textContent.includes('Not Implemented');
             const deleteMarkedNotImplemented = deleteButton && (deleteButton.disabled || deleteButton.textContent.includes('Coming Soon') || deleteButton.textContent.includes('Not Implemented'));
             const moveMarkedNotImplemented = moveButton && (moveButton.disabled || moveButton.textContent.includes('Coming Soon') || moveButton.textContent.includes('Not Implemented'));
             
-            videoCardTests.actionButtonsMarkedAsNotImplemented = !!(editMarkedNotImplemented && deleteMarkedNotImplemented && moveMarkedNotImplemented);
+            // Updated logic: Edit should be functional, Delete and Move should be marked as not implemented
+            videoCardTests.actionButtonsMarkedAsNotImplemented = !!(editMarkedFunctional && deleteMarkedNotImplemented && moveMarkedNotImplemented);
             
             // Test that all action buttons are present and functional
             videoCardTests.menuFunctional = !!(editButton && deleteButton && moveButton && videoActions);
@@ -693,9 +695,9 @@ async function testVideosPage(page, counters) {
             errorMessage: 'Videos Page: VideoCard date format is incorrect (should be MMM DD, YYYY)'
         },
         { 
-            name: 'Action buttons marked as not implemented (TDD)', 
+            name: 'Edit functional, Delete/Move marked not implemented (TDD)', 
             result: videosPageResults.videoCard.actionButtonsMarkedAsNotImplemented,
-            errorMessage: 'Videos Page: VideoCard action buttons (Edit, Delete, Move) should be clearly marked as "not implemented" or "coming soon" to set proper user expectations.'
+            errorMessage: 'Videos Page: Edit button should be functional, but Delete and Move buttons should be clearly marked as "not implemented" or "coming soon" to set proper user expectations.'
         },
         // API Error Detection Tests
         { 

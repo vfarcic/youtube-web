@@ -5,6 +5,9 @@ node_modules/
 # Ignore Cursor IDE MCP configuration
 .cursor/mcp.json
 
+# Ignore temporary OpenAPI files
+openapi*
+
 # Added by Claude Task Master
 # Logs
 logs
@@ -25,7 +28,4 @@ dev-debug.log
 *.sln
 *.sw?
 # OS specific
-.DS_Store
-# Task files
-tasks.json
-tasks/ 
+.DS_Store 

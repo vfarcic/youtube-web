@@ -1,0 +1,381 @@
+{
+  "tasks": [
+    {
+      "id": 1,
+      "title": "Create Mock API Endpoints for Video Editing",
+      "description": "Implement mock data and functions in JavaScript to simulate the backend API endpoints for video editing aspects, then design and implement the video editing interface in the mock environment.",
+      "status": "done",
+      "dependencies": [],
+      "priority": "high",
+      "details": "The task consists of two main phases:\n\nPhase 1: Mock API Implementation (Completed)\n1. Create a comprehensive mock data structure in mockup.js that includes:\n   - Sample video list with multiple entries\n   - Phase statistics for dashboard display\n   - Complete video details for each sample video\n   - Data for all 6 editing aspects per video:\n     * initial-details\n     * work-progress\n     * definition\n     * post-production\n     * publishing\n     * post-publish\n\n2. Implement JavaScript functions that simulate API responses:\n   - getVideoList() - Returns list with optional phase filtering\n   - getVideoDetails(videoName) - Returns complete details for a specific video\n   - getPhaseStatistics() - Returns aggregated phase data\n   - getAspectData(videoName, aspect) - Returns data for a specific aspect of a video\n\n3. Ensure all mock data follows the field mappings from the PRD to match the expected API response structure.\n\n4. Include simulated delay and error conditions to facilitate testing of loading states and error handling.\n\nPhase 2: Video Editing Interface Design (Current Focus)\n1. Analyze the current mock interface structure to understand how to integrate the editing components\n2. Identify and list all required editing UI elements based on the PRD requirements\n3. Design the aspect-based editing interface for all 6 editing aspects:\n   - initial-details\n   - work-progress\n   - definition\n   - post-production\n   - publishing\n   - post-publish\n4. Add the editing views/modals to the mock HTML structure\n5. Implement interactive elements in the mockup to demonstrate user flows\n6. Ensure the mock interface aligns with the PRD specifications before implementing in the real application",
+      "testStrategy": "Phase 1 Testing (Completed):\nVerify that all mock functions return appropriate data structures. Test with various parameters to ensure proper filtering and data access. Validate that the structure matches the expected API schema.\n\nPhase 2 Testing (Current Focus):\n1. Review the mock interface against PRD requirements to ensure all editing components are represented\n2. Test the navigation flow between different editing aspects\n3. Verify that the interface correctly displays mock data from the API functions\n4. Test interactive elements to ensure they demonstrate the intended user experience\n5. Validate the visual design against any provided mockups or wireframes\n6. Use browser console and application testing to verify the mock interface components work as expected",
+      "subtasks": [
+        {
+          "id": "1.1",
+          "title": "Analyze current mock interface structure",
+          "status": "done",
+          "description": "Review the existing HTML/CSS structure to understand how to integrate the video editing components effectively."
+        },
+        {
+          "id": "1.2",
+          "title": "Identify required editing UI elements",
+          "status": "done",
+          "description": "Create a comprehensive list of all UI elements needed for the video editing interface based on PRD requirements."
+        },
+        {
+          "id": "1.3",
+          "title": "Design aspect-based editing interface",
+          "status": "done",
+          "description": "Create HTML/CSS mockups for all 6 editing aspects (initial-details, work-progress, definition, post-production, publishing, post-publish) according to PRD specifications."
+        },
+        {
+          "id": "1.4",
+          "title": "Implement editing views in mock HTML",
+          "status": "done",
+          "description": "Add the designed editing views and modals to the mock HTML structure, ensuring proper integration with existing components."
+        },
+        {
+          "id": "1.5",
+          "title": "Create interactive editing interface mockup",
+          "status": "done",
+          "description": "Implement JavaScript functionality to make the mock interface interactive, demonstrating user flows between different editing aspects and views."
+        },
+        {
+          "id": "1.6",
+          "title": "Test and validate mock interface",
+          "status": "done",
+          "description": "Verify that the mock interface correctly represents all PRD requirements and provides a clear blueprint for the actual implementation."
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Define TypeScript Interfaces for Video Editing",
+      "description": "Implement the aspect selection screen that calls the API to get aspect information, focusing on an API-first approach for video editing functionality, with an interim solution using existing endpoints until the backend implements the missing aspects endpoint.",
+      "status": "done",
+      "dependencies": [],
+      "priority": "high",
+      "details": "Implement the aspect selection screen with an API-first approach, adapting to the discovery that the backend is missing the required aspects endpoint:\n\n1. Create a new API client function to fetch aspects:\n```typescript\n// In src/api/videoEditing.ts\nasync function fetchAspects(): Promise<any> {\n  // Call the API endpoint that returns available aspects\n  // Return the raw response for now\n  return apiClient.get('/aspects');\n}\n```\n\n2. Create a minimal set of TypeScript interfaces based on the actual API response:\n```typescript\n// In types/videoEditing.ts\n// These will be refined based on actual API responses\n\n// Basic aspect interface based on API response\ninterface EditingAspect {\n  key: string;\n  title: string;\n  endpoint: string;\n  fields?: any[]; // Will be refined after API inspection\n}\n\n// Video list item (for selection)\ninterface VideoListItem {\n  name: string;\n  phase: string;\n  title?: string;\n  // Other fields as returned by the API\n}\n\n// Edit state management\ninterface VideoEditState {\n  selectedVideo: VideoListItem | null;\n  selectedAspect: EditingAspect | null;\n  isEditing: boolean;\n  isDirty: boolean;\n  isSaving: boolean;\n  errors: Record<string, string>;\n}\n```\n\n3. Implement the aspect selection component:\n```typescript\n// In components/AspectSelection.tsx\nimport React, { useEffect, useState } from 'react';\nimport { fetchAspects } from '../api/videoEditing';\nimport { EditingAspect } from '../types/videoEditing';\n\nconst AspectSelection: React.FC<{\n  onAspectSelected: (aspect: EditingAspect) => void;\n}> = ({ onAspectSelected }) => {\n  const [aspects, setAspects] = useState<EditingAspect[]>([]);\n  const [loading, setLoading] = useState(true);\n  const [error, setError] = useState<string | null>(null);\n\n  useEffect(() => {\n    const loadAspects = async () => {\n      try {\n        setLoading(true);\n        const data = await fetchAspects();\n        setAspects(data);\n      } catch (err) {\n        setError('Failed to load aspects');\n        console.error(err);\n      } finally {\n        setLoading(false);\n      }\n    };\n    \n    loadAspects();\n  }, []);\n\n  if (loading) return <div>Loading aspects...</div>;\n  if (error) return <div>Error: {error}</div>;\n\n  return (\n    <div className=\"aspect-selection\">\n      <h2>Select an aspect to edit</h2>\n      <div className=\"aspect-grid\">\n        {aspects.map(aspect => (\n          <div \n            key={aspect.key} \n            className=\"aspect-card\"\n            onClick={() => onAspectSelected(aspect)}\n          >\n            <h3>{aspect.title}</h3>\n            {/* Add more details as available from the API */}\n          </div>\n        ))}\n      </div>\n    </div>\n  );\n};\n\nexport default AspectSelection;\n```\n\n4. If the API is missing necessary data, document what's needed for a PRD in the youtube-automation repo:\n   - Create a list of required fields for each aspect\n   - Document the expected response format\n   - Note any additional metadata needed for the UI\n\n5. Interim Solution Implementation (until backend implements aspects endpoint):\n```typescript\n// In src/api/videoEditing.ts\nasync function fetchWorkflowPhases(): Promise<string[]> {\n  // Use existing endpoint to get workflow phases\n  const response = await apiClient.get('/api/videos/phases');\n  return response.data;\n}\n\n// Map workflow phases to temporary aspect structure\nfunction mapPhasesToAspects(phases: string[]): EditingAspect[] {\n  return phases.map(phase => ({\n    key: phase,\n    title: phase.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),\n    endpoint: `/api/videos/{name}/${phase}`,\n    fields: [] // Will be determined dynamically when endpoint is called\n  }));\n}\n\n// Temporary implementation until aspects endpoint exists\nasync function fetchAspects(): Promise<EditingAspect[]> {\n  try {\n    const phases = await fetchWorkflowPhases();\n    return mapPhasesToAspects(phases);\n  } catch (error) {\n    console.error('Failed to fetch workflow phases:', error);\n    throw new Error('Unable to load editing aspects');\n  }\n}\n```\n\n6. Update the AspectSelection component to work with the interim solution:\n```typescript\n// In components/AspectSelection.tsx\n// Update the component to handle the interim aspect structure\n// Add appropriate error handling for missing fields\n// Ensure the component is ready to work with the proper aspects endpoint when available\n```\n\nAfter implementing the interim aspect selection screen and testing with the actual API, we'll refine the TypeScript interfaces based on the real data structure returned by the API. The PRD for the missing aspects endpoint has been created at `.taskmaster/docs/editing-aspects-api-prd.md` and will guide the backend implementation.",
+      "testStrategy": "Test the aspect selection screen implementation with the following approach:\n\n1. Create mock API responses for testing:\n   - Mock successful API responses with sample aspect data\n   - Mock error states to test error handling\n   - Mock workflow phases data for the interim solution\n\n2. Unit tests:\n   - Test the API client function with mocked responses\n   - Test the AspectSelection component rendering with different states (loading, error, data)\n   - Verify that clicking on an aspect correctly triggers the onAspectSelected callback\n   - Test the mapPhasesToAspects function to ensure it correctly transforms phase data\n\n3. Integration tests:\n   - Test the integration between the API client and the component\n   - Verify that aspects are correctly displayed after loading\n   - Test the interim solution with the actual workflow phases endpoint\n\n4. Manual testing:\n   - Test the aspect selection screen with the actual API\n   - Document any discrepancies between expected and actual API responses\n   - Create a list of any missing data that needs to be added to the API\n   - Verify the interim solution works with existing endpoints\n\n5. API validation:\n   - Verify that all required data for the aspect selection screen is available from the API\n   - Document any fields that are missing or have unexpected formats\n   - Ensure the implementation is ready to switch to the proper aspects endpoint when available\n\n6. Regression testing:\n   - Ensure the interim solution doesn't break existing functionality\n   - Verify that the component can be easily updated when the backend implements the aspects endpoint",
+      "subtasks": [
+        {
+          "id": "2.1",
+          "title": "Create API client function to fetch aspects",
+          "status": "done",
+          "description": "Implement the fetchAspects function in the API client to retrieve aspect data from the backend."
+        },
+        {
+          "id": "2.2",
+          "title": "Create minimal TypeScript interfaces based on API response",
+          "status": "done",
+          "description": "Define basic interfaces for EditingAspect, VideoListItem, and VideoEditState based on actual API responses."
+        },
+        {
+          "id": "2.3",
+          "title": "Implement AspectSelection component",
+          "status": "done",
+          "description": "Create a React component that displays available aspects and allows selection."
+        },
+        {
+          "id": "2.4",
+          "title": "Document API requirements",
+          "status": "done",
+          "description": "If the API is missing necessary data, document what's needed for a PRD in the youtube-automation repo."
+        },
+        {
+          "id": "2.5",
+          "title": "Write tests for aspect selection implementation",
+          "status": "done",
+          "description": "Create unit and integration tests for the aspect selection functionality."
+        },
+        {
+          "id": "2.6",
+          "title": "Implement interim solution using workflow phases",
+          "status": "done",
+          "description": "Create a temporary implementation that uses the existing workflow phases endpoint until the backend implements the aspects endpoint."
+        },
+        {
+          "id": "2.7",
+          "title": "Update AspectSelection component for interim solution",
+          "status": "done",
+          "description": "Modify the AspectSelection component to work with the interim solution while maintaining compatibility with the future aspects endpoint."
+        },
+        {
+          "id": "2.8",
+          "title": "Add tests for interim solution",
+          "status": "done",
+          "description": "Create additional tests to verify the interim solution works correctly with the existing workflow phases endpoint."
+        },
+        {
+          "id": "2.9",
+          "title": "Document transition plan to proper aspects endpoint",
+          "status": "done",
+          "description": "Create documentation on how to transition from the interim solution to the proper aspects endpoint once it's implemented by the backend."
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Implement VideoEditButton Component",
+      "description": "Create a reusable button component that will be added to the VideoCard to initiate the editing process.",
+      "details": "Create a new component `components/VideoEditButton.tsx` with the following implementation:\n\n```typescript\nimport React from 'react';\nimport { VideoListItem } from '../types/videoEditing';\n\ninterface VideoEditButtonProps {\n  video: VideoListItem;\n  disabled: boolean;\n  onEdit: (video: VideoListItem) => void;\n}\n\nconst VideoEditButton: React.FC<VideoEditButtonProps> = ({ video, disabled, onEdit }) => {\n  return (\n    <button\n      className=\"btn btn-sm btn-primary\"\n      disabled={disabled}\n      onClick={() => onEdit(video)}\n      aria-label={`Edit video ${video.title || video.name}`}\n    >\n      <span className=\"icon-pencil mr-1\" aria-hidden=\"true\"></span>\n      Edit\n    </button>\n  );\n};\n\nexport default VideoEditButton;\n```\n\nThe button should be styled according to the application's design system. It should be disabled when viewing \"All videos\" (no phase filter active) as specified in the PRD. Add appropriate hover states and focus styles for accessibility.",
+      "testStrategy": "Write unit tests using React Testing Library to verify:\n1. Button renders correctly with proper text and icon\n2. Button is disabled when the disabled prop is true\n3. onClick handler is called with the correct video object when clicked\n4. Accessibility attributes are properly set",
+      "priority": "medium",
+      "dependencies": [
+        2
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 4,
+      "title": "Enhance VideoCard Component with Edit Button",
+      "description": "Modify the existing VideoCard component to include the new Edit button with conditional rendering based on phase filter.",
+      "details": "Update the existing VideoCard component to include the VideoEditButton:\n\n```typescript\nimport VideoEditButton from './VideoEditButton';\n\n// Inside the VideoCard component\nconst VideoCard: React.FC<VideoCardProps> = ({ video, isPhaseFiltered, onEdit }) => {\n  // Existing code...\n  \n  return (\n    <div className=\"video-card\">\n      {/* Existing video card content */}\n      \n      <div className=\"video-card-actions\">\n        {/* Existing action buttons */}\n        \n        <VideoEditButton \n          video={video}\n          disabled={!isPhaseFiltered} // Disabled when no phase filter is active\n          onEdit={onEdit}\n        />\n      </div>\n    </div>\n  );\n};\n```\n\nEnsure the button is positioned consistently with other action buttons. Add a tooltip explaining why the button is disabled when viewing \"All videos\". Update the VideoCard props interface to include the new onEdit callback.",
+      "testStrategy": "Write unit tests to verify:\n1. Edit button is rendered when VideoCard is rendered\n2. Edit button is disabled when isPhaseFiltered is false\n3. Edit button is enabled when isPhaseFiltered is true\n4. onEdit callback is passed correctly to the VideoEditButton\n5. Visual regression tests to ensure layout remains consistent",
+      "priority": "medium",
+      "dependencies": [
+        3
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 5,
+      "title": "Create AspectSelectionMenu Component",
+      "description": "Implement the component that displays all 6 editing aspects with completion indicators, allowing users to select which aspect to edit.",
+      "details": "Create a new component `components/AspectSelectionMenu.tsx` that displays all 6 editing aspects as selectable cards with progress indicators:\n\n```typescript\nimport React from 'react';\nimport { EditingAspect } from '../types/videoEditing';\n\ninterface AspectSelectionMenuProps {\n  video: VideoListItem;\n  onAspectSelect: (aspect: EditingAspect) => void;\n  aspectProgress: Record<string, { completed: number; total: number }>;\n}\n\nconst AspectSelectionMenu: React.FC<AspectSelectionMenuProps> = ({ \n  video, \n  onAspectSelect, \n  aspectProgress \n}) => {\n  // Define all 6 aspects based on the PRD\n  const aspects: EditingAspect[] = [\n    {\n      key: 'initial-details',\n      title: 'Initial Details',\n      endpoint: 'initial-details',\n      fields: ['projectName', 'projectURL', 'sponsorship', 'date', 'delayed', 'gist']\n    },\n    // Define the other 5 aspects similarly\n  ];\n\n  return (\n    <div className=\"aspect-selection-container\">\n      <h3>Select an aspect to edit</h3>\n      <div className=\"aspect-grid\">\n        {aspects.map(aspect => {\n          const progress = aspectProgress[aspect.key] || { completed: 0, total: aspect.fields.length };\n          const percentage = progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0;\n          \n          return (\n            <div \n              key={aspect.key}\n              className=\"aspect-card\"\n              onClick={() => onAspectSelect(aspect)}\n              tabIndex={0}\n              role=\"button\"\n              aria-pressed=\"false\"\n            >\n              <h4>{aspect.title}</h4>\n              <div className=\"progress-bar\">\n                <div \n                  className=\"progress-fill\" \n                  style={{ width: `${percentage}%` }}\n                  aria-valuenow={percentage}\n                  aria-valuemin={0}\n                  aria-valuemax={100}\n                ></div>\n              </div>\n              <div className=\"progress-text\">\n                {progress.completed}/{progress.total} fields completed\n              </div>\n            </div>\n          );\n        })}\n      </div>\n    </div>\n  );\n};\n\nexport default AspectSelectionMenu;\n```\n\nStyle the component to match the CLI's aspect selection experience with clear visual hierarchy. Use CSS Grid or Flexbox for the aspect card layout. Implement hover and focus states for better accessibility.",
+      "testStrategy": "Write unit tests to verify:\n1. All 6 aspects are rendered correctly\n2. Progress bars show the correct percentage based on completed fields\n3. Clicking an aspect card calls onAspectSelect with the correct aspect\n4. Keyboard navigation works for accessibility\n5. Visual appearance matches the design specifications",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 6,
+      "title": "Implement AspectEditForm Component",
+      "description": "Create a dynamic form component that renders the appropriate fields based on the selected editing aspect, with smart field type detection for improved user experience.",
+      "status": "pending",
+      "dependencies": [
+        2,
+        5
+      ],
+      "priority": "high",
+      "details": "Create a new component `components/AspectEditForm.tsx` that dynamically generates form fields based on the selected aspect, with intelligent field type detection:\n\n```typescript\nimport React, { useState, useEffect } from 'react';\nimport { VideoListItem, EditingAspect } from '../types/videoEditing';\n\ninterface AspectEditFormProps {\n  video: VideoListItem;\n  aspect: EditingAspect;\n  onSave: (updatedFields: Partial<Video>) => Promise<void>;\n  onCancel: () => void;\n  onBack: () => void;  // Return to aspect selection\n}\n\nconst AspectEditForm: React.FC<AspectEditFormProps> = ({\n  video,\n  aspect,\n  onSave,\n  onCancel,\n  onBack\n}) => {\n  const [formData, setFormData] = useState<Record<string, any>>({});\n  const [errors, setErrors] = useState<Record<string, string>>({});\n  const [isSaving, setIsSaving] = useState(false);\n  \n  // Initialize form with current values from video\n  useEffect(() => {\n    const initialData: Record<string, any> = {};\n    aspect.fields.forEach(field => {\n      initialData[field.name] = video[field.name] || '';\n    });\n    setFormData(initialData);\n  }, [video, aspect]);\n  \n  const handleChange = (fieldName: string, value: any) => {\n    setFormData(prev => ({ ...prev, [fieldName]: value }));\n    \n    // Clear error when field is edited\n    if (errors[fieldName]) {\n      setErrors(prev => {\n        const newErrors = { ...prev };\n        delete newErrors[fieldName];\n        return newErrors;\n      });\n    }\n  };\n  \n  const validateForm = () => {\n    const newErrors: Record<string, string> = {};\n    \n    aspect.fields.forEach(field => {\n      if (field.required && !formData[field.name]) {\n        newErrors[field.name] = `${field.label} is required`;\n      } else if (field.validation) {\n        const isValid = typeof field.validation === 'function' \n          ? field.validation(formData[field.name])\n          : field.validation.test(formData[field.name]);\n          \n        if (!isValid) {\n          newErrors[field.name] = field.errorMessage || `Invalid ${field.label}`;\n        }\n      }\n    });\n    \n    setErrors(newErrors);\n    return Object.keys(newErrors).length === 0;\n  };\n  \n  const handleSubmit = async (e: React.FormEvent) => {\n    e.preventDefault();\n    \n    if (!validateForm()) return;\n    \n    setIsSaving(true);\n    try {\n      await onSave(formData);\n      // Success handling\n    } catch (error) {\n      // Error handling\n      console.error('Error saving form:', error);\n      // Set API errors if available\n    } finally {\n      setIsSaving(false);\n    }\n  };\n\n  // Smart field type detection\n  const getFieldType = (field: any, value: any) => {\n    // If field type is explicitly defined, use it\n    if (field.type) return field.type;\n    \n    // Date detection\n    if (field.name.toLowerCase().includes('date')) {\n      return 'datetime-local';\n    }\n    \n    // Boolean detection\n    if (\n      typeof value === 'boolean' ||\n      field.name.endsWith('Done') ||\n      field.name.startsWith('request') ||\n      field.name.endsWith('Sent') ||\n      field.name.startsWith('is') ||\n      field.name.startsWith('has')\n    ) {\n      return 'boolean';\n    }\n    \n    // Long text detection\n    if (typeof value === 'string' && value.length > 100) {\n      return 'textarea';\n    }\n    \n    // Array or object detection\n    if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {\n      return 'json';\n    }\n    \n    // Default to text input\n    return 'text';\n  };\n  \n  const renderField = (field: any) => {\n    const fieldType = getFieldType(field, formData[field.name]);\n    \n    switch (fieldType) {\n      case 'datetime-local':\n        return (\n          <input\n            type=\"datetime-local\"\n            id={field.name}\n            value={formData[field.name] || ''}\n            onChange={e => handleChange(field.name, e.target.value)}\n            className={errors[field.name] ? 'is-invalid' : ''}\n          />\n        );\n      \n      case 'boolean':\n        return (\n          <div className=\"yes-no-toggle\">\n            <label className=\"radio-btn\">\n              <input\n                type=\"radio\"\n                name={field.name}\n                checked={formData[field.name] === true}\n                onChange={() => handleChange(field.name, true)}\n              />\n              <span>Yes</span>\n            </label>\n            <label className=\"radio-btn\">\n              <input\n                type=\"radio\"\n                name={field.name}\n                checked={formData[field.name] === false}\n                onChange={() => handleChange(field.name, false)}\n              />\n              <span>No</span>\n            </label>\n          </div>\n        );\n      \n      case 'textarea':\n        return (\n          <textarea\n            id={field.name}\n            value={formData[field.name] || ''}\n            onChange={e => handleChange(field.name, e.target.value)}\n            className={errors[field.name] ? 'is-invalid' : ''}\n            rows={5}\n          />\n        );\n      \n      case 'json':\n        return (\n          <textarea\n            id={field.name}\n            value={typeof formData[field.name] === 'object' ? JSON.stringify(formData[field.name], null, 2) : formData[field.name] || ''}\n            onChange={e => {\n              try {\n                const value = e.target.value.trim();\n                // Try to parse as JSON, fallback to comma-separated values\n                const parsedValue = value.startsWith('[') || value.startsWith('{') \n                  ? JSON.parse(value)\n                  : value.split(',').map(item => item.trim());\n                handleChange(field.name, parsedValue);\n              } catch (err) {\n                // If parsing fails, store as string\n                handleChange(field.name, e.target.value);\n              }\n            }}\n            className={errors[field.name] ? 'is-invalid' : ''}\n            rows={3}\n          />\n        );\n      \n      case 'select':\n        return (\n          <select\n            id={field.name}\n            value={formData[field.name] || ''}\n            onChange={e => handleChange(field.name, e.target.value)}\n            className={errors[field.name] ? 'is-invalid' : ''}\n          >\n            <option value=\"\">Select...</option>\n            {field.options?.map(option => (\n              <option key={option.value} value={option.value}>\n                {option.label}\n              </option>\n            ))}\n          </select>\n        );\n      \n      case 'checkbox':\n        return (\n          <input\n            type=\"checkbox\"\n            id={field.name}\n            checked={!!formData[field.name]}\n            onChange={e => handleChange(field.name, e.target.checked)}\n          />\n        );\n      \n      default:\n        return (\n          <input\n            type={fieldType}\n            id={field.name}\n            value={formData[field.name] || ''}\n            onChange={e => handleChange(field.name, e.target.value)}\n            className={errors[field.name] ? 'is-invalid' : ''}\n          />\n        );\n    }\n  };\n  \n  return (\n    <div className=\"aspect-edit-form\">\n      <div className=\"form-header\">\n        <button \n          className=\"btn btn-sm btn-secondary\" \n          onClick={onBack}\n          aria-label=\"Back to aspect selection\"\n        >\n          <span className=\"icon-arrow-left\" aria-hidden=\"true\"></span>\n          Back\n        </button>\n        <h3>{aspect.title}</h3>\n      </div>\n      \n      <form onSubmit={handleSubmit}>\n        {aspect.fields.map(field => (\n          <div key={field.name} className=\"form-group\">\n            <label htmlFor={field.name}>{field.label}</label>\n            {renderField(field)}\n            {errors[field.name] && (\n              <div className=\"invalid-feedback\">{errors[field.name]}</div>\n            )}\n          </div>\n        ))}\n        \n        <div className=\"form-actions\">\n          <button \n            type=\"button\" \n            className=\"btn btn-secondary\" \n            onClick={onCancel}\n            disabled={isSaving}\n          >\n            Cancel\n          </button>\n          <button \n            type=\"submit\" \n            className=\"btn btn-primary\" \n            disabled={isSaving}\n          >\n            {isSaving ? 'Saving...' : 'Save Changes'}\n          </button>\n        </div>\n      </form>\n    </div>\n  );\n};\n\nexport default AspectEditForm;\n```\n\nImplement proper form validation with real-time feedback. Group related fields together for better organization. Use the mockup.js implementation as a reference for the smart field detection logic. The component should automatically detect and render appropriate input types:\n\n1. Date fields (containing \"date\") should render as datetime-local inputs with calendar pickers\n2. Boolean fields should render as styled Yes/No radio button groups\n3. Long text content should render as textareas\n4. Arrays and objects should have special JSON/comma-separated input handling\n\nBased on the mock analysis, implement these additional features:\n1. Field completion status indicators (green checkmarks/pending clocks)\n2. Styled Yes/No radio button groups using the .radio-group and .radio-option classes\n3. AI generation buttons for Definition aspect fields only\n4. Form validation with proper error states using .is-invalid and .invalid-feedback classes\n5. Dark theme with yellow accent colors (--primary-accent-color: #FFD700)\n6. Label formatting using formatFieldLabel() to convert camelCase to \"Formatted Label\"\n7. Smart data parsing between strings, arrays, objects, and booleans\n8. Integration with the getAspectFields(aspectKey) API endpoint",
+      "testStrategy": "Follow a TDD approach with these phases:\n\n### Phase 1: RED - Create Tests\nCreate `tests/pages/aspect-edit-form.test.js` with comprehensive test suite:\n\n1. Form renders all fields from the selected aspect\n2. Form initializes with current values from the video object\n3. Validation works correctly for required fields and custom validation rules\n4. Form submission calls onSave with the correct updated fields\n5. Error messages are displayed correctly\n6. Loading state is shown during save operations\n7. Smart field detection correctly identifies and renders:\n   - Date fields as datetime-local inputs\n   - Boolean fields as Yes/No radio button groups\n   - Long text as textareas\n   - Arrays/objects with appropriate JSON handling\n8. Test that field type detection works with various naming patterns (fields ending with \"Done\", starting with \"request\", etc.)\n9. Field completion status indicators render correctly\n10. AI generation buttons appear only for Definition aspect fields\n11. Label formatting correctly converts camelCase to \"Formatted Label\"\n12. Form properly integrates with the getAspectFields API endpoint\n13. Accessibility compliance (labels, focus management)\n14. User interactions (typing, radio buttons, form submission)\n\n### Phase 2: GREEN - Implement Component\nImplement the component to pass all tests, following the mock implementation exactly.\n\n### Phase 3: REFACTOR - Polish & Integration\nOptimize the component for performance, accessibility, and integration with the AspectSelection component.",
+      "subtasks": [
+        {
+          "id": "6.1",
+          "title": "Create test suite for AspectEditForm",
+          "description": "Create comprehensive test suite following TDD approach in tests/pages/aspect-edit-form.test.js",
+          "status": "pending"
+        },
+        {
+          "id": "6.2",
+          "title": "Implement basic AspectEditForm component structure",
+          "description": "Create the component with props interface, state management, and form rendering logic",
+          "status": "pending"
+        },
+        {
+          "id": "6.3",
+          "title": "Implement smart field type detection",
+          "description": "Implement the getFieldType function based on mock implementation, handling all field types (date, boolean, textarea, JSON, text)",
+          "status": "pending"
+        },
+        {
+          "id": "6.4",
+          "title": "Implement field rendering logic",
+          "description": "Create renderField function to generate appropriate input elements based on field type",
+          "status": "pending"
+        },
+        {
+          "id": "6.5",
+          "title": "Add form validation and error handling",
+          "description": "Implement validateForm function with real-time feedback and error display",
+          "status": "pending"
+        },
+        {
+          "id": "6.6",
+          "title": "Add field completion status indicators",
+          "description": "Implement visual indicators (checkmarks/clocks) for field completion status",
+          "status": "pending"
+        },
+        {
+          "id": "6.7",
+          "title": "Implement styled Yes/No radio button groups",
+          "description": "Create styled radio button groups for boolean fields using the .radio-group and .radio-option classes",
+          "status": "pending"
+        },
+        {
+          "id": "6.8",
+          "title": "Add AI generation buttons for Definition aspect",
+          "description": "Implement AI generation buttons that appear only for Definition aspect fields",
+          "status": "pending"
+        },
+        {
+          "id": "6.9",
+          "title": "Implement label formatting",
+          "description": "Create formatFieldLabel function to convert camelCase to \"Formatted Label\"",
+          "status": "pending"
+        },
+        {
+          "id": "6.10",
+          "title": "Integrate with API client",
+          "description": "Connect component with getAspectFields API endpoint for field metadata",
+          "status": "pending"
+        },
+        {
+          "id": "6.11",
+          "title": "Implement form submission and API integration",
+          "description": "Complete handleSubmit function with proper API integration and error handling",
+          "status": "pending"
+        },
+        {
+          "id": "6.12",
+          "title": "Add accessibility features",
+          "description": "Ensure component is fully accessible with proper labels, focus management, and ARIA attributes",
+          "status": "pending"
+        },
+        {
+          "id": "6.13",
+          "title": "Apply visual styling",
+          "description": "Implement dark theme with yellow accent colors and match visual design from mock styles",
+          "status": "pending"
+        },
+        {
+          "id": "6.14",
+          "title": "Refactor and optimize",
+          "description": "Optimize component for performance and integration with AspectSelection component",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Create VideoEditModal Component",
+      "description": "Implement the modal component that will contain both the AspectSelectionMenu and AspectEditForm, managing the state between them.",
+      "details": "Create a new component `components/VideoEditModal.tsx` that serves as the container for the editing workflow:\n\n```typescript\nimport React, { useState } from 'react';\nimport { VideoListItem, EditingAspect } from '../types/videoEditing';\nimport AspectSelectionMenu from './AspectSelectionMenu';\nimport AspectEditForm from './AspectEditForm';\n\ninterface VideoEditModalProps {\n  video: VideoListItem;\n  isOpen: boolean;\n  onClose: () => void;\n  onSave: (aspect: string, updatedFields: Partial<Video>) => Promise<void>;\n}\n\nconst VideoEditModal: React.FC<VideoEditModalProps> = ({\n  video,\n  isOpen,\n  onClose,\n  onSave\n}) => {\n  const [selectedAspect, setSelectedAspect] = useState<EditingAspect | null>(null);\n  const [aspectProgress, setAspectProgress] = useState<Record<string, { completed: number; total: number }>>({});\n  \n  // Calculate initial aspect progress when modal opens\n  React.useEffect(() => {\n    if (isOpen && video) {\n      // Calculate completion for each aspect\n      // This would be based on which fields have values\n      // Implementation depends on how you define \"completed\" fields\n    }\n  }, [isOpen, video]);\n  \n  const handleAspectSelect = (aspect: EditingAspect) => {\n    setSelectedAspect(aspect);\n  };\n  \n  const handleSave = async (updatedFields: Partial<Video>) => {\n    if (!selectedAspect) return;\n    \n    await onSave(selectedAspect.endpoint, updatedFields);\n    \n    // Update progress after save\n    const fieldCount = selectedAspect.fields.length;\n    const completedCount = selectedAspect.fields.filter(field => \n      updatedFields[field.name] !== undefined && updatedFields[field.name] !== ''\n    ).length;\n    \n    setAspectProgress(prev => ({\n      ...prev,\n      [selectedAspect.key]: {\n        completed: completedCount,\n        total: fieldCount\n      }\n    }));\n    \n    // Return to aspect selection after save\n    setSelectedAspect(null);\n  };\n  \n  const handleBack = () => {\n    setSelectedAspect(null);\n  };\n  \n  if (!isOpen) return null;\n  \n  return (\n    <div className=\"modal-overlay\">\n      <div className=\"modal-container\">\n        <div className=\"modal-header\">\n          <h2>Edit Video: {video.title || video.name}</h2>\n          <button \n            className=\"close-button\" \n            onClick={onClose}\n            aria-label=\"Close\"\n          >\n            &times;\n          </button>\n        </div>\n        \n        <div className=\"modal-body\">\n          {selectedAspect ? (\n            <AspectEditForm\n              video={video}\n              aspect={selectedAspect}\n              onSave={handleSave}\n              onCancel={onClose}\n              onBack={handleBack}\n            />\n          ) : (\n            <AspectSelectionMenu\n              video={video}\n              onAspectSelect={handleAspectSelect}\n              aspectProgress={aspectProgress}\n            />\n          )}\n        </div>\n      </div>\n    </div>\n  );\n};\n\nexport default VideoEditModal;\n```\n\nImplement modal with proper focus management for accessibility. Add smooth transitions between aspect selection and form views. Ensure the modal is responsive and works well on different screen sizes.",
+      "testStrategy": "Write unit tests to verify:\n1. Modal renders correctly when isOpen is true and doesn't render when false\n2. AspectSelectionMenu is shown initially when modal opens\n3. Selecting an aspect switches to the AspectEditForm\n4. Back button returns to AspectSelectionMenu\n5. Progress is updated correctly after saving\n6. Modal can be closed with the close button\n7. Test keyboard navigation and focus management for accessibility",
+      "priority": "high",
+      "dependencies": [
+        5,
+        6
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 8,
+      "title": "Implement Video Edit API Client",
+      "description": "Create an API client class that handles all aspect-specific API calls for video editing.",
+      "details": "Create a new file `api/videoEditApi.ts` with the following implementation:\n\n```typescript\nimport axios from 'axios';\nimport { Video } from '../types/videoEditing';\n\nclass VideoEditAPI {\n  private baseUrl: string;\n  \n  constructor(baseUrl = '/api') {\n    this.baseUrl = baseUrl;\n  }\n  \n  // Get full video details\n  async getVideo(videoName: string): Promise<Video> {\n    const response = await axios.get(`${this.baseUrl}/videos/${videoName}`);\n    return response.data;\n  }\n  \n  // Aspect-specific update methods\n  async updateInitialDetails(videoName: string, fields: Partial<Video>): Promise<Video> {\n    const response = await axios.put(`${this.baseUrl}/videos/${videoName}/initial-details`, fields);\n    return response.data;\n  }\n  \n  async updateWorkProgress(videoName: string, fields: Partial<Video>): Promise<Video> {\n    const response = await axios.put(`${this.baseUrl}/videos/${videoName}/work-progress`, fields);\n    return response.data;\n  }\n  \n  async updateDefinition(videoName: string, fields: Partial<Video>): Promise<Video> {\n    const response = await axios.put(`${this.baseUrl}/videos/${videoName}/definition`, fields);\n    return response.data;\n  }\n  \n  async updatePostProduction(videoName: string, fields: Partial<Video>): Promise<Video> {\n    const response = await axios.put(`${this.baseUrl}/videos/${videoName}/post-production`, fields);\n    return response.data;\n  }\n  \n  async updatePublishing(videoName: string, fields: Partial<Video>): Promise<Video> {\n    const response = await axios.put(`${this.baseUrl}/videos/${videoName}/publishing`, fields);\n    return response.data;\n  }\n  \n  async updatePostPublish(videoName: string, fields: Partial<Video>): Promise<Video> {\n    const response = await axios.put(`${this.baseUrl}/videos/${videoName}/post-publish`, fields);\n    return response.data;\n  }\n  \n  // Generic update method that selects the appropriate endpoint based on aspect\n  async updateVideoAspect(videoName: string, aspect: string, fields: Partial<Video>): Promise<Video> {\n    switch (aspect) {\n      case 'initial-details':\n        return this.updateInitialDetails(videoName, fields);\n      case 'work-progress':\n        return this.updateWorkProgress(videoName, fields);\n      case 'definition':\n        return this.updateDefinition(videoName, fields);\n      case 'post-production':\n        return this.updatePostProduction(videoName, fields);\n      case 'publishing':\n        return this.updatePublishing(videoName, fields);\n      case 'post-publish':\n        return this.updatePostPublish(videoName, fields);\n      default:\n        throw new Error(`Unknown aspect: ${aspect}`);\n    }\n  }\n}\n\n// Create and export a singleton instance\nconst videoEditApi = new VideoEditAPI();\nexport default videoEditApi;\n```\n\nImplement proper error handling and response parsing. Use axios interceptors for common error handling. Add retry logic for network failures.",
+      "testStrategy": "Write unit tests using Jest and axios-mock-adapter to verify:\n1. Each API method calls the correct endpoint with the right parameters\n2. Response data is properly parsed and returned\n3. Error handling works correctly for different error scenarios\n4. The generic updateVideoAspect method routes to the correct specific method\n5. Test with various field combinations to ensure proper serialization",
+      "priority": "high",
+      "dependencies": [
+        2
+      ],
+      "status": "done",
+      "subtasks": []
+    },
+    {
+      "id": 9,
+      "title": "Implement Edit State Management",
+      "description": "Create a state management solution to handle the video editing workflow, including aspect selection, form state, and API integration.",
+      "details": "Create a custom hook `hooks/useVideoEdit.ts` to manage the edit state:\n\n```typescript\nimport { useState, useCallback } from 'react';\nimport { VideoListItem, EditingAspect, VideoEditState } from '../types/videoEditing';\nimport videoEditApi from '../api/videoEditApi';\n\nexport function useVideoEdit() {\n  const [editState, setEditState] = useState<VideoEditState>({\n    selectedVideo: null,\n    selectedAspect: null,\n    isEditing: false,\n    isDirty: false,\n    isSaving: false,\n    errors: {}\n  });\n  \n  // Start editing a video\n  const startEditing = useCallback((video: VideoListItem) => {\n    setEditState(prev => ({\n      ...prev,\n      selectedVideo: video,\n      isEditing: true,\n      selectedAspect: null,\n      isDirty: false,\n      errors: {}\n    }));\n  }, []);\n  \n  // Select an aspect to edit\n  const selectAspect = useCallback((aspect: EditingAspect) => {\n    setEditState(prev => ({\n      ...prev,\n      selectedAspect: aspect,\n      isDirty: false,\n      errors: {}\n    }));\n  }, []);\n  \n  // Save changes to an aspect\n  const saveAspect = useCallback(async (updatedFields: Partial<Video>) => {\n    const { selectedVideo, selectedAspect } = editState;\n    \n    if (!selectedVideo || !selectedAspect) return;\n    \n    setEditState(prev => ({ ...prev, isSaving: true, errors: {} }));\n    \n    try {\n      const updatedVideo = await videoEditApi.updateVideoAspect(\n        selectedVideo.name,\n        selectedAspect.endpoint,\n        updatedFields\n      );\n      \n      // Update the selected video with new data\n      setEditState(prev => ({\n        ...prev,\n        selectedVideo: { ...prev.selectedVideo, ...updatedVideo } as VideoListItem,\n        isSaving: false,\n        isDirty: false,\n        selectedAspect: null // Return to aspect selection\n      }));\n      \n      return updatedVideo;\n    } catch (error) {\n      // Handle API errors\n      const errorMessage = error.response?.data?.message || 'Failed to save changes';\n      \n      setEditState(prev => ({\n        ...prev,\n        isSaving: false,\n        errors: { api: errorMessage }\n      }));\n      \n      throw error;\n    }\n  }, [editState]);\n  \n  // Cancel editing\n  const cancelEditing = useCallback(() => {\n    setEditState(prev => ({\n      ...prev,\n      isEditing: false,\n      selectedVideo: null,\n      selectedAspect: null,\n      isDirty: false,\n      errors: {}\n    }));\n  }, []);\n  \n  // Go back to aspect selection\n  const backToAspectSelection = useCallback(() => {\n    setEditState(prev => ({\n      ...prev,\n      selectedAspect: null,\n      isDirty: false,\n      errors: {}\n    }));\n  }, []);\n  \n  return {\n    editState,\n    startEditing,\n    selectAspect,\n    saveAspect,\n    cancelEditing,\n    backToAspectSelection\n  };\n}\n```\n\nThis hook encapsulates all the state management logic for the edit workflow. It handles starting the edit process, selecting aspects, saving changes, and error handling. Use React's Context API if you need to share this state across multiple components.",
+      "testStrategy": "Write unit tests to verify:\n1. Initial state is set correctly\n2. startEditing updates the state correctly\n3. selectAspect updates the selected aspect\n4. saveAspect calls the API and updates state on success\n5. saveAspect handles errors correctly\n6. cancelEditing and backToAspectSelection reset the state correctly\n7. Test the full workflow with mock API calls",
+      "priority": "medium",
+      "dependencies": [
+        7,
+        8
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 10,
+      "title": "Integrate Edit Functionality in Video List Page",
+      "description": "Update the video list page to include the edit button on video cards and handle the edit workflow.",
+      "details": "Update the video list page component to integrate the editing functionality:\n\n```typescript\nimport React from 'react';\nimport VideoCard from '../components/VideoCard';\nimport VideoEditModal from '../components/VideoEditModal';\nimport { useVideoEdit } from '../hooks/useVideoEdit';\n\nconst VideoListPage: React.FC = () => {\n  // Existing state for videos and phase filter\n  const [videos, setVideos] = useState<VideoListItem[]>([]);\n  const [currentPhase, setCurrentPhase] = useState<string | null>(null);\n  \n  // Video edit state management\n  const {\n    editState,\n    startEditing,\n    saveAspect,\n    cancelEditing\n  } = useVideoEdit();\n  \n  // Fetch videos (existing code)\n  \n  // Handle edit button click\n  const handleEditVideo = (video: VideoListItem) => {\n    startEditing(video);\n  };\n  \n  // Handle save from modal\n  const handleSaveVideo = async (aspect: string, updatedFields: Partial<Video>) => {\n    try {\n      const updatedVideo = await saveAspect(updatedFields);\n      \n      // Update the video in the list\n      setVideos(prev => prev.map(video => \n        video.name === updatedVideo.name ? { ...video, ...updatedVideo } : video\n      ));\n      \n      // Show success message\n      // ...\n    } catch (error) {\n      // Error already handled in hook\n      console.error('Failed to save video:', error);\n    }\n  };\n  \n  return (\n    <div className=\"video-list-page\">\n      {/* Existing phase filter UI */}\n      \n      <div className=\"video-grid\">\n        {videos.map(video => (\n          <VideoCard\n            key={video.name}\n            video={video}\n            isPhaseFiltered={!!currentPhase} // Disable edit when no phase filter\n            onEdit={handleEditVideo}\n          />\n        ))}\n      </div>\n      \n      {/* Edit modal */}\n      <VideoEditModal\n        video={editState.selectedVideo}\n        isOpen={editState.isEditing}\n        onClose={cancelEditing}\n        onSave={handleSaveVideo}\n      />\n    </div>\n  );\n};\n```\n\nEnsure the video list updates immediately after successful edits. Add success and error notifications for user feedback. Maintain the current phase filter when updating the video list.",
+      "testStrategy": "Write integration tests to verify:\n1. Edit button appears on video cards when phase filter is active\n2. Clicking edit button opens the modal with the correct video\n3. Saving changes updates the video in the list\n4. Modal can be closed without saving\n5. Error handling works correctly\n6. Test the full edit workflow from button click to save",
+      "priority": "medium",
+      "dependencies": [
+        4,
+        7,
+        9
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 11,
+      "title": "Implement Aspect Progress Calculation",
+      "description": "Create a utility to calculate completion progress for each editing aspect based on field values.",
+      "details": "Create a utility function `utils/aspectProgress.ts` to calculate aspect completion:\n\n```typescript\nimport { Video, EditingAspect } from '../types/videoEditing';\n\n// Define all aspects with their fields\nconst editingAspects: EditingAspect[] = [\n  {\n    key: 'initial-details',\n    title: 'Initial Details',\n    endpoint: 'initial-details',\n    fields: ['projectName', 'projectURL', 'sponsorship', 'date', 'delayed', 'gist']\n  },\n  // Define other aspects...\n];\n\n// Helper to check if a field has a value\nfunction hasValue(value: any): boolean {\n  if (value === undefined || value === null) return false;\n  if (typeof value === 'string') return value.trim() !== '';\n  if (typeof value === 'object') {\n    if (Array.isArray(value)) return value.length > 0;\n    return Object.keys(value).length > 0;\n  }\n  return true;\n}\n\n// Calculate progress for a single aspect\nexport function calculateAspectProgress(video: Video, aspectKey: string): { completed: number; total: number; percentage: number } {\n  const aspect = editingAspects.find(a => a.key === aspectKey);\n  if (!aspect) {\n    return { completed: 0, total: 0, percentage: 0 };\n  }\n  \n  const total = aspect.fields.length;\n  const completed = aspect.fields.filter(field => hasValue(video[field])).length;\n  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;\n  \n  return { completed, total, percentage };\n}\n\n// Calculate progress for all aspects\nexport function calculateAllAspectsProgress(video: Video): Record<string, { completed: number; total: number; percentage: number }> {\n  const progress: Record<string, { completed: number; total: number; percentage: number }> = {};\n  \n  editingAspects.forEach(aspect => {\n    progress[aspect.key] = calculateAspectProgress(video, aspect.key);\n  });\n  \n  return progress;\n}\n\n// Get all defined aspects\nexport function getAllAspects(): EditingAspect[] {\n  return editingAspects;\n}\n```\n\nThis utility provides functions to calculate progress for individual aspects or all aspects at once. It defines what constitutes a \"completed\" field and handles different data types appropriately.",
+      "testStrategy": "Write unit tests to verify:\n1. hasValue correctly identifies empty vs. non-empty values for different data types\n2. calculateAspectProgress returns correct counts for various field combinations\n3. calculateAllAspectsProgress returns progress for all aspects\n4. Edge cases are handled correctly (empty video, unknown aspect, etc.)\n5. Test with realistic video data to ensure accuracy",
+      "priority": "medium",
+      "dependencies": [
+        2
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 12,
+      "title": "Implement Form Field Components for Different Data Types",
+      "description": "Create reusable form field components for different data types (text, checkbox, select, etc.) to be used in the AspectEditForm.",
+      "status": "pending",
+      "dependencies": [
+        6
+      ],
+      "priority": "medium",
+      "details": "Create a set of reusable form field components in a new directory `components/form-fields/`:\n\n1. `TextField.tsx` - For text and textarea inputs\n2. `CheckboxField.tsx` - For boolean values\n3. `SelectField.tsx` - For dropdown selections\n4. `DateField.tsx` - For date inputs\n5. `ArrayField.tsx` - For array inputs (e.g., tags)\n6. `ObjectField.tsx` - For nested object inputs (e.g., sponsorship)\n7. `DateTimeField.tsx` - For datetime-local inputs with calendar picker functionality\n8. `BooleanToggleField.tsx` - For Yes/No radio button group styled as toggle buttons\n9. `SmartField.tsx` - A wrapper component that automatically detects field type\n\nExample implementation for TextField:\n\n```typescript\nimport React from 'react';\n\ninterface TextFieldProps {\n  id: string;\n  label: string;\n  value: string;\n  onChange: (value: string) => void;\n  error?: string;\n  multiline?: boolean;\n  placeholder?: string;\n  required?: boolean;\n}\n\nconst TextField: React.FC<TextFieldProps> = ({\n  id,\n  label,\n  value,\n  onChange,\n  error,\n  multiline = false,\n  placeholder = '',\n  required = false\n}) => {\n  return (\n    <div className=\"form-group\">\n      <label htmlFor={id}>\n        {label}\n        {required && <span className=\"required-indicator\">*</span>}\n      </label>\n      \n      {multiline ? (\n        <textarea\n          id={id}\n          value={value || ''}\n          onChange={e => onChange(e.target.value)}\n          className={error ? 'form-control is-invalid' : 'form-control'}\n          placeholder={placeholder}\n          required={required}\n        />\n      ) : (\n        <input\n          type=\"text\"\n          id={id}\n          value={value || ''}\n          onChange={e => onChange(e.target.value)}\n          className={error ? 'form-control is-invalid' : 'form-control'}\n          placeholder={placeholder}\n          required={required}\n        />\n      )}\n      \n      {error && <div className=\"invalid-feedback\">{error}</div>}\n    </div>\n  );\n};\n\nexport default TextField;\n```\n\n**DateTimeField Component**\nImplement a component that renders datetime-local inputs with calendar picker functionality. This component should:\n- Handle ISO date string conversion\n- Provide proper validation\n- Include a calendar picker interface\n\n**BooleanToggleField Component**\nImplement a styled Yes/No radio button group component that:\n- Renders two radio buttons styled as toggle buttons\n- Has clear visual states for selected/unselected\n- Follows the design system with accent colors for selected state\n- Provides accessibility features (proper labeling, keyboard navigation)\n\nCSS styling should include:\n- `.radio-group` for the container\n- `.radio-option` for individual Yes/No buttons\n- Hover and selected state styling with accent colors\n- Proper spacing and alignment\n\n**SmartField Component**\nImplement a wrapper component that automatically detects field type based on:\n- Field names containing \"date\" → DateTimeField\n- Boolean values or field patterns (ending with \"Done\", starting with \"request\", etc.) → BooleanToggleField\n- Long text content → TextAreaField\n- Arrays/objects → JSONField\n- Default → TextInputField\n\nImplement similar components for other field types. Then refactor AspectEditForm to use these components instead of directly rendering inputs.",
+      "testStrategy": "Write unit tests for each field component to verify:\n1. Component renders correctly with all props\n2. Value changes are properly handled and passed to onChange\n3. Error states are displayed correctly\n4. Required indicator is shown when required=true\n5. Test accessibility features like labels and ARIA attributes\n\nAdditional tests for specialized components:\n\n1. DateTimeField:\n   - Test ISO date string conversion works correctly\n   - Test calendar picker functionality\n   - Test validation of date inputs\n\n2. BooleanToggleField:\n   - Test toggle between Yes/No states\n   - Test keyboard navigation accessibility\n   - Test proper ARIA attributes for accessibility\n   - Verify visual states match design requirements\n\n3. SmartField:\n   - Test field type detection logic for various input patterns\n   - Test that it correctly renders the appropriate field component\n   - Test edge cases with unusual field names or data types",
+      "subtasks": []
+    },
+    {
+      "id": 13,
+      "title": "Implement Error Handling and Notifications",
+      "description": "Create a comprehensive error handling system with user-friendly notifications for the edit workflow.",
+      "details": "Create a notification system for success and error messages:\n\n1. Create a new component `components/Notification.tsx`:\n\n```typescript\nimport React, { useState, useEffect } from 'react';\n\ntype NotificationType = 'success' | 'error' | 'info' | 'warning';\n\ninterface NotificationProps {\n  type: NotificationType;\n  message: string;\n  duration?: number; // in milliseconds\n  onClose?: () => void;\n}\n\nconst Notification: React.FC<NotificationProps> = ({\n  type,\n  message,\n  duration = 5000,\n  onClose\n}) => {\n  const [isVisible, setIsVisible] = useState(true);\n  \n  useEffect(() => {\n    if (duration > 0) {\n      const timer = setTimeout(() => {\n        setIsVisible(false);\n        if (onClose) onClose();\n      }, duration);\n      \n      return () => clearTimeout(timer);\n    }\n  }, [duration, onClose]);\n  \n  const handleClose = () => {\n    setIsVisible(false);\n    if (onClose) onClose();\n  };\n  \n  if (!isVisible) return null;\n  \n  return (\n    <div className={`notification notification-${type}`} role=\"alert\">\n      <div className=\"notification-content\">\n        <span className={`notification-icon icon-${getIconForType(type)}`} aria-hidden=\"true\"></span>\n        <span className=\"notification-message\">{message}</span>\n      </div>\n      <button \n        className=\"notification-close\" \n        onClick={handleClose}\n        aria-label=\"Close notification\"\n      >\n        &times;\n      </button>\n    </div>\n  );\n};\n\nfunction getIconForType(type: NotificationType): string {\n  switch (type) {\n    case 'success': return 'check-circle';\n    case 'error': return 'alert-circle';\n    case 'warning': return 'alert-triangle';\n    case 'info': return 'info';\n    default: return 'info';\n  }\n}\n\nexport default Notification;\n```\n\n2. Create a notification context for global notifications:\n\n```typescript\nimport React, { createContext, useState, useContext, useCallback } from 'react';\nimport Notification from '../components/Notification';\n\ntype NotificationType = 'success' | 'error' | 'info' | 'warning';\n\ninterface NotificationContextType {\n  showNotification: (type: NotificationType, message: string, duration?: number) => void;\n}\n\nconst NotificationContext = createContext<NotificationContextType>({\n  showNotification: () => {}\n});\n\nexport const useNotification = () => useContext(NotificationContext);\n\nexport const NotificationProvider: React.FC = ({ children }) => {\n  const [notifications, setNotifications] = useState<Array<{\n    id: number;\n    type: NotificationType;\n    message: string;\n    duration: number;\n  }>>([]);\n  \n  const showNotification = useCallback((type: NotificationType, message: string, duration = 5000) => {\n    const id = Date.now();\n    setNotifications(prev => [...prev, { id, type, message, duration }]);\n  }, []);\n  \n  const removeNotification = useCallback((id: number) => {\n    setNotifications(prev => prev.filter(notification => notification.id !== id));\n  }, []);\n  \n  return (\n    <NotificationContext.Provider value={{ showNotification }}>\n      {children}\n      \n      <div className=\"notification-container\">\n        {notifications.map(notification => (\n          <Notification\n            key={notification.id}\n            type={notification.type}\n            message={notification.message}\n            duration={notification.duration}\n            onClose={() => removeNotification(notification.id)}\n          />\n        ))}\n      </div>\n    </NotificationContext.Provider>\n  );\n};\n```\n\n3. Update the VideoEditModal to use notifications for success and error messages:\n\n```typescript\n// Inside VideoEditModal.tsx\nimport { useNotification } from '../context/NotificationContext';\n\nconst VideoEditModal: React.FC<VideoEditModalProps> = (props) => {\n  const { showNotification } = useNotification();\n  \n  // Existing code...\n  \n  const handleSave = async (updatedFields: Partial<Video>) => {\n    if (!selectedAspect) return;\n    \n    try {\n      await onSave(selectedAspect.endpoint, updatedFields);\n      showNotification('success', `${selectedAspect.title} updated successfully`);\n      // Rest of success handling...\n    } catch (error) {\n      const errorMessage = error.response?.data?.message || 'Failed to save changes';\n      showNotification('error', errorMessage);\n      // Rest of error handling...\n    }\n  };\n  \n  // Rest of component...\n};\n```\n\nImplement comprehensive error handling for API calls, form validation, and unexpected errors. Use the notification system to provide clear feedback to users.",
+      "testStrategy": "Write unit tests to verify:\n1. Notification component renders correctly with different types\n2. Notifications auto-dismiss after the specified duration\n3. NotificationContext correctly manages multiple notifications\n4. Error handling in API calls shows appropriate notifications\n5. Test different error scenarios to ensure proper user feedback",
+      "priority": "medium",
+      "dependencies": [
+        7,
+        8
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 14,
+      "title": "Implement Accessibility Features",
+      "description": "Enhance the edit workflow with comprehensive accessibility features to ensure the interface is usable by everyone.",
+      "details": "Implement the following accessibility enhancements:\n\n1. **Keyboard Navigation**:\n   - Ensure all interactive elements are focusable\n   - Implement proper tab order\n   - Add keyboard shortcuts for common actions\n   - Trap focus within the modal when open\n\n```typescript\n// Focus trap for modal\nimport { useEffect, useRef } from 'react';\n\nfunction useFocusTrap(isActive: boolean) {\n  const containerRef = useRef<HTMLDivElement>(null);\n  \n  useEffect(() => {\n    if (!isActive || !containerRef.current) return;\n    \n    const container = containerRef.current;\n    const focusableElements = container.querySelectorAll(\n      'button, [href], input, select, textarea, [tabindex]:not([tabindex=\"-1\"])'\n    );\n    \n    const firstElement = focusableElements[0] as HTMLElement;\n    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;\n    \n    function handleTabKey(e: KeyboardEvent) {\n      if (e.key !== 'Tab') return;\n      \n      if (e.shiftKey) {\n        if (document.activeElement === firstElement) {\n          lastElement.focus();\n          e.preventDefault();\n        }\n      } else {\n        if (document.activeElement === lastElement) {\n          firstElement.focus();\n          e.preventDefault();\n        }\n      }\n    }\n    \n    function handleEscapeKey(e: KeyboardEvent) {\n      if (e.key === 'Escape') {\n        // Close modal logic here\n      }\n    }\n    \n    // Focus first element when modal opens\n    firstElement.focus();\n    \n    // Add event listeners\n    document.addEventListener('keydown', handleTabKey);\n    document.addEventListener('keydown', handleEscapeKey);\n    \n    return () => {\n      document.removeEventListener('keydown', handleTabKey);\n      document.removeEventListener('keydown', handleEscapeKey);\n    };\n  }, [isActive]);\n  \n  return containerRef;\n}\n```\n\n2. **ARIA Attributes**:\n   - Add appropriate ARIA roles, states, and properties\n   - Implement aria-live regions for dynamic content\n   - Use aria-expanded, aria-selected for interactive elements\n\n3. **Screen Reader Support**:\n   - Add descriptive labels for all form fields\n   - Provide context for screen reader users\n   - Announce status changes\n\n4. **Color Contrast**:\n   - Ensure all text meets WCAG AA contrast requirements\n   - Don't rely solely on color to convey information\n\n5. **Focus Management**:\n   - Maintain focus when components update\n   - Return focus to trigger element when modal closes\n\n```typescript\n// Inside VideoEditModal.tsx\nconst VideoEditModal: React.FC<VideoEditModalProps> = ({\n  video,\n  isOpen,\n  onClose,\n  onSave\n}) => {\n  const [selectedAspect, setSelectedAspect] = useState<EditingAspect | null>(null);\n  const previousFocusRef = useRef<HTMLElement | null>(null);\n  const modalRef = useFocusTrap(isOpen);\n  \n  // Save previous focus when modal opens\n  useEffect(() => {\n    if (isOpen) {\n      previousFocusRef.current = document.activeElement as HTMLElement;\n    }\n  }, [isOpen]);\n  \n  // Restore focus when modal closes\n  useEffect(() => {\n    if (!isOpen && previousFocusRef.current) {\n      previousFocusRef.current.focus();\n    }\n  }, [isOpen]);\n  \n  // Rest of component...\n  \n  return (\n    <div \n      className=\"modal-overlay\" \n      role=\"dialog\"\n      aria-modal=\"true\"\n      aria-labelledby=\"modal-title\"\n      ref={modalRef}\n    >\n      {/* Modal content */}\n      <h2 id=\"modal-title\">Edit Video: {video.title || video.name}</h2>\n      {/* Rest of modal */}\n    </div>\n  );\n};\n```\n\nImplement these accessibility features throughout all components in the edit workflow. Test with screen readers and keyboard navigation to ensure a seamless experience for all users.",
+      "testStrategy": "Write accessibility-focused tests to verify:\n1. All interactive elements are keyboard accessible\n2. Focus is properly trapped within the modal\n3. Focus returns to the trigger element when modal closes\n4. ARIA attributes are correctly applied\n5. Screen readers can access all content\n6. Run automated accessibility tests using tools like jest-axe\n7. Perform manual testing with screen readers (NVDA, VoiceOver, etc.)",
+      "priority": "medium",
+      "dependencies": [
+        7,
+        12
+      ],
+      "status": "pending",
+      "subtasks": []
+    },
+    {
+      "id": 15,
+      "title": "Implement End-to-End Testing",
+      "description": "Create comprehensive end-to-end tests for the video editing feature to ensure all components work together correctly.",
+      "details": "Implement end-to-end tests using Cypress to verify the complete edit workflow:\n\n1. Create a new Cypress test file `cypress/integration/video-edit.spec.js`:\n\n```javascript\ndescribe('Video Editing Feature', () => {\n  beforeEach(() => {\n    // Visit the video list page with a phase filter active\n    cy.visit('/videos?phase=definition');\n    cy.intercept('GET', '/api/videos*', { fixture: 'videos.json' }).as('getVideos');\n    cy.wait('@getVideos');\n  });\n  \n  it('should open edit modal when edit button is clicked', () => {\n    // Find the first video card and click its edit button\n    cy.get('.video-card').first().find('.edit-button').click();\n    \n    // Verify modal opens with aspect selection\n    cy.get('.modal-container').should('be.visible');\n    cy.get('.aspect-selection-container').should('be.visible');\n    cy.get('.aspect-card').should('have.length', 6);\n  });\n  \n  it('should navigate to form when aspect is selected', () => {\n    // Open edit modal\n    cy.get('.video-card').first().find('.edit-button').click();\n    \n    // Select the Definition aspect\n    cy.get('.aspect-card').contains('Definition').click();\n    \n    // Verify form is displayed\n    cy.get('.aspect-edit-form').should('be.visible');\n    cy.get('form').should('be.visible');\n    cy.get('h3').should('contain', 'Definition');\n  });\n  \n  it('should save changes when form is submitted', () => {\n    // Mock the API response for saving\n    cy.intercept('PUT', '/api/videos/*/definition', {\n      statusCode: 200,\n      body: { name: 'test-video', title: 'Updated Title' }\n    }).as('saveVideo');\n    \n    // Open edit modal and select Definition aspect\n    cy.get('.video-card').first().find('.edit-button').click();\n    cy.get('.aspect-card').contains('Definition').click();\n    \n    // Fill out the form\n    cy.get('#title').clear().type('Updated Title');\n    \n    // Submit the form\n    cy.get('button[type=\"submit\"]').click();\n    \n    // Verify API call was made\n    cy.wait('@saveVideo');\n    \n    // Verify we return to aspect selection\n    cy.get('.aspect-selection-container').should('be.visible');\n    \n    // Verify success notification appears\n    cy.get('.notification-success').should('be.visible');\n  });\n  \n  it('should handle validation errors', () => {\n    // Open edit modal and select Definition aspect\n    cy.get('.video-card').first().find('.edit-button').click();\n    cy.get('.aspect-card').contains('Definition').click();\n    \n    // Clear required field\n    cy.get('#title').clear();\n    \n    // Submit the form\n    cy.get('button[type=\"submit\"]').click();\n    \n    // Verify validation error appears\n    cy.get('.invalid-feedback').should('be.visible');\n    \n    // Verify form was not submitted (still on form page)\n    cy.get('.aspect-edit-form').should('be.visible');\n  });\n  \n  it('should handle API errors', () => {\n    // Mock API error response\n    cy.intercept('PUT', '/api/videos/*/definition', {\n      statusCode: 500,\n      body: { message: 'Server error' }\n    }).as('saveError');\n    \n    // Open edit modal and select Definition aspect\n    cy.get('.video-card').first().find('.edit-button').click();\n    cy.get('.aspect-card').contains('Definition').click();\n    \n    // Fill out the form\n    cy.get('#title').clear().type('Updated Title');\n    \n    // Submit the form\n    cy.get('button[type=\"submit\"]').click();\n    \n    // Verify API call was made\n    cy.wait('@saveError');\n    \n    // Verify error notification appears\n    cy.get('.notification-error').should('be.visible');\n  });\n  \n  it('should close modal when cancel is clicked', () => {\n    // Open edit modal\n    cy.get('.video-card').first().find('.edit-button').click();\n    \n    // Click cancel button\n    cy.get('.modal-container').find('button').contains('Cancel').click();\n    \n    // Verify modal is closed\n    cy.get('.modal-container').should('not.exist');\n  });\n  \n  it('should support keyboard navigation', () => {\n    // Open edit modal\n    cy.get('.video-card').first().find('.edit-button').click();\n    \n    // Verify focus is trapped in modal\n    cy.focused().should('have.attr', 'aria-label', 'Close');\n    \n    // Tab through focusable elements\n    cy.realPress('Tab');\n    cy.focused().should('have.class', 'aspect-card');\n    \n    // Select aspect with keyboard\n    cy.focused().realPress('Enter');\n    cy.get('.aspect-edit-form').should('be.visible');\n    \n    // Navigate back with keyboard\n    cy.focused().should('have.attr', 'aria-label', 'Back to aspect selection');\n    cy.focused().realPress('Enter');\n    cy.get('.aspect-selection-container').should('be.visible');\n  });\n});\n```\n\n2. Create fixtures for testing:\n   - `cypress/fixtures/videos.json` - Sample video list\n   - `cypress/fixtures/video-details.json` - Sample video details\n\n3. Configure Cypress for accessibility testing by adding the axe plugin:\n\n```javascript\n// cypress/support/index.js\nimport 'cypress-axe';\n\n// Add a custom command for accessibility testing\nCypress.Commands.add('checkA11y', (context, options) => {\n  cy.checkA11y(context, options);\n});\n```\n\nAdd accessibility checks to the tests:\n\n```javascript\nit('should be accessible', () => {\n  // Open edit modal\n  cy.get('.video-card').first().find('.edit-button').click();\n  \n  // Check accessibility of aspect selection\n  cy.checkA11y('.modal-container');\n  \n  // Select aspect and check form accessibility\n  cy.get('.aspect-card').first().click();\n  cy.checkA11y('.aspect-edit-form');\n});\n```",
+      "testStrategy": "Run the Cypress tests in both headless mode and interactive mode to verify:\n1. All user flows work correctly from start to finish\n2. API interactions are handled properly\n3. Error states are displayed correctly\n4. Accessibility requirements are met\n5. Visual appearance matches design specifications\n6. Test on multiple browsers (Chrome, Firefox, Safari) to ensure cross-browser compatibility",
+      "priority": "low",
+      "dependencies": [
+        10,
+        13,
+        14
+      ],
+      "status": "pending",
+      "subtasks": []
+    }
+  ]
+}

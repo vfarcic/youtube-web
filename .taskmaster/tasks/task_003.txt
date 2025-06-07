@@ -1,0 +1,44 @@
+# Task ID: 3
+# Title: Implement VideoEditButton Component
+# Status: done
+# Dependencies: 2
+# Priority: medium
+# Description: Create a reusable button component that will be added to the VideoCard to initiate the editing process.
+# Details:
+Create a new component `components/VideoEditButton.tsx` with the following implementation:
+
+```typescript
+import React from 'react';
+import { VideoListItem } from '../types/videoEditing';
+
+interface VideoEditButtonProps {
+  video: VideoListItem;
+  disabled: boolean;
+  onEdit: (video: VideoListItem) => void;
+}
+
+const VideoEditButton: React.FC<VideoEditButtonProps> = ({ video, disabled, onEdit }) => {
+  return (
+    <button
+      className="btn btn-sm btn-primary"
+      disabled={disabled}
+      onClick={() => onEdit(video)}
+      aria-label={`Edit video ${video.title || video.name}`}
+    >
+      <span className="icon-pencil mr-1" aria-hidden="true"></span>
+      Edit
+    </button>
+  );
+};
+
+export default VideoEditButton;
+```
+
+The button should be styled according to the application's design system. It should be disabled when viewing "All videos" (no phase filter active) as specified in the PRD. Add appropriate hover states and focus styles for accessibility.
+
+# Test Strategy:
+Write unit tests using React Testing Library to verify:
+1. Button renders correctly with proper text and icon
+2. Button is disabled when the disabled prop is true
+3. onClick handler is called with the correct video object when clicked
+4. Accessibility attributes are properly set

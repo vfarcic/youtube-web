@@ -167,9 +167,9 @@ const VideoCard: React.FC<VideoCardProps> = React.memo(({
       )}
       
       <div className="video-actions">
-        <button className="btn-edit" onClick={handleEdit} disabled title="Coming Soon">
+        <button className="btn-edit" onClick={handleEdit} title="Edit Video">
           <i className="fas fa-edit"></i>
-          Edit (Coming Soon)
+          Edit
         </button>
         <button className="btn-delete" onClick={handleDelete} disabled title="Coming Soon">
           <i className="fas fa-trash"></i>

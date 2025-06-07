@@ -1,0 +1,85 @@
+# Task ID: 5
+# Title: Create AspectSelectionMenu Component
+# Status: done
+# Dependencies: 2
+# Priority: high
+# Description: Implement the component that displays all 6 editing aspects with completion indicators, allowing users to select which aspect to edit.
+# Details:
+Create a new component `components/AspectSelectionMenu.tsx` that displays all 6 editing aspects as selectable cards with progress indicators:
+
+```typescript
+import React from 'react';
+import { EditingAspect } from '../types/videoEditing';
+
+interface AspectSelectionMenuProps {
+  video: VideoListItem;
+  onAspectSelect: (aspect: EditingAspect) => void;
+  aspectProgress: Record<string, { completed: number; total: number }>;
+}
+
+const AspectSelectionMenu: React.FC<AspectSelectionMenuProps> = ({ 
+  video, 
+  onAspectSelect, 
+  aspectProgress 
+}) => {
+  // Define all 6 aspects based on the PRD
+  const aspects: EditingAspect[] = [
+    {
+      key: 'initial-details',
+      title: 'Initial Details',
+      endpoint: 'initial-details',
+      fields: ['projectName', 'projectURL', 'sponsorship', 'date', 'delayed', 'gist']
+    },
+    // Define the other 5 aspects similarly
+  ];
+
+  return (
+    <div className="aspect-selection-container">
+      <h3>Select an aspect to edit</h3>
+      <div className="aspect-grid">
+        {aspects.map(aspect => {
+          const progress = aspectProgress[aspect.key] || { completed: 0, total: aspect.fields.length };
+          const percentage = progress.total > 0 ? Math.round((progress.completed / progress.total) * 100) : 0;
+          
+          return (
+            <div 
+              key={aspect.key}
+              className="aspect-card"
+              onClick={() => onAspectSelect(aspect)}
+              tabIndex={0}
+              role="button"
+              aria-pressed="false"
+            >
+              <h4>{aspect.title}</h4>
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill" 
+                  style={{ width: `${percentage}%` }}
+                  aria-valuenow={percentage}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                ></div>
+              </div>
+              <div className="progress-text">
+                {progress.completed}/{progress.total} fields completed
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default AspectSelectionMenu;
+```
+
+Style the component to match the CLI's aspect selection experience with clear visual hierarchy. Use CSS Grid or Flexbox for the aspect card layout. Implement hover and focus states for better accessibility.
+
+# Test Strategy:
+Write unit tests to verify:
+1. All 6 aspects are rendered correctly
+2. Progress bars show the correct percentage based on completed fields
+3. Clicking an aspect card calls onAspectSelect with the correct aspect
+4. Keyboard navigation works for accessibility
+5. Visual appearance matches the design specifications

@@ -1,0 +1,43 @@
+# Task ID: 4
+# Title: Enhance VideoCard Component with Edit Button
+# Status: done
+# Dependencies: 3
+# Priority: medium
+# Description: Modify the existing VideoCard component to include the new Edit button with conditional rendering based on phase filter.
+# Details:
+Update the existing VideoCard component to include the VideoEditButton:
+
+```typescript
+import VideoEditButton from './VideoEditButton';
+
+// Inside the VideoCard component
+const VideoCard: React.FC<VideoCardProps> = ({ video, isPhaseFiltered, onEdit }) => {
+  // Existing code...
+  
+  return (
+    <div className="video-card">
+      {/* Existing video card content */}
+      
+      <div className="video-card-actions">
+        {/* Existing action buttons */}
+        
+        <VideoEditButton 
+          video={video}
+          disabled={!isPhaseFiltered} // Disabled when no phase filter is active
+          onEdit={onEdit}
+        />
+      </div>
+    </div>
+  );
+};
+```
+
+Ensure the button is positioned consistently with other action buttons. Add a tooltip explaining why the button is disabled when viewing "All videos". Update the VideoCard props interface to include the new onEdit callback.
+
+# Test Strategy:
+Write unit tests to verify:
+1. Edit button is rendered when VideoCard is rendered
+2. Edit button is disabled when isPhaseFiltered is false
+3. Edit button is enabled when isPhaseFiltered is true
+4. onEdit callback is passed correctly to the VideoEditButton
+5. Visual regression tests to ensure layout remains consistent

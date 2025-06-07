@@ -1,0 +1,242 @@
+# Task ID: 2
+# Title: Define TypeScript Interfaces for Video Editing
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Implement the aspect selection screen that calls the API to get aspect information, focusing on an API-first approach for video editing functionality, with an interim solution using existing endpoints until the backend implements the missing aspects endpoint.
+# Details:
+Implement the aspect selection screen with an API-first approach, adapting to the discovery that the backend is missing the required aspects endpoint:
+
+1. Create a new API client function to fetch aspects:
+```typescript
+// In src/api/videoEditing.ts
+async function fetchAspects(): Promise<any> {
+  // Call the API endpoint that returns available aspects
+  // Return the raw response for now
+  return apiClient.get('/aspects');
+}
+```
+
+2. Create a minimal set of TypeScript interfaces based on the actual API response:
+```typescript
+// In types/videoEditing.ts
+// These will be refined based on actual API responses
+
+// Basic aspect interface based on API response
+interface EditingAspect {
+  key: string;
+  title: string;
+  endpoint: string;
+  fields?: any[]; // Will be refined after API inspection
+}
+
+// Video list item (for selection)
+interface VideoListItem {
+  name: string;
+  phase: string;
+  title?: string;
+  // Other fields as returned by the API
+}
+
+// Edit state management
+interface VideoEditState {
+  selectedVideo: VideoListItem | null;
+  selectedAspect: EditingAspect | null;
+  isEditing: boolean;
+  isDirty: boolean;
+  isSaving: boolean;
+  errors: Record<string, string>;
+}
+```
+
+3. Implement the aspect selection component:
+```typescript
+// In components/AspectSelection.tsx
+import React, { useEffect, useState } from 'react';
+import { fetchAspects } from '../api/videoEditing';
+import { EditingAspect } from '../types/videoEditing';
+
+const AspectSelection: React.FC<{
+  onAspectSelected: (aspect: EditingAspect) => void;
+}> = ({ onAspectSelected }) => {
+  const [aspects, setAspects] = useState<EditingAspect[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadAspects = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchAspects();
+        setAspects(data);
+      } catch (err) {
+        setError('Failed to load aspects');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadAspects();
+  }, []);
+
+  if (loading) return <div>Loading aspects...</div>;
+  if (error) return <div>Error: {error}</div>;
+
+  return (
+    <div className="aspect-selection">
+      <h2>Select an aspect to edit</h2>
+      <div className="aspect-grid">
+        {aspects.map(aspect => (
+          <div 
+            key={aspect.key} 
+            className="aspect-card"
+            onClick={() => onAspectSelected(aspect)}
+          >
+            <h3>{aspect.title}</h3>
+            {/* Add more details as available from the API */}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default AspectSelection;
+```
+
+4. If the API is missing necessary data, document what's needed for a PRD in the youtube-automation repo:
+   - Create a list of required fields for each aspect
+   - Document the expected response format
+   - Note any additional metadata needed for the UI
+
+5. Interim Solution Implementation (until backend implements aspects endpoint):
+```typescript
+// In src/api/videoEditing.ts
+async function fetchWorkflowPhases(): Promise<string[]> {
+  // Use existing endpoint to get workflow phases
+  const response = await apiClient.get('/api/videos/phases');
+  return response.data;
+}
+
+// Map workflow phases to temporary aspect structure
+function mapPhasesToAspects(phases: string[]): EditingAspect[] {
+  return phases.map(phase => ({
+    key: phase,
+    title: phase.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+    endpoint: `/api/videos/{name}/${phase}`,
+    fields: [] // Will be determined dynamically when endpoint is called
+  }));
+}
+
+// Temporary implementation until aspects endpoint exists
+async function fetchAspects(): Promise<EditingAspect[]> {
+  try {
+    const phases = await fetchWorkflowPhases();
+    return mapPhasesToAspects(phases);
+  } catch (error) {
+    console.error('Failed to fetch workflow phases:', error);
+    throw new Error('Unable to load editing aspects');
+  }
+}
+```
+
+6. Update the AspectSelection component to work with the interim solution:
+```typescript
+// In components/AspectSelection.tsx
+// Update the component to handle the interim aspect structure
+// Add appropriate error handling for missing fields
+// Ensure the component is ready to work with the proper aspects endpoint when available
+```
+
+After implementing the interim aspect selection screen and testing with the actual API, we'll refine the TypeScript interfaces based on the real data structure returned by the API. The PRD for the missing aspects endpoint has been created at `.taskmaster/docs/editing-aspects-api-prd.md` and will guide the backend implementation.
+
+# Test Strategy:
+Test the aspect selection screen implementation with the following approach:
+
+1. Create mock API responses for testing:
+   - Mock successful API responses with sample aspect data
+   - Mock error states to test error handling
+   - Mock workflow phases data for the interim solution
+
+2. Unit tests:
+   - Test the API client function with mocked responses
+   - Test the AspectSelection component rendering with different states (loading, error, data)
+   - Verify that clicking on an aspect correctly triggers the onAspectSelected callback
+   - Test the mapPhasesToAspects function to ensure it correctly transforms phase data
+
+3. Integration tests:
+   - Test the integration between the API client and the component
+   - Verify that aspects are correctly displayed after loading
+   - Test the interim solution with the actual workflow phases endpoint
+
+4. Manual testing:
+   - Test the aspect selection screen with the actual API
+   - Document any discrepancies between expected and actual API responses
+   - Create a list of any missing data that needs to be added to the API
+   - Verify the interim solution works with existing endpoints
+
+5. API validation:
+   - Verify that all required data for the aspect selection screen is available from the API
+   - Document any fields that are missing or have unexpected formats
+   - Ensure the implementation is ready to switch to the proper aspects endpoint when available
+
+6. Regression testing:
+   - Ensure the interim solution doesn't break existing functionality
+   - Verify that the component can be easily updated when the backend implements the aspects endpoint
+
+# Subtasks:
+## 2.1. Create API client function to fetch aspects [done]
+### Dependencies: None
+### Description: Implement the fetchAspects function in the API client to retrieve aspect data from the backend.
+### Details:
+
+
+## 2.2. Create minimal TypeScript interfaces based on API response [done]
+### Dependencies: None
+### Description: Define basic interfaces for EditingAspect, VideoListItem, and VideoEditState based on actual API responses.
+### Details:
+
+
+## 2.3. Implement AspectSelection component [done]
+### Dependencies: None
+### Description: Create a React component that displays available aspects and allows selection.
+### Details:
+
+
+## 2.4. Document API requirements [done]
+### Dependencies: None
+### Description: If the API is missing necessary data, document what's needed for a PRD in the youtube-automation repo.
+### Details:
+
+
+## 2.5. Write tests for aspect selection implementation [done]
+### Dependencies: None
+### Description: Create unit and integration tests for the aspect selection functionality.
+### Details:
+
+
+## 2.6. Implement interim solution using workflow phases [done]
+### Dependencies: None
+### Description: Create a temporary implementation that uses the existing workflow phases endpoint until the backend implements the aspects endpoint.
+### Details:
+
+
+## 2.7. Update AspectSelection component for interim solution [done]
+### Dependencies: None
+### Description: Modify the AspectSelection component to work with the interim solution while maintaining compatibility with the future aspects endpoint.
+### Details:
+
+
+## 2.8. Add tests for interim solution [done]
+### Dependencies: None
+### Description: Create additional tests to verify the interim solution works correctly with the existing workflow phases endpoint.
+### Details:
+
+
+## 2.9. Document transition plan to proper aspects endpoint [done]
+### Dependencies: None
+### Description: Create documentation on how to transition from the interim solution to the proper aspects endpoint once it's implemented by the backend.
+### Details:
+
+

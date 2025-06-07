@@ -1,0 +1,145 @@
+# Task ID: 14
+# Title: Implement Accessibility Features
+# Status: pending
+# Dependencies: 7, 12
+# Priority: medium
+# Description: Enhance the edit workflow with comprehensive accessibility features to ensure the interface is usable by everyone.
+# Details:
+Implement the following accessibility enhancements:
+
+1. **Keyboard Navigation**:
+   - Ensure all interactive elements are focusable
+   - Implement proper tab order
+   - Add keyboard shortcuts for common actions
+   - Trap focus within the modal when open
+
+```typescript
+// Focus trap for modal
+import { useEffect, useRef } from 'react';
+
+function useFocusTrap(isActive: boolean) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (!isActive || !containerRef.current) return;
+    
+    const container = containerRef.current;
+    const focusableElements = container.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    
+    const firstElement = focusableElements[0] as HTMLElement;
+    const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
+    
+    function handleTabKey(e: KeyboardEvent) {
+      if (e.key !== 'Tab') return;
+      
+      if (e.shiftKey) {
+        if (document.activeElement === firstElement) {
+          lastElement.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastElement) {
+          firstElement.focus();
+          e.preventDefault();
+        }
+      }
+    }
+    
+    function handleEscapeKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        // Close modal logic here
+      }
+    }
+    
+    // Focus first element when modal opens
+    firstElement.focus();
+    
+    // Add event listeners
+    document.addEventListener('keydown', handleTabKey);
+    document.addEventListener('keydown', handleEscapeKey);
+    
+    return () => {
+      document.removeEventListener('keydown', handleTabKey);
+      document.removeEventListener('keydown', handleEscapeKey);
+    };
+  }, [isActive]);
+  
+  return containerRef;
+}
+```
+
+2. **ARIA Attributes**:
+   - Add appropriate ARIA roles, states, and properties
+   - Implement aria-live regions for dynamic content
+   - Use aria-expanded, aria-selected for interactive elements
+
+3. **Screen Reader Support**:
+   - Add descriptive labels for all form fields
+   - Provide context for screen reader users
+   - Announce status changes
+
+4. **Color Contrast**:
+   - Ensure all text meets WCAG AA contrast requirements
+   - Don't rely solely on color to convey information
+
+5. **Focus Management**:
+   - Maintain focus when components update
+   - Return focus to trigger element when modal closes
+
+```typescript
+// Inside VideoEditModal.tsx
+const VideoEditModal: React.FC<VideoEditModalProps> = ({
+  video,
+  isOpen,
+  onClose,
+  onSave
+}) => {
+  const [selectedAspect, setSelectedAspect] = useState<EditingAspect | null>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+  const modalRef = useFocusTrap(isOpen);
+  
+  // Save previous focus when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+    }
+  }, [isOpen]);
+  
+  // Restore focus when modal closes
+  useEffect(() => {
+    if (!isOpen && previousFocusRef.current) {
+      previousFocusRef.current.focus();
+    }
+  }, [isOpen]);
+  
+  // Rest of component...
+  
+  return (
+    <div 
+      className="modal-overlay" 
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      ref={modalRef}
+    >
+      {/* Modal content */}
+      <h2 id="modal-title">Edit Video: {video.title || video.name}</h2>
+      {/* Rest of modal */}
+    </div>
+  );
+};
+```
+
+Implement these accessibility features throughout all components in the edit workflow. Test with screen readers and keyboard navigation to ensure a seamless experience for all users.
+
+# Test Strategy:
+Write accessibility-focused tests to verify:
+1. All interactive elements are keyboard accessible
+2. Focus is properly trapped within the modal
+3. Focus returns to the trigger element when modal closes
+4. ARIA attributes are correctly applied
+5. Screen readers can access all content
+6. Run automated accessibility tests using tools like jest-axe
+7. Perform manual testing with screen readers (NVDA, VoiceOver, etc.)

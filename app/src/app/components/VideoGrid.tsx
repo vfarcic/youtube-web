@@ -51,8 +51,8 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
   }, [selectedPhase]);
 
   const handleEditVideo = (videoId: string) => {
-    // Show notification that editing is coming soon
-    alert('Video editing functionality coming soon!');
+    // Navigate to edit page with video ID
+    window.location.href = `/edit?videoId=${videoId}`;
   };
 
   const handleDeleteVideo = async (videoId: string) => {

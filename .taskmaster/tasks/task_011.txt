@@ -1,0 +1,74 @@
+# Task ID: 11
+# Title: Implement Aspect Progress Calculation
+# Status: pending
+# Dependencies: 2
+# Priority: medium
+# Description: Create a utility to calculate completion progress for each editing aspect based on field values.
+# Details:
+Create a utility function `utils/aspectProgress.ts` to calculate aspect completion:
+
+```typescript
+import { Video, EditingAspect } from '../types/videoEditing';
+
+// Define all aspects with their fields
+const editingAspects: EditingAspect[] = [
+  {
+    key: 'initial-details',
+    title: 'Initial Details',
+    endpoint: 'initial-details',
+    fields: ['projectName', 'projectURL', 'sponsorship', 'date', 'delayed', 'gist']
+  },
+  // Define other aspects...
+];
+
+// Helper to check if a field has a value
+function hasValue(value: any): boolean {
+  if (value === undefined || value === null) return false;
+  if (typeof value === 'string') return value.trim() !== '';
+  if (typeof value === 'object') {
+    if (Array.isArray(value)) return value.length > 0;
+    return Object.keys(value).length > 0;
+  }
+  return true;
+}
+
+// Calculate progress for a single aspect
+export function calculateAspectProgress(video: Video, aspectKey: string): { completed: number; total: number; percentage: number } {
+  const aspect = editingAspects.find(a => a.key === aspectKey);
+  if (!aspect) {
+    return { completed: 0, total: 0, percentage: 0 };
+  }
+  
+  const total = aspect.fields.length;
+  const completed = aspect.fields.filter(field => hasValue(video[field])).length;
+  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+  
+  return { completed, total, percentage };
+}
+
+// Calculate progress for all aspects
+export function calculateAllAspectsProgress(video: Video): Record<string, { completed: number; total: number; percentage: number }> {
+  const progress: Record<string, { completed: number; total: number; percentage: number }> = {};
+  
+  editingAspects.forEach(aspect => {
+    progress[aspect.key] = calculateAspectProgress(video, aspect.key);
+  });
+  
+  return progress;
+}
+
+// Get all defined aspects
+export function getAllAspects(): EditingAspect[] {
+  return editingAspects;
+}
+```
+
+This utility provides functions to calculate progress for individual aspects or all aspects at once. It defines what constitutes a "completed" field and handles different data types appropriately.
+
+# Test Strategy:
+Write unit tests to verify:
+1. hasValue correctly identifies empty vs. non-empty values for different data types
+2. calculateAspectProgress returns correct counts for various field combinations
+3. calculateAllAspectsProgress returns progress for all aspects
+4. Edge cases are handled correctly (empty video, unknown aspect, etc.)
+5. Test with realistic video data to ensure accuracy
