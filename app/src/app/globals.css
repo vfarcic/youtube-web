@@ -1,0 +1,674 @@
+/* styles.css */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Geist+Mono:wght@100..900&display=swap');
+
+:root {
+    --font-geist-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-geist-mono: 'Geist Mono', 'Courier New', monospace;
+    
+    /* Color Variables from Mock Design */
+    --primary-accent-color: #FFD700; /* Bright Yellow from logo - main accent */
+    --secondary-accent-color: #FFBF00; /* A slightly darker yellow for secondary accents */
+    
+    --header-bg-color: #23272A; /* Header background */
+    --primary-bg-color: #15171A; /* Darker background for the rest of the site */
+    --secondary-bg-color: #1E2124; /* Slightly lighter dark shade for cards/sections */
+    
+    --primary-text-color: #E0E0E0; /* Light gray for primary text */
+    --secondary-text-color: #A0A0A0; /* Slightly darker gray for secondary text */
+    --not-implemented-color: #FF6B6B; /* Red color for not implemented features */
+    
+    --text-on-accent-bg: #15171A; /* Dark text for use on yellow backgrounds */
+    
+    --border-color: #33373A; /* Border color for new darker theme */
+    --card-shadow-color: rgba(255, 215, 0, 0.08); /* Shadow for darker theme */
+    --focus-ring-color: rgba(255, 215, 0, 0.2);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-geist-sans);
+    background-color: var(--primary-bg-color);
+    color: var(--primary-text-color);
+    line-height: 1.6;
+}
+
+/* Header with Logo and Navigation */
+.app-header {
+    background: var(--header-bg-color); /* Use specific header background color */
+    color: var(--primary-text-color);
+    /* padding: 1rem 2rem; */ /* Old padding */
+    padding: 0; /* Remove all padding */
+    height: 70px; /* Reduced height for more compact header */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    position: sticky;
+    top: 0;
+    z-index: 200;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%; /* Ensure header-content also takes full height of app-header */
+    padding: 0 1.5rem; /* Add horizontal padding for content */
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    height: 100%; /* This is 70px from .app-header */
+    flex-shrink: 0; /* Prevent logo from shrinking */
+}
+
+.logo-link { /* New style */
+    display: flex;       /* Use flex to help center content if needed */
+    align-items: center; /* Vertically center the image within the link */
+    height: 100%;        /* Takes full height of .logo-section */
+    /* Width will be determined by the image content due to img.logo's width:auto */
+}
+
+.logo { /* Applied to the Next.js Image component's output img tag */
+    height: 50px; /* Fixed height for logo */
+    width: auto; /* Browser calculates width to maintain aspect ratio */
+    object-fit: contain; /* Fallback, ensures image scales nicely if aspect ratios mismatch */
+    display: block; /* Good practice for images */
+    margin: 0;
+    padding: 0;
+}
+
+/* Header Navigation */
+.header-nav {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 1; /* Take up available space */
+    justify-content: center; /* Center the navigation */
+    height: 100%;
+}
+
+/* Header Tab Navigation */
+.header-nav .tab-btn {
+    background: none;
+    border: none;
+    padding: 0.5rem 1rem; /* Reduced padding for more compact tabs */
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--secondary-text-color); /* Default tab text color */
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 100%;
+    border-radius: 0;
+    text-decoration: none; /* Remove link underline */
+}
+
+.header-nav .tab-btn i {
+    font-size: 0.8rem;
+}
+
+.header-nav .tab-btn:hover {
+    color: var(--primary-accent-color); /* Accent yellow on hover */
+    background-color: rgba(255, 255, 255, 0.05); /* Subtle hover background */
+    border-bottom-color: var(--primary-accent-color); /* Yellow underline on hover */
+}
+
+.header-nav .tab-btn.active {
+    color: var(--primary-accent-color); /* Accent yellow for active tab */
+    border-bottom-color: var(--primary-accent-color); /* Primary yellow for active tab underline */
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0; /* Prevent actions from shrinking */
+}
+
+.header-btn {
+  background: rgba(255, 255, 255, 0.05); 
+  border: 1px solid #FFD700; /* --primary-accent-color */
+  color: #FFD700; /* --primary-accent-color */
+  padding: 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.header-btn:hover {
+  background: #FFD700; /* --primary-accent-color */
+  color: #15171A; /* --text-on-accent-bg */
+  transform: translateY(-1px);
+}
+
+.user-avatar {
+  background: #FFD700; /* --primary-accent-color */
+  color: #15171A; /* --text-on-accent-bg */
+  padding: 0.75rem;
+  border-radius: 50%;
+  font-size: 1rem;
+  display: flex; /* Added for centering icon */
+  align-items: center; /* Added for centering icon */
+  justify-content: center; /* Added for centering icon */
+}
+
+/* Dark Mode Palette based on Logo - Refined */
+:root {
+    --primary-accent-color: #FFD700; /* Bright Yellow from logo - main accent */
+    --secondary-accent-color: #FFBF00; /* A slightly darker yellow for secondary accents */
+    
+    --header-bg-color: #23272A; /* Header background reverted to logo\'s background color */
+    --primary-bg-color: #15171A; /* Darker background for the rest of the site - REMAINS THE SAME */
+    --secondary-bg-color: #1E2124; /* Slightly lighter dark shade for cards/sections - REMAINS THE SAME */
+    
+    --primary-text-color: #E0E0E0; /* Light gray for primary text */
+    --secondary-text-color: #A0A0A0; /* Slightly darker gray for secondary text */
+    
+    --text-on-accent-bg: #15171A; /* Dark text for use on yellow backgrounds (matches primary-bg) */
+    
+    --border-color: #33373A; /* Adjusted border color for new darker theme */
+    --card-shadow-color: rgba(255, 215, 0, 0.08); /* Adjusted shadow for darker theme */
+    --focus-ring-color: rgba(255, 215, 0, 0.2);
+    --not-implemented-color: #FF6B6B; /* Bright red/coral for "not yet implemented" text */
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--primary-bg-color);
+    color: var(--primary-text-color);
+    line-height: 1.6;
+}
+
+/* Font Awesome (if you choose to use it, otherwise remove) */
+/* You'll need to install it: npm install @fortawesome/fontawesome-svg-core @fortawesome/free-solid-svg-icons @fortawesome/react-fontawesome */
+/* Then import icons in your components */
+
+/* Removing default Next.js styles that might conflict */
+:root {
+  --foreground-rgb: 224, 224, 224; /* Adjusted to match --primary-text-color */
+  --background-start-rgb: 21, 23, 26; /* Adjusted to match --primary-bg-color */
+  --background-end-rgb: 21, 23, 26; /* Adjusted to match --primary-bg-color */
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 224, 224, 224;
+    --background-start-rgb: 21, 23, 26;
+    --background-end-rgb: 21, 23, 26;
+  }
+}
+
+/* Responsive Design for Header Navigation */
+@media (max-width: 768px) {
+    .app-header {
+        height: auto; /* Allow height to grow on mobile */
+        min-height: 70px;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+        padding: 1rem;
+    }
+    
+    .logo-section {
+        order: 1;
+    }
+    
+    .header-nav {
+        order: 2;
+        justify-content: center;
+        overflow-x: auto;
+        width: 100%;
+    }
+    
+    .header-nav .tab-btn {
+        flex-direction: column;
+        gap: 0.25rem;
+        font-size: 0.8rem;
+        padding: 0.5rem 0.75rem;
+        white-space: nowrap;
+        min-width: 80px;
+    }
+    
+    .header-nav .tab-btn i {
+        font-size: 0.9rem;
+    }
+    
+    .header-actions {
+        order: 3;
+    }
+}
+
+/* Unified Page Layout Classes */
+.page-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.view-header {
+    margin-bottom: 2rem;
+}
+
+/* Unified Typography Classes */
+.page-title {
+    color: var(--primary-accent-color);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.page-title.compact {
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.section-title {
+    color: var(--primary-accent-color);
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.page-subtitle {
+    color: var(--secondary-text-color);
+    margin-bottom: 2rem;
+}
+
+.not-implemented-text {
+    color: var(--not-implemented-color);
+}
+
+/* Unified Icon Classes */
+.icon {
+    margin-right: 0.5rem;
+}
+
+.icon.accent {
+    color: var(--secondary-accent-color);
+    font-size: 1.1rem;
+}
+
+/* Unified Card/Section Classes */
+.content-section {
+    background: var(--secondary-bg-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+}
+
+.content-section.compact {
+    margin-bottom: 1rem;
+}
+
+/* Mockup Section (temporary class for development) */
+.mockup-section {
+    background: var(--secondary-bg-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+}
+
+/* Video Grid Container */
+.video-grid-container {
+    margin-top: 1rem;
+}
+
+.video-grid-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.video-grid-title {
+    color: var(--primary-accent-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.add-video-button, .create-video-button, .retry-button {
+    background: linear-gradient(135deg, var(--primary-accent-color) 0%, var(--secondary-accent-color) 100%);
+    color: var(--text-on-accent-bg);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.add-video-button:hover, .create-video-button:hover, .retry-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(255, 215, 0, 0.3);
+}
+
+/* Video Grid Layout */
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+    padding: 0;
+}
+
+/* Video Card */
+.video-card {
+    background: var(--secondary-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.video-card::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 40px;
+    height: 40px;
+    background: url('/img/logo-wide.png') no-repeat center;
+    background-size: 30px;
+    opacity: 0.03;
+}
+
+.video-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0, 0.25);
+    border-color: var(--primary-accent-color);
+}
+
+.video-status {
+    position: absolute;
+    top: -8px;
+    right: 1rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+}
+
+/* Status colors for different phases */
+.video-status.work { background: #D98E0B; color: #000; }
+.video-status.definition { background: #7A4FD0; color: #FFF; }
+.video-status.publishing { background: #0E9F70; color: #FFF; }
+.video-status.initial { background: #5A6878; color: #FFF; }
+.video-status.post-production { background: #D33F3F; color: #FFF; }
+.video-status.post-publish { background: #3575D9; color: #FFF; }
+
+.video-card h3 {
+    margin: 0.25rem 0;
+    color: var(--primary-text-color);
+    font-size: 1.1rem;
+}
+
+.video-card p {
+    color: var(--secondary-text-color);
+    margin-bottom: 0.75rem;
+}
+
+.video-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.video-actions button {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+    background: var(--primary-bg-color);
+    color: var(--secondary-text-color);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.btn-edit:hover { 
+    background: var(--secondary-bg-color); 
+    border-color: var(--secondary-accent-color); 
+    color: var(--secondary-accent-color); 
+}
+
+.btn-delete:hover { 
+    background: var(--secondary-bg-color); 
+    border-color: #D33F3F; 
+    color: #D33F3F; 
+}
+
+.btn-move:hover { 
+    background: var(--secondary-bg-color); 
+    border-color: #0E9F70; 
+    color: #0E9F70; 
+}
+
+/* Disabled button styling for "Coming Soon" buttons */
+.video-actions button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+    font-style: italic;
+}
+
+.video-actions button:disabled:hover {
+    background: transparent;
+    border-color: inherit;
+    color: inherit;
+}
+
+/* Video Metadata */
+.video-metadata {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.video-phase .phase-badge {
+    background: var(--secondary-accent-color);
+    color: var(--text-on-accent-bg);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.video-stats {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: var(--secondary-text-color);
+}
+
+.video-stats span {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.view-count, .created-date {
+    white-space: nowrap;
+}
+
+/* Video Tags */
+.video-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.video-tag {
+    background: var(--primary-bg-color);
+    color: var(--primary-accent-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.video-tag-more {
+    background: var(--border-color);
+    color: var(--secondary-text-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-style: italic;
+}
+
+/* Video Grid States */
+.video-grid-loading, .video-grid-error, .video-grid-empty {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--secondary-text-color);
+}
+
+.video-grid-loading .loading-spinner,
+.video-grid-error .error-icon,
+.video-grid-empty .empty-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--primary-accent-color);
+}
+
+.video-grid-loading .loading-spinner i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.video-grid-empty h3 {
+    color: var(--primary-text-color);
+    margin: 0.5rem 0;
+}
+
+.video-grid-empty p {
+    margin-bottom: 2rem;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Responsive Design for Video Grid */
+@media (max-width: 768px) {
+    .video-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .video-grid-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+    
+    .video-grid-title {
+        text-align: center;
+    }
+    
+    .video-card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .video-metadata {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .video-stats {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .video-card-content {
+        padding: 0.75rem;
+    }
+    
+    .video-menu-dropdown {
+        right: -1rem;
+        left: -1rem;
+        width: auto;
+    }
+}
+
+/* Video Progress (from optimized API) */
+.video-progress {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: var(--primary-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.progress-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.progress-label span:first-child {
+    color: var(--primary-text-color);
+    font-weight: 500;
+}
+
+.progress-percentage {
+    color: var(--primary-accent-color);
+    font-weight: 600;
+}
+
+.progress-bar-container {
+    background: var(--border-color);
+    border-radius: 4px;
+    height: 8px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease, background-color 0.3s ease;
+    min-width: 2px; /* Ensure bar is always visible even at 0% */
+}
