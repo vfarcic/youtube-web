@@ -1,0 +1,363 @@
+# PRD: Video Editing Feature
+
+## Overview
+
+This PRD outlines the development of a comprehensive video editing feature for the YouTube automation web application. The feature enables users to edit videos by selecting specific **aspects** (categories of fields) to edit, mirroring the CLI's aspect-based approach where all aspects are available regardless of video phase.
+
+## Development Approach
+
+Following the project's **mock-first development methodology**, this feature will be implemented in two distinct phases:
+
+1. **Mock Development Phase**: Design and prototype the editing interface in the mock environment
+2. **App Implementation Phase**: Implement the tested design in the Next.js application
+
+## Requirements Analysis
+
+### Current State
+- **Frontend**: Next.js app displaying video lists with phase filtering
+- **Backend**: Sophisticated REST API with dedicated phase-specific endpoints and CLI functionality
+- **API Gap**: Frontend lacks editing capabilities despite robust backend support
+
+### Backend API Capabilities (OpenAPI Analysis)
+
+The backend provides **comprehensive phase-specific editing endpoints**:
+
+#### **Phase-Specific Update Endpoints:**
+1. **`PUT /api/videos/{videoName}/initial-details`** - Initial details phase updates
+2. **`PUT /api/videos/{videoName}/work-progress`** - Work progress phase updates  
+3. **`PUT /api/videos/{videoName}/definition`** - Definition phase updates
+4. **`PUT /api/videos/{videoName}/post-production`** - Post-production phase updates
+5. **`PUT /api/videos/{videoName}/publishing`** - Publishing phase updates
+6. **`PUT /api/videos/{videoName}/post-publish`** - Post-publish phase updates
+7. **`PUT /api/videos/{videoName}`** - General video updates (all fields)
+
+#### **Dynamic Field Structure:**
+- **`PhaseUpdateRequest`** schema uses `additionalProperties: true`
+- Each phase endpoint accepts **dynamic field updates** specific to that phase
+- Provides perfect foundation for aspect-based editing interface
+
+### CLI Aspect-Based Interface Analysis
+
+The CLI presents users with **6 distinct editing aspects** regardless of video phase:
+
+1. **Initial Details** - Basic project information and scheduling
+2. **Work In Progress** - Production tasks and content creation status  
+3. **Definition** - Content strategy and description development
+4. **Post-Production** - Editing, thumbnails, and final content preparation
+5. **Publishing Details** - Publication settings and social media
+6. **Post-Publish Details** - Post-publication activities and metrics
+
+## Requirements
+
+### 1. Editing Scope & Access ✅ **CONFIRMED**
+- **Aspect Availability**: All 6 editing aspects available for all videos regardless of phase
+- **Unified Interface**: Single edit flow with aspect selection, similar to CLI experience
+- **Access Control**: Edit button disabled when viewing "All videos" (no phase filter active)
+- **Backend Alignment**: Utilize existing phase-specific API endpoints based on aspect selection
+
+### 2. Aspect-Based Field Mapping
+
+Based on CLI functionality and API schema analysis:
+
+#### **Aspect 1: Initial Details**
+**Purpose**: Basic project setup, sponsorship, and scheduling
+**API Endpoint**: `/api/videos/{videoName}/initial-details`
+**Fields**:
+- **Project Info**: projectName, projectURL
+- **Sponsorship**: sponsorship.amount, sponsorship.emails, sponsorship.blocked
+- **Scheduling**: date, delayed
+- **Content Setup**: gist (path to .md file)
+
+#### **Aspect 2: Work In Progress**  
+**Purpose**: Production task tracking and asset status
+**API Endpoint**: `/api/videos/{videoName}/work-progress`
+**Fields**:
+- **Production Tasks**: code, head, screen, thumbnails, diagrams, screenshots
+- **Content Elements**: relatedVideos, tagline, taglineIdeas, otherLogos
+- **Location**: location (e.g., Google Drive link)
+
+#### **Aspect 3: Definition**
+**Purpose**: Content strategy, description, and core video definition
+**API Endpoint**: `/api/videos/{videoName}/definition`
+**Fields**:
+- **Core Content**: title, description, highlight
+- **Content Strategy**: tags, descriptionTags, category
+- **Technical**: language, repo
+- **Content Assets**: animations, members
+
+#### **Aspect 4: Post-Production**
+**Purpose**: Editing workflow, final assets, and content refinement  
+**API Endpoint**: `/api/videos/{videoName}/post-production`
+**Fields**:
+- **Edit Workflow**: requestEdit, movie, slides
+- **Final Assets**: thumbnail, timecodes, members
+- **Content Refinement**: Based on editing feedback
+
+#### **Aspect 5: Publishing Details**
+**Purpose**: Publication settings, video upload, and initial social media
+**API Endpoint**: `/api/videos/{videoName}/publishing`
+**Fields**:
+- **Video Publication**: videoId, uploadVideo, hugoPath
+- **Social Media**: tweet, linkedInPosted, slackPosted, hnPosted, dotPosted, bluePosted
+- **Platform Settings**: appliedLanguage, appliedAudioLanguage, audioLanguage
+- **YouTube Features**: youTubeHighlight, youTubeComment, youTubeCommentReply
+
+#### **Aspect 6: Post-Publish Details**
+**Purpose**: Post-publication activities, metrics, and follow-up actions
+**API Endpoint**: `/api/videos/{videoName}/post-publish`
+**Fields**:
+- **Social Follow-up**: Additional social media activities
+- **Metrics**: Performance tracking and analysis
+- **Community**: Comment management and engagement
+- **Optimization**: Post-publication content updates
+
+## Development Specifications
+
+### Mock Development Phase
+
+#### **Mock API Endpoints Implementation**
+Create static JSON responses in `mock/api/videos/` to simulate:
+
+```
+mock/api/videos/
+├── phases.json                     # Phase statistics
+├── list.json                       # Video list (with phase parameter support)
+├── {videoName}.json                # Individual video details
+├── {videoName}/
+│   ├── initial-details.json        # Aspect 1 update response
+│   ├── work-progress.json          # Aspect 2 update response  
+│   ├── definition.json             # Aspect 3 update response
+│   ├── post-production.json        # Aspect 4 update response
+│   ├── publishing.json             # Aspect 5 update response
+│   └── post-publish.json           # Aspect 6 update response
+```
+
+#### **Mock UI Components**
+1. **Enhanced VideoCard Component**
+   - Add "Edit" button (conditional on phase filter)
+   - Aspect-specific edit button states
+   - Visual feedback for edit mode
+
+2. **VideoEditModal Component**
+   - **Aspect Selection Interface**: Choose which aspect to edit (mirroring CLI)
+   - **Aspect-Specific Forms**: Dynamic form based on selected aspect
+   - **Progress Indicators**: Show completion status for each aspect
+   - Save/Cancel functionality with API simulation
+
+3. **AspectSelectionMenu Component**
+   - **6 Aspect Options**: Present all available aspects with completion indicators
+   - **Visual Design**: Similar to CLI's aspect selection with progress bars
+   - **Navigation**: Easy switching between aspects within the same edit session
+
+#### **Mock JavaScript Implementation**
+```javascript
+// Enhanced mockup.js functionality
+const editingAspects = {
+  'initial-details': {
+    title: 'Initial Details',
+    endpoint: 'initial-details',
+    fields: ['projectName', 'projectURL', 'sponsorship', 'date', 'delayed', 'gist']
+  },
+  'work-progress': {
+    title: 'Work In Progress', 
+    endpoint: 'work-progress',
+    fields: ['code', 'head', 'screen', 'thumbnails', 'diagrams', 'screenshots', 'relatedVideos', 'tagline', 'location']
+  },
+  'definition': {
+    title: 'Definition',
+    endpoint: 'definition', 
+    fields: ['title', 'description', 'highlight', 'tags', 'descriptionTags', 'category', 'language', 'repo']
+  },
+  'post-production': {
+    title: 'Post-Production',
+    endpoint: 'post-production',
+    fields: ['requestEdit', 'movie', 'slides', 'thumbnail', 'timecodes', 'members']
+  },
+  'publishing': {
+    title: 'Publishing Details',
+    endpoint: 'publishing',
+    fields: ['videoId', 'uploadVideo', 'tweet', 'linkedInPosted', 'slackPosted', 'youTubeHighlight']
+  },
+  'post-publish': {
+    title: 'Post-Publish Details', 
+    endpoint: 'post-publish',
+    fields: ['youTubeComment', 'youTubeCommentReply', 'hnPosted', 'dotPosted', 'bluePosted']
+  }
+};
+
+function openEditModal(videoName, phase) {
+  // Show aspect selection interface first
+  // Then dynamic form generation based on selected aspect
+  // Populate current values
+  // Handle form submission to correct endpoint
+}
+
+function calculateAspectProgress(video, aspectKey) {
+  // Calculate completion percentage for each aspect
+  // Display progress indicators in aspect selection
+}
+```
+
+### App Implementation Phase
+
+#### **New React Components**
+
+1. **`VideoEditButton.tsx`**
+   ```typescript
+   interface VideoEditButtonProps {
+     video: VideoListItem;
+     disabled: boolean;
+     onEdit: (video: VideoListItem) => void;
+   }
+   ```
+
+2. **`VideoEditModal.tsx`**
+   ```typescript
+   interface VideoEditModalProps {
+     video: VideoListItem;
+     isOpen: boolean;
+     onClose: () => void;
+     onSave: (aspect: string, updatedFields: Partial<Video>) => Promise<void>;
+   }
+   ```
+
+3. **`AspectSelectionMenu.tsx`**
+   ```typescript
+   interface AspectSelectionMenuProps {
+     video: VideoListItem;
+     onAspectSelect: (aspect: EditingAspect) => void;
+     aspectProgress: Record<string, { completed: number; total: number }>;
+   }
+   
+   interface EditingAspect {
+     key: string;
+     title: string;
+     endpoint: string;
+     fields: string[];
+   }
+   ```
+
+4. **`AspectEditForm.tsx`**
+   ```typescript
+   interface AspectEditFormProps {
+     video: VideoListItem;
+     aspect: EditingAspect;
+     onSave: (updatedFields: Partial<Video>) => Promise<void>;
+     onCancel: () => void;
+     onBack: () => void;  // Return to aspect selection
+   }
+   ```
+
+#### **API Integration Layer**
+
+1. **Enhanced API Client**
+   ```typescript
+   class VideoEditAPI {
+     // Aspect-specific update methods
+     updateInitialDetails(videoName: string, fields: Partial<Video>): Promise<Video>
+     updateWorkProgress(videoName: string, fields: Partial<Video>): Promise<Video>
+     updateDefinition(videoName: string, fields: Partial<Video>): Promise<Video>
+     updatePostProduction(videoName: string, fields: Partial<Video>): Promise<Video>
+     updatePublishing(videoName: string, fields: Partial<Video>): Promise<Video>
+     updatePostPublish(videoName: string, fields: Partial<Video>): Promise<Video>
+   }
+   ```
+
+#### **State Management**
+
+1. **Edit State Management**
+   ```typescript
+   interface VideoEditState {
+     selectedVideo: VideoListItem | null;
+     selectedAspect: EditingAspect | null;
+     isEditing: boolean;
+     isDirty: boolean;
+     isSaving: boolean;
+     errors: Record<string, string>;
+   }
+   ```
+
+## User Experience Flow
+
+### 1. **Edit Initiation**
+- User clicks "Edit" button on video card (only available when phase filter is active)
+- Edit modal opens showing **aspect selection interface**
+
+### 2. **Aspect Selection**
+- **6 Aspect Cards** displayed with completion indicators
+- **Progress Bars** show field completion status for each aspect
+- **Click to Select** aspect to edit
+
+### 3. **Aspect-Specific Editing**
+- **Dynamic Form** based on selected aspect
+- **Field Grouping** for better organization
+- **Real-time Validation** with immediate feedback
+- **Save/Cancel/Back** navigation options
+
+### 4. **Multi-Aspect Editing**  
+- **Back to Selection** allows editing multiple aspects in same session
+- **Progress Updates** reflected immediately after each save
+- **Session Persistence** maintains edit state across aspect switches
+
+### 5. **Completion & Exit**
+- **Final Confirmation** before closing edit modal
+- **Updated Video List** reflects any changes immediately
+- **Success Feedback** confirms changes were saved
+
+## Technical Implementation Strategy
+
+### **Mock Phase Implementation**
+1. **Static JSON Responses**: Create comprehensive mock data for all aspects
+2. **Form Generation**: Build dynamic form components for each aspect
+3. **UI/UX Testing**: Validate user flow and interface design
+4. **Progress Calculation**: Implement aspect completion indicators
+
+### **App Phase Implementation (TDD)**
+1. **API Client Development**: Build aspect-specific API integration with tests
+2. **Component Development**: Create React components with comprehensive test coverage  
+3. **State Management**: Implement edit state management with tests
+4. **Integration Testing**: End-to-end testing of edit workflows
+5. **Error Handling**: Robust error states and user feedback
+
+## Success Criteria
+
+### **Functional Requirements**
+- ✅ Edit button appears only when phase filter is active (not on "All videos")
+- ✅ All 6 editing aspects available for all videos regardless of phase
+- ✅ Aspect selection interface mirrors CLI user experience
+- ✅ Dynamic forms adapt based on selected aspect
+- ✅ Progress indicators show completion status for each aspect
+- ✅ Real-time validation with appropriate error messages
+- ✅ Changes saved to correct phase-specific API endpoints
+- ✅ Video list updates immediately after successful edit
+
+### **Technical Requirements**
+- ✅ Dual-layer validation (client-side + server-side)
+- ✅ Proper loading states during save operations
+- ✅ Error handling with user-friendly messages
+- ✅ Accessibility compliance (ARIA labels, keyboard navigation)
+- ✅ Responsive design works across device sizes
+- ✅ Type safety with TypeScript throughout
+
+### **User Experience Requirements**
+- ✅ Intuitive aspect selection with clear visual hierarchy
+- ✅ Smooth transitions between aspect selection and forms
+- ✅ Immediate feedback for all user actions
+- ✅ Consistent design language with existing application
+- ✅ Performance: Edit modal opens within 200ms
+- ✅ Accessibility: Full keyboard navigation support
+
+## Future Enhancements
+
+1. **Bulk Edit Operations**: Edit multiple videos across aspects
+2. **Edit History & Audit Trail**: Track changes with timestamps and user attribution
+3. **Advanced Validation Rules**: Context-aware validation based on video phase and content
+4. **Collaborative Editing**: Real-time multi-user editing capabilities
+5. **Template System**: Pre-configured aspect templates for common scenarios
+6. **Keyboard Shortcuts**: Power user shortcuts for quick navigation and saving
+
+---
+
+**Status**: ✅ Complete PRD Ready for Implementation
+**Next Action**: Begin experimental mock development phase with multiple UI patterns
+**Scope Note**: Access control and permissions will be addressed in a separate PRD 

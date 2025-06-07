@@ -39,6 +39,29 @@ export interface OptimizedVideo {
   phase: number; // New field: 0-7 representing different phases
 }
 
+// Basic editing aspect interface (minimal, will be refined based on API response)
+export interface EditingAspect {
+  key: string;
+  title: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  endpoint?: string;
+  fields?: any[]; // Will be refined after API inspection
+}
+
+// Video edit related interfaces
+export interface VideoListItem {
+  name: string;
+  title: string;
+  phase: number;
+  // Other fields as returned by the API
+}
+
+export interface AspectListResponse {
+  aspects: EditingAspect[];
+}
+
 export interface VideoListResponse {
   videos: OptimizedVideo[];
 }
@@ -81,6 +104,46 @@ export class ApiClient {
   }
 
   /**
+   * Fetch available editing aspects from the API
+   */
+  async getAspects(): Promise<AspectListResponse> {
+    const endpoint = `${this.baseUrl}/api/aspects`;
+    
+    console.log('🔍 ApiClient fetching aspects from:', endpoint);
+    
+    const response = await fetch(endpoint);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data: AspectListResponse = await response.json();
+    console.log('✅ ApiClient received aspects:', { count: data.aspects?.length, aspects: data.aspects });
+    
+    return data;
+  }
+
+  /**
+   * Fetch video details for editing (includes all aspect data)
+   */
+  async getVideoForEditing(videoId: string): Promise<VideoListItem> {
+    const endpoint = `${this.baseUrl}/api/videos/${videoId}`;
+    
+    console.log('🔍 ApiClient fetching video for editing from:', endpoint);
+    
+    const response = await fetch(endpoint);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data: VideoListItem = await response.json();
+    console.log('✅ ApiClient received video for editing:', data);
+    
+    return data;
+  }
+
+  /**
    * Transform optimized video format to VideoGrid format
    */
   private transformOptimizedVideo(optimizedVideo: OptimizedVideo): Video {
@@ -99,4 +162,7 @@ export class ApiClient {
       progress: optimizedVideo.progress
     };
   }
-} 
+}
+
+// Create a singleton instance for easy importing
+export const apiClient = new ApiClient(); 

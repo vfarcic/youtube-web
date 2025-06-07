@@ -5,6 +5,9 @@ node_modules/
 # Ignore Cursor IDE MCP configuration
 .cursor/mcp.json
 
+# Ignore temporary OpenAPI files
+openapi*
+
 # Added by Claude Task Master
 # Logs
 logs

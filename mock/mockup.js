@@ -1,7 +1,996 @@
 // YouTube Automation Web Frontend Mockup JavaScript
 
+// ===== MOCK DATA FOR VIDEO EDITING =====
+const MOCK_VIDEO_DATA = {
+    // Sample videos with all aspects data
+    'kubernetes-advanced-tutorial': {
+        name: 'kubernetes-advanced-tutorial',
+        title: 'Kubernetes Advanced Tutorial',
+        category: 'devops',
+        phase: 2, // Work phase
+        init: {
+            projectName: 'Kubernetes Advanced Tutorial',
+            projectURL: 'https://github.com/vfarcic/k8s-specs',
+            publishDate: '2024-01-15T10:00',
+            gistPath: 'manuscript/devops/kubernetes-advanced-tutorial.md',
+            sponsorshipAmount: '$500',
+            sponsorshipEmails: 'sponsor@example.com, marketing@sponsor.com',
+            sponsorshipBlockedReason: ''
+        },
+        work: {
+            codeDone: true,
+            talkingHeadDone: true,
+            screenRecordingDone: false,
+            relatedVideos: 'kubernetes-basics, docker-fundamentals',
+            thumbnailsDone: false,
+            diagramsDone: true,
+            screenshotsDone: false,
+            filesLocation: 'https://drive.google.com/folder/kubernetes-advanced',
+            tagline: 'Master advanced Kubernetes concepts with hands-on examples',
+            taglineIdeas: 'Alternative taglines: "Production K8s Mastery", "Advanced Kubernetes Guide"',
+            otherLogos: 'CNCF logo, Kubernetes logo, company sponsor logo'
+        },
+        define: {
+            title: 'Kubernetes Advanced Tutorial - Networking, RBAC & Operators',
+            description: '',
+            highlight: 'Learn advanced Kubernetes in 45 minutes',
+            tags: 'kubernetes,devops,containers,networking,rbac,operators',
+            descriptionTags: '#Kubernetes #DevOps #Containers #Networking #RBAC',
+            tweetText: 'Just released: Advanced Kubernetes Tutorial! Deep dive into networking, RBAC, and operators. Perfect for DevOps engineers! 🚀 #Kubernetes #DevOps',
+            animationsScript: 'Show K8s cluster animation, RBAC flow diagram, operator lifecycle',
+            requestThumbnailGeneration: true
+        },
+        edit: {
+            thumbnailPath: '/path/to/kubernetes-thumbnail.jpg',
+            members: 'Viktor Farcic',
+            requestEdit: false,
+            timecodes: '00:00 - Introduction\n05:00 - Advanced Networking\n15:00 - RBAC Security\n25:00 - Custom Operators\n40:00 - Conclusion',
+            movieDone: false,
+            slidesDone: true
+        },
+        publish: {
+            videoFilePath: '/path/to/kubernetes-advanced-final.mp4',
+            uploadToYouTube: false,
+            createHugoPost: false,
+            hugoPath: ''
+        },
+        postPublish: {
+            dotPosted: false,
+            blueSkyPostSent: false,
+            linkedInPostSent: false,
+            slackPostSent: false,
+            youTubeHighlightCreated: false,
+            youTubePinnedCommentAdded: false,
+            repliedToYouTubeComments: false,
+            gdeAdvocuPostSent: false,
+            codeRepositoryURL: 'https://github.com/vfarcic/k8s-specs',
+            notifiedSponsors: false
+        }
+    },
+    'docker-compose-deep-dive': {
+        name: 'docker-compose-deep-dive',
+        title: 'Docker Compose Deep Dive',
+        category: 'containers',
+        phase: 3, // Definition phase
+        init: {
+            projectName: 'Docker Compose Deep Dive',
+            projectURL: 'https://github.com/vfarcic/docker-compose-samples',
+            publishDate: '2024-02-20T14:00',
+            gistPath: 'manuscript/containers/docker-compose-deep-dive.md',
+            sponsorshipAmount: '$750',
+            sponsorshipEmails: 'docker@sponsors.com',
+            sponsorshipBlockedReason: ''
+        },
+        work: {
+            codeDone: true,
+            talkingHeadDone: true,
+            screenRecordingDone: true,
+            thumbnailsDone: false,
+            diagramsDone: true,
+            screenshotsDone: true,
+            filesLocation: 'https://drive.google.com/folder/docker-compose',
+            tagline: 'Master Docker Compose for production deployments'
+        },
+        define: {
+            title: 'Docker Compose Deep Dive - Production Ready Deployments',
+            description: 'Comprehensive guide to Docker Compose for complex multi-container applications. Learn networking, volumes, and production deployment strategies.',
+            highlight: 'Production Docker Compose in 40 minutes',
+            tags: 'docker,compose,containers,microservices,deployment',
+            descriptionTags: '#Docker #Compose #Containers #Microservices',
+            tweetText: 'New Docker Compose tutorial! Deep dive into production deployments with networking and volumes. Perfect for developers! 🐳 #Docker #Compose',
+            requestThumbnailGeneration: false
+        },
+        edit: {
+            thumbnailPath: '/path/to/docker-compose-thumbnail.jpg',
+            members: 'Viktor Farcic',
+            requestEdit: true,
+            timecodes: '00:00 - Introduction\n05:00 - Basic Compose\n15:00 - Networks & Volumes\n25:00 - Production Deployment\n35:00 - Best Practices',
+            movieDone: true,
+            slidesDone: true
+        },
+        publish: {
+            videoFilePath: '/path/to/docker-compose-final.mp4',
+            uploadToYouTube: true,
+            createHugoPost: true
+        },
+        postPublish: {
+            blueSkyPostSent: false,
+            linkedInPostSent: false,
+            slackPostSent: false,
+            youTubeHighlightCreated: false,
+            youTubePinnedCommentAdded: false,
+            repliedToYouTubeComments: false,
+            gdeAdvocuPostSent: false,
+            codeRepositoryURL: 'https://github.com/vfarcic/docker-compose-samples',
+            notifiedSponsors: false
+        }
+    },
+    'terraform-infrastructure': {
+        name: 'terraform-infrastructure',
+        title: 'Terraform Infrastructure',
+        category: 'infrastructure',
+        phase: 4, // Post-production phase
+        init: {
+            projectName: 'Terraform Infrastructure as Code',
+            projectURL: 'https://github.com/vfarcic/terraform-examples',
+            publishDate: '2024-03-15T16:00',
+            gistPath: 'manuscript/infrastructure/terraform-infrastructure.md',
+            sponsorshipAmount: '',
+            sponsorshipEmails: '',
+            sponsorshipBlockedReason: 'No sponsor found for this topic'
+        },
+        work: {
+            codeDone: true,
+            talkingHeadDone: true,
+            screenRecordingDone: true,
+            thumbnailsDone: true,
+            diagramsDone: true,
+            screenshotsDone: true,
+            filesLocation: 'https://drive.google.com/folder/terraform-infra',
+            tagline: 'Complete guide to Terraform for cloud infrastructure'
+        },
+        define: {
+            title: 'Terraform Infrastructure as Code - Complete Guide',
+            description: 'Master Terraform for building scalable cloud infrastructure. Learn state management, modules, and best practices for production deployments.',
+            highlight: 'Infrastructure as Code mastery in 45 minutes',
+            tags: 'terraform,iac,aws,infrastructure,cloud',
+            descriptionTags: '#Terraform #InfrastructureAsCode #AWS #Cloud',
+            tweetText: 'New Terraform Infrastructure as Code guide! Master cloud infrastructure with best practices and real examples. Perfect for DevOps engineers! ☁️ #Terraform #IaC',
+            requestThumbnailGeneration: false
+        },
+        edit: {
+            thumbnailPath: '/path/to/terraform-iac-thumbnail.jpg',
+            members: 'Viktor Farcic',
+            requestEdit: false,
+            timecodes: '00:00 - Introduction\n05:00 - Terraform Basics\n15:00 - State Management\n25:00 - Modules\n35:00 - Best Practices',
+            movieDone: true,
+            slidesDone: true
+        },
+        publish: {
+            videoFilePath: '/path/to/terraform-final.mp4',
+            uploadToYouTube: true,
+            createHugoPost: true
+        },
+        postPublish: {
+            blueSkyPostSent: true,
+            linkedInPostSent: true,
+            slackPostSent: true,
+            youTubeHighlightCreated: true,
+            youTubePinnedCommentAdded: true,
+            repliedToYouTubeComments: false,
+            gdeAdvocuPostSent: true,
+            codeRepositoryURL: 'https://github.com/vfarcic/terraform-examples',
+            notifiedSponsors: false
+        }
+    },
+    'aws-lambda-serverless': {
+        name: 'aws-lambda-serverless',
+        title: 'AWS Lambda Serverless Architecture',
+        category: 'serverless',
+        phase: 1, // Initial phase
+        init: {
+            projectName: 'AWS Lambda Serverless Architecture',
+            projectURL: 'https://github.com/vfarcic/aws-lambda-examples',
+            publishDate: '2024-04-01T12:00',
+            gistPath: 'manuscript/serverless/aws-lambda-serverless.md',
+            sponsorshipAmount: '',
+            sponsorshipEmails: '',
+            sponsorshipBlockedReason: 'Sponsored by AWS (handled separately)'
+        },
+        work: {
+            codeDone: false,
+            talkingHeadDone: false,
+            screenRecordingDone: false,
+            relatedVideos: '',
+            thumbnailsDone: false,
+            diagramsDone: false,
+            screenshotsDone: false,
+            filesLocation: '',
+            tagline: 'Complete serverless development guide',
+            taglineIdeas: '',
+            otherLogos: ''
+        },
+        define: {
+            title: 'AWS Lambda Serverless Architecture - Complete Guide',
+            description: 'Master serverless applications with AWS Lambda. Learn event triggers, monitoring, debugging, and best practices for production deployments.',
+            highlight: 'Serverless mastery with AWS Lambda',
+            tags: 'aws,lambda,serverless,cloud,functions',
+            descriptionTags: '#AWS #Lambda #Serverless #Cloud',
+            tweetText: 'New AWS Lambda serverless guide! Master cloud functions with triggers and monitoring. Perfect for cloud developers! ⚡ #AWS #Lambda',
+            animationsScript: '',
+            requestThumbnailGeneration: true
+        },
+        edit: {
+            thumbnailPath: '',
+            members: 'Viktor Farcic',
+            requestEdit: false,
+            timecodes: '',
+            movieDone: false,
+            slidesDone: false
+        },
+        publish: {
+            videoFilePath: '',
+            uploadToYouTube: false,
+            createHugoPost: false,
+            hugoPath: ''
+        },
+        postPublish: {
+            dotPosted: false,
+            blueSkyPostSent: false,
+            linkedInPostSent: false,
+            slackPostSent: false,
+            youTubeHighlightCreated: false,
+            youTubePinnedCommentAdded: false,
+            repliedToYouTubeComments: false,
+            gdeAdvocuPostSent: false,
+            codeRepositoryURL: 'https://github.com/vfarcic/aws-lambda-examples',
+            notifiedSponsors: false
+        }
+    },
+    'gitops-argocd': {
+        name: 'gitops-argocd',
+        title: 'GitOps with ArgoCD',
+        category: 'gitops',
+        phase: 5, // Publishing phase
+        init: {
+            projectName: 'GitOps with ArgoCD',
+            projectURL: 'https://github.com/vfarcic/argocd-demo',
+            publishDate: '2024-01-15T15:00',
+            gistPath: 'manuscript/gitops/gitops-argocd.md'
+        },
+        work: {
+            codeDone: true,
+            talkingHeadDone: true,
+            screenRecordingDone: true,
+            thumbnailsDone: true,
+            diagramsDone: true,
+            screenshotsDone: true,
+            filesLocation: 'https://drive.google.com/folder/gitops-argocd',
+            tagline: 'Complete GitOps implementation guide'
+        },
+        define: {
+            title: 'GitOps with ArgoCD - Automated Kubernetes Deployments',
+            description: 'Learn GitOps principles and implement automated Kubernetes deployments with ArgoCD. Master declarative deployments and continuous delivery.',
+            highlight: 'GitOps automation with ArgoCD',
+            tags: 'gitops,argocd,kubernetes,automation,cicd',
+            descriptionTags: '#GitOps #ArgoCD #Kubernetes #Automation',
+            tweetText: 'New GitOps with ArgoCD tutorial! Master automated Kubernetes deployments with continuous delivery. Perfect for DevOps teams! 🚀 #GitOps #ArgoCD',
+            requestThumbnailGeneration: false
+        },
+        edit: {
+            thumbnailPath: '/path/to/gitops-argocd-thumbnail.jpg',
+            members: 'Viktor Farcic',
+            requestEdit: false,
+            timecodes: '00:00 - Introduction\n05:00 - GitOps Principles\n15:00 - ArgoCD Setup\n25:00 - Application Deployment\n35:00 - Best Practices',
+            movieDone: true,
+            slidesDone: true
+        },
+        publish: {
+            videoFilePath: '/path/to/gitops-argocd-final.mp4',
+            uploadToYouTube: true,
+            createHugoPost: true
+        },
+        postPublish: {
+            blueSkyPostSent: true,
+            linkedInPostSent: true,
+            slackPostSent: true,
+            youTubeHighlightCreated: true,
+            youTubePinnedCommentAdded: true,
+            repliedToYouTubeComments: false,
+            gdeAdvocuPostSent: true,
+            codeRepositoryURL: 'https://github.com/vfarcic/argocd-demo',
+            notifiedSponsors: true
+        }
+    },
+    'microservices-patterns': {
+        name: 'microservices-patterns',
+        title: 'Microservices Design Patterns',
+        category: 'architecture',
+        phase: 6, // Post-publish phase
+        init: {
+            projectName: 'Microservices Design Patterns',
+            projectURL: 'https://github.com/vfarcic/microservices-patterns',
+            publishDate: '2024-01-01T11:00',
+            gistPath: 'manuscript/architecture/microservices-patterns.md'
+        },
+        work: {
+            codeDone: true,
+            talkingHeadDone: true,
+            screenRecordingDone: true,
+            thumbnailsDone: true,
+            diagramsDone: true,
+            screenshotsDone: true,
+            filesLocation: 'https://drive.google.com/folder/microservices-patterns',
+            tagline: 'Master microservices architecture patterns'
+        },
+        define: {
+            title: 'Microservices Design Patterns - Architecture Best Practices',
+            description: 'Learn essential microservices design patterns for scalable architecture. Master service patterns, data consistency, and communication strategies.',
+            highlight: 'Microservices architecture mastery',
+            tags: 'microservices,patterns,architecture,design,scalability',
+            descriptionTags: '#Microservices #Patterns #Architecture #Design',
+            tweetText: 'New Microservices Design Patterns guide! Master architecture patterns for scalable systems. Perfect for software architects! 🏗️ #Microservices #Architecture',
+            requestThumbnailGeneration: false
+        },
+        edit: {
+            thumbnailPath: '/path/to/microservices-patterns-thumbnail.jpg',
+            members: 'Viktor Farcic',
+            requestEdit: false,
+            timecodes: '00:00 - Introduction\n05:00 - Service Patterns\n15:00 - Data Patterns\n25:00 - Communication Patterns\n35:00 - Best Practices',
+            movieDone: true,
+            slidesDone: true
+        },
+        publish: {
+            videoFilePath: '/path/to/microservices-patterns-final.mp4',
+            uploadToYouTube: true,
+            createHugoPost: true
+        },
+        postPublish: {
+            blueSkyPostSent: true,
+            linkedInPostSent: true,
+            slackPostSent: true,
+            youTubeHighlightCreated: true,
+            youTubePinnedCommentAdded: true,
+            repliedToYouTubeComments: true,
+            gdeAdvocuPostSent: true,
+            codeRepositoryURL: 'https://github.com/vfarcic/microservices-patterns',
+            notifiedSponsors: true
+        }
+    }
+};
+
+// Phase statistics for dashboard
+const MOCK_PHASE_STATS = {
+    1: { name: 'Initial', count: 1, color: '#3B82F6' },       // aws-lambda-serverless
+    2: { name: 'Work', count: 1, color: '#F59E0B' },          // kubernetes-advanced-tutorial
+    3: { name: 'Definition', count: 1, color: '#8B5CF6' },    // docker-compose-deep-dive
+    4: { name: 'Post-Production', count: 1, color: '#EF4444' }, // terraform-infrastructure
+    5: { name: 'Publishing', count: 1, color: '#10B981' },    // gitops-argocd
+    6: { name: 'Post-Publish', count: 1, color: '#6B7280' }   // microservices-patterns
+};
+
+// ===== MOCK API FUNCTIONS =====
+
+function getVideoList(phase = null) {
+    const videos = Object.values(MOCK_VIDEO_DATA);
+    if (phase) {
+        return videos.filter(video => video.phase === phase);
+    }
+    return videos;
+}
+
+function getVideoDetails(videoName) {
+    return MOCK_VIDEO_DATA[videoName] || null;
+}
+
+function getPhaseStatistics() {
+    return MOCK_PHASE_STATS;
+}
+
+function getAspectData(videoName, aspect) {
+    const video = MOCK_VIDEO_DATA[videoName];
+    return video ? video[aspect] : null;
+}
+
+// Simulate API delay
+function simulateApiCall(data, delay = 300) {
+    return new Promise(resolve => {
+        setTimeout(() => resolve(data), delay);
+    });
+}
+
+// Test function - available in browser console
+function testMockAPI() {
+    console.log('=== Testing Mock API Functions ===');
+    console.log('All videos:', getVideoList());
+    console.log('Work phase videos:', getVideoList(2));
+    console.log('Kubernetes video:', getVideoDetails('kubernetes-advanced-tutorial'));
+    console.log('Phase stats:', getPhaseStatistics());
+    console.log('Kubernetes work-progress aspect:', getAspectData('kubernetes-advanced-tutorial', 'work-progress'));
+    console.log('=== Mock API Test Complete ===');
+}
+
+// Make functions available globally for testing
+window.getVideoList = getVideoList;
+window.getVideoDetails = getVideoDetails;
+window.getPhaseStatistics = getPhaseStatistics;
+window.getAspectData = getAspectData;
+window.simulateApiCall = simulateApiCall;
+window.testMockAPI = testMockAPI;
+
+// ===== VIDEO EDITING FUNCTIONS =====
+
+// Helper function to get video name from display title
+function getVideoNameFromTitle(title) {
+    // Map display titles to video names in mock data
+    const titleMap = {
+        'Kubernetes Advanced Tutorial': 'kubernetes-advanced-tutorial',
+        'Docker Compose Deep Dive': 'docker-compose-deep-dive',
+        'Terraform Infrastructure': 'terraform-infrastructure',
+        'AWS Lambda Serverless Architecture': 'aws-lambda-serverless',
+        'GitOps with ArgoCD': 'gitops-argocd',
+        'Microservices Design Patterns': 'microservices-patterns'
+    };
+    return titleMap[title] || title.toLowerCase().replace(/\s+/g, '-');
+}
+
+// Calculate aspect completion progress
+function calculateAspectProgress(video, aspectKey) {
+    const aspectData = video[aspectKey];
+    if (!aspectData) return { completed: 0, total: 1 };
+    
+    const fields = Object.keys(aspectData);
+    const completed = fields.filter(field => {
+        const value = aspectData[field];
+        if (Array.isArray(value)) return value.length > 0;
+        if (typeof value === 'string') return value.trim().length > 0;
+        if (typeof value === 'object' && value !== null) return Object.keys(value).length > 0;
+        return value !== null && value !== undefined;
+    }).length;
+    
+    return { completed, total: fields.length };
+}
+
+// Get aspect definitions for UI
+function getEditingAspects() {
+    return {
+        'init': {
+            key: 'init',
+            title: 'Initial Details',
+            description: 'Project information, publication date, and gist path',
+            icon: 'fas fa-play-circle',
+            color: '#3B82F6'
+        },
+        'work': {
+            key: 'work', 
+            title: 'Work Progress',
+            description: 'Content creation tasks: code, recordings, thumbnails, diagrams',
+            icon: 'fas fa-cogs',
+            color: '#F59E0B'
+        },
+        'define': {
+            key: 'define',
+            title: 'Definition',
+            description: 'Title, description, tags, and social media content',
+            icon: 'fas fa-edit',
+            color: '#8B5CF6'
+        },
+        'edit': {
+            key: 'edit',
+            title: 'Post-Production',
+            description: 'Thumbnail, members, editing requests, and timecodes',
+            icon: 'fas fa-film',
+            color: '#EF4444'
+        },
+        'publish': {
+            key: 'publish',
+            title: 'Publishing',
+            description: 'Video file path, YouTube upload, and Hugo post creation',
+            icon: 'fas fa-upload',
+            color: '#10B981'
+        },
+        'postPublish': {
+            key: 'postPublish',
+            title: 'Post-Publish',
+            description: 'Social media posts, notifications, and sponsor updates',
+            icon: 'fas fa-chart-line',
+            color: '#6B7280'
+        }
+    };
+}
+
+// Main edit modal function
+function openEditModal(videoName) {
+    const video = getVideoDetails(videoName);
+    if (!video) {
+        showNotification('Video not found: ' + videoName, 'error');
+        return;
+    }
+    
+    showEditModal(video);
+}
+
+// Show the edit modal with aspect selection
+function showEditModal(video) {
+    const modal = document.getElementById('edit-modal');
+    const modalTitle = document.getElementById('edit-modal-title');
+    
+    modalTitle.textContent = `Edit: ${video.title}`;
+    
+    // Store current video in global state for access by other functions
+    window.currentEditingVideo = video;
+    
+    // Generate aspect selection cards
+    generateAspectCards(video);
+    
+    // Show modal and aspect selection view
+    modal.style.display = 'flex';
+    showAspectSelection();
+}
+
+// Close the edit modal
+function closeEditModal() {
+    const modal = document.getElementById('edit-modal');
+    modal.style.display = 'none';
+    window.currentEditingVideo = null;
+}
+
+// Show aspect selection view
+function showAspectSelection() {
+    document.getElementById('aspect-selection-view').classList.add('active');
+    document.getElementById('aspect-edit-view').classList.remove('active');
+}
+
+// Show aspect edit form view
+function showAspectEdit(aspectKey) {
+    const video = window.currentEditingVideo;
+    if (!video) return;
+    
+    const aspects = getEditingAspects();
+    const aspect = aspects[aspectKey];
+    
+    if (!aspect) return;
+    
+    // Update title
+    document.getElementById('aspect-edit-title').textContent = `Edit: ${aspect.title}`;
+    
+    // Generate form for this aspect
+    generateAspectForm(video, aspectKey);
+    
+    // Show form view
+    document.getElementById('aspect-selection-view').classList.remove('active');
+    document.getElementById('aspect-edit-view').classList.add('active');
+}
+
+// Generate aspect selection cards
+function generateAspectCards(video) {
+    const aspectsGrid = document.getElementById('aspects-grid');
+    const aspects = getEditingAspects();
+    
+    aspectsGrid.innerHTML = '';
+    
+    Object.keys(aspects).forEach(aspectKey => {
+        const aspect = aspects[aspectKey];
+        const progress = calculateAspectProgress(video, aspectKey);
+        const progressPercent = Math.round((progress.completed / progress.total) * 100);
+        
+        const aspectCard = document.createElement('div');
+        aspectCard.className = 'aspect-card';
+        aspectCard.onclick = () => showAspectEdit(aspectKey);
+        
+        aspectCard.innerHTML = `
+            <div class="aspect-icon" style="color: ${aspect.color}">
+                <i class="${aspect.icon}"></i>
+            </div>
+            <div class="aspect-content">
+                <h4>${aspect.title}</h4>
+                <p>${aspect.description}</p>
+                <div class="aspect-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progressPercent}%; background-color: ${aspect.color}"></div>
+                    </div>
+                    <span class="progress-text">${progress.completed}/${progress.total} fields completed</span>
+                </div>
+            </div>
+            <div class="aspect-arrow">
+                <i class="fas fa-chevron-right"></i>
+            </div>
+        `;
+        
+        aspectsGrid.appendChild(aspectCard);
+    });
+}
+
+// Generate form for specific aspect
+function generateAspectForm(video, aspectKey) {
+    const formContainer = document.getElementById('aspect-form-container');
+    const aspectData = video[aspectKey] || {};
+    
+    // Store current aspect for saving BEFORE creating form fields
+    window.currentEditingAspect = aspectKey;
+    
+    formContainer.innerHTML = '';
+    
+    // Create form elements based on aspect data
+    Object.keys(aspectData).forEach(fieldKey => {
+        const fieldValue = aspectData[fieldKey];
+        const formGroup = createFormField(fieldKey, fieldValue);
+        formContainer.appendChild(formGroup);
+    });
+}
+
+// Create individual form field
+function createFormField(fieldKey, fieldValue) {
+    const formGroup = document.createElement('div');
+    formGroup.className = 'form-group';
+    
+    const label = document.createElement('label');
+    const isCompleted = isFieldCompleted(fieldValue, fieldKey);
+    
+    // Add completion status to label
+    const statusIndicator = document.createElement('span');
+    statusIndicator.className = `field-status ${isCompleted ? 'completed' : 'pending'}`;
+    statusIndicator.innerHTML = isCompleted ? '<i class="fas fa-check-circle"></i>' : '<i class="fas fa-clock"></i>';
+    
+    const labelText = document.createElement('span');
+    labelText.textContent = formatFieldLabel(fieldKey);
+    
+    label.appendChild(statusIndicator);
+    label.appendChild(labelText);
+    label.className = isCompleted ? 'label-completed' : 'label-pending';
+    
+    // Check if we need AI generation button
+    const needsAiButton = shouldAddAiButton(fieldKey);
+    
+    let input;
+    
+    if (Array.isArray(fieldValue)) {
+        // Handle arrays as comma-separated text
+        input = document.createElement('textarea');
+        input.value = fieldValue.join(', ');
+        input.rows = 3;
+    } else if (typeof fieldValue === 'object' && fieldValue !== null) {
+        // Handle objects as JSON text
+        input = document.createElement('textarea');
+        input.value = JSON.stringify(fieldValue, null, 2);
+        input.rows = 4;
+    } else if (typeof fieldValue === 'string' && fieldValue.length > 100) {
+        // Long strings as textarea
+        input = document.createElement('textarea');
+        input.value = fieldValue;
+        input.rows = 4;
+    } else if (fieldKey.toLowerCase().includes('date')) {
+        // Date fields get date picker
+        input = document.createElement('input');
+        input.type = 'datetime-local';
+        // Convert ISO date string to datetime-local format if needed
+        if (fieldValue && typeof fieldValue === 'string') {
+            // Remove 'Z' and ensure proper format for datetime-local
+            const dateValue = fieldValue.replace('Z', '').replace(/\+.*$/, '');
+            input.value = dateValue;
+        }
+    } else if (typeof fieldValue === 'boolean' || isBooleanField(fieldKey)) {
+        // Boolean fields get Yes/No radio buttons
+        const radioContainer = document.createElement('div');
+        radioContainer.className = 'radio-group';
+        
+        const yesOption = createRadioOption(fieldKey, 'yes', 'Yes', fieldValue === true);
+        const noOption = createRadioOption(fieldKey, 'no', 'No', fieldValue === false);
+        
+        radioContainer.appendChild(yesOption);
+        radioContainer.appendChild(noOption);
+        
+        // Set name attribute on container for form processing
+        radioContainer.setAttribute('data-field', fieldKey);
+        input = radioContainer;
+    } else {
+        // Regular input
+        input = document.createElement('input');
+        input.type = 'text';
+        input.value = fieldValue || '';
+    }
+    
+    input.name = fieldKey;
+    input.className = 'form-input';
+    
+    formGroup.appendChild(label);
+    
+    // Create input container with AI button if needed
+    if (needsAiButton) {
+        const inputContainer = document.createElement('div');
+        inputContainer.className = 'input-container-with-ai';
+        
+        inputContainer.appendChild(input);
+        
+        // Add AI generation button
+        const aiButton = document.createElement('button');
+        aiButton.type = 'button';
+        aiButton.className = 'ai-generate-btn';
+        aiButton.innerHTML = '<i class="fas fa-magic"></i>';
+        aiButton.title = 'Generate with AI';
+        aiButton.onclick = () => generateWithAI(fieldKey, input);
+        
+        inputContainer.appendChild(aiButton);
+        formGroup.appendChild(inputContainer);
+    } else {
+        formGroup.appendChild(input);
+    }
+    
+    return formGroup;
+}
+
+// Check if field should have AI generation button (Definition aspect only, except requestThumbnailGeneration)
+function shouldAddAiButton(fieldKey) {
+    // Only for Definition aspect fields
+    const definitionFields = [
+        'title', 'description', 'highlight', 'tags', 'descriptionTags', 
+        'tweetText', 'animationsScript'
+    ];
+    
+    // Check if we're currently editing a Definition aspect
+    const isDefineAspect = window.currentEditingAspect === 'define';
+    
+    return isDefineAspect && definitionFields.includes(fieldKey);
+}
+
+// Check if a field should be treated as boolean
+function isBooleanField(fieldKey) {
+    const booleanPatterns = [
+        /Done$/i,           // codeDone, movieDone, etc.
+        /^request/i,        // requestEdit, requestThumbnailGeneration
+        /Sent$/i,           // blueSkyPostSent, linkedInPostSent, etc.
+        /Created$/i,        // youTubeHighlightCreated
+        /Added$/i,          // youTubePinnedCommentAdded
+        /^upload/i,         // uploadToYouTube
+        /^create/i,         // createHugoPost
+        /^replied/i,        // repliedToYouTubeComments
+        /^notified/i        // notifiedSponsors
+    ];
+    
+    return booleanPatterns.some(pattern => pattern.test(fieldKey));
+}
+
+// Check if a field has meaningful completion status
+function isFieldCompleted(fieldValue, fieldKey = '') {
+    if (fieldValue === null || fieldValue === undefined) {
+        return false;
+    }
+    
+    if (typeof fieldValue === 'boolean') {
+        // For "Done" fields, false means pending (not completed yet)
+        if (fieldKey.toLowerCase().includes('done')) {
+            return fieldValue === true;
+        }
+        // For other boolean fields, any value (true/false) is considered addressed
+        return true;
+    }
+    
+    if (typeof fieldValue === 'string') {
+        return fieldValue.trim().length > 0;
+    }
+    
+    if (Array.isArray(fieldValue)) {
+        return fieldValue.length > 0 && fieldValue.some(item => 
+            typeof item === 'string' ? item.trim().length > 0 : item != null
+        );
+    }
+    
+    if (typeof fieldValue === 'object') {
+        return Object.keys(fieldValue).length > 0;
+    }
+    
+    return false;
+}
+
+// Generate content with AI
+async function generateWithAI(fieldKey, inputElement) {
+    const aiButton = inputElement.parentElement.querySelector('.ai-generate-btn');
+    const originalContent = aiButton.innerHTML;
+    
+    // Show loading state
+    aiButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    aiButton.disabled = true;
+    
+    try {
+        // Get context from current video
+        const video = window.currentEditingVideo;
+        const context = {
+            videoTitle: video?.title || '',
+            originalDescription: video?.init?.originalDescription || '',
+            topic: video?.init?.topic || ''
+        };
+        
+        // Simulate AI generation call
+        const generatedContent = await mockAiGeneration(fieldKey, context);
+        
+        // Update the input field
+        if (inputElement.tagName === 'TEXTAREA') {
+            inputElement.value = generatedContent;
+        } else if (inputElement.type === 'text') {
+            inputElement.value = generatedContent;
+        }
+        
+        // Trigger change event to update any listeners
+        inputElement.dispatchEvent(new Event('change', { bubbles: true }));
+        
+        showNotification(`AI generated content for ${formatFieldLabel(fieldKey)}`, 'success');
+        
+    } catch (error) {
+        console.error('AI generation failed:', error);
+        showNotification('AI generation failed. Please try again.', 'error');
+    } finally {
+        // Restore button state
+        aiButton.innerHTML = originalContent;
+        aiButton.disabled = false;
+    }
+}
+
+// Mock AI generation function
+async function mockAiGeneration(fieldKey, context) {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const aiResponses = {
+        title: [
+            `${context.topic ? context.topic + ': ' : ''}Complete Guide with Examples`,
+            `Mastering ${context.topic || 'This Topic'} - Advanced Tutorial`,
+            `${context.topic || 'Essential'} Best Practices for Developers`,
+            `Ultimate ${context.topic || 'Guide'}: From Basics to Advanced`
+        ],
+        description: [
+            `In this comprehensive video, we dive deep into ${context.topic || 'the topic'} and explore all the essential concepts you need to know. Perfect for both beginners and experienced developers looking to enhance their skills.`,
+            `Learn everything about ${context.topic || 'this subject'} in this detailed tutorial. We'll cover practical examples, common pitfalls, and best practices to help you master these concepts.`,
+            `This video provides a complete overview of ${context.topic || 'the subject matter'}, including step-by-step explanations and real-world applications. Great for anyone looking to expand their knowledge.`
+        ],
+        highlight: [
+            `🚀 Key insight: ${context.topic || 'This approach'} dramatically improves development efficiency`,
+            `💡 Pro tip: Master this ${context.topic || 'technique'} to level up your coding skills`,
+            `⚡ Game changer: This ${context.topic || 'method'} will transform how you work`,
+            `🎯 Essential: Every developer should know this ${context.topic || 'concept'}`
+        ],
+        tags: [
+            `programming, coding, tutorial, ${context.topic || 'development'}, software, tech, learning`,
+            `developer, coding tutorial, ${context.topic || 'programming'}, software development, tech education`,
+            `programming tutorial, ${context.topic || 'coding'}, software engineering, tech skills, development`
+        ],
+        descriptionTags: [
+            `#programming #coding #tutorial #${(context.topic || 'development').replace(/\s+/g, '')} #software #tech #learning #developer`,
+            `#coding #tutorial #${(context.topic || 'programming').replace(/\s+/g, '')} #softwaredevelopment #tech #education #programming`,
+            `#development #coding #${(context.topic || 'programming').replace(/\s+/g, '')} #softwareengineering #tech #skills #tutorial`
+        ],
+        tweetText: [
+            `🚀 New video: ${context.topic || 'Essential development concepts'} explained! Perfect for developers looking to level up their skills. What's your biggest challenge with this topic? 🤔`,
+            `💡 Just dropped: Complete guide to ${context.topic || 'important development topics'}! Share your thoughts and let me know what you'd like to see next 👇`,
+            `⚡ Latest tutorial: Deep dive into ${context.topic || 'key programming concepts'}! Have you tried this approach? Let's discuss in the comments 💬`
+        ],
+        animationsScript: [
+            `Scene 1: Introduction animation with title card\nScene 2: Overview diagram of main concepts\nScene 3: Code editor with syntax highlighting\nScene 4: Step-by-step implementation walkthrough\nScene 5: Common mistakes and solutions\nScene 6: Summary with key takeaways`,
+            `Opening: Animated logo and topic introduction\nMain: Split-screen code demonstration\nHighlight: Important concepts with callout animations\nTransition: Smooth slides between code sections\nClosing: Subscribe reminder with animated elements`,
+            `Intro: Dynamic text animation introducing ${context.topic || 'the topic'}\nDemo: Screen recording with highlighted code sections\nExplanation: Diagram animations showing relationships\nSummary: Animated checklist of covered topics\nOutro: Call-to-action with engaging visuals`
+        ]
+    };
+    
+    const responses = aiResponses[fieldKey] || [`Generated content for ${fieldKey}`];
+    return responses[Math.floor(Math.random() * responses.length)];
+}
+
+// Create a radio button option
+function createRadioOption(fieldName, value, label, isChecked) {
+    const optionContainer = document.createElement('div');
+    optionContainer.className = 'radio-option';
+    
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = fieldName;
+    radio.value = value;
+    radio.checked = isChecked;
+    radio.id = `${fieldName}_${value}`;
+    
+    const labelElement = document.createElement('label');
+    labelElement.htmlFor = radio.id;
+    labelElement.textContent = label;
+    labelElement.className = 'radio-label';
+    
+    optionContainer.appendChild(radio);
+    optionContainer.appendChild(labelElement);
+    
+    return optionContainer;
+}
+
+// Format field key into readable label
+function formatFieldLabel(fieldKey) {
+    return fieldKey
+        .replace(/URL/g, 'Url') // Handle URL specially first
+        .replace(/([A-Z])/g, ' $1')
+        .replace(/^./, str => str.toUpperCase())
+        .replace(/Url/g, 'URL'); // Convert back to uppercase URL
+}
+
+// Initialize save button functionality
+function initializeEditModalSaveButton() {
+    const saveBtn = document.getElementById('save-aspect-btn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveAspectChanges);
+    }
+}
+
+// Save aspect changes
+function saveAspectChanges() {
+    const video = window.currentEditingVideo;
+    const aspectKey = window.currentEditingAspect;
+    
+    if (!video || !aspectKey) {
+        showNotification('Error: No video or aspect selected', 'error');
+        return;
+    }
+    
+    // Collect form data
+    const formContainer = document.getElementById('aspect-form-container');
+    const inputs = formContainer.querySelectorAll('.form-input');
+    const radioGroups = formContainer.querySelectorAll('.radio-group');
+    const updatedData = {};
+    
+    // Handle regular inputs
+    inputs.forEach(input => {
+        const fieldKey = input.name;
+        let value = input.value.trim();
+        
+        // Parse different data types
+        if (input.tagName === 'TEXTAREA') {
+            // Try to parse as JSON for objects
+            if (value.startsWith('{') || value.startsWith('[')) {
+                try {
+                    value = JSON.parse(value);
+                } catch (e) {
+                    // If not valid JSON, treat as array (comma-separated)
+                    if (value.includes(',')) {
+                        value = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
+                    }
+                }
+            } else if (value.includes(',')) {
+                // Comma-separated values as array
+                value = value.split(',').map(item => item.trim()).filter(item => item.length > 0);
+            }
+        }
+        
+        updatedData[fieldKey] = value;
+    });
+    
+    // Handle radio button groups (boolean fields)
+    radioGroups.forEach(radioGroup => {
+        const fieldKey = radioGroup.getAttribute('data-field');
+        const selectedRadio = radioGroup.querySelector('input[type="radio"]:checked');
+        if (selectedRadio) {
+            updatedData[fieldKey] = selectedRadio.value === 'yes';
+        }
+    });
+    
+    // Update the mock data
+    MOCK_VIDEO_DATA[video.name][aspectKey] = updatedData;
+    
+    // Update the current video object
+    window.currentEditingVideo[aspectKey] = updatedData;
+    
+    // Show success message and return to aspect selection
+    showNotification(`${formatFieldLabel(aspectKey)} updated successfully!`, 'success');
+    
+    // Refresh aspect cards to show updated progress
+    generateAspectCards(window.currentEditingVideo);
+    
+    // Go back to aspect selection
+    showAspectSelection();
+}
+
+// Make functions globally available
+window.closeEditModal = closeEditModal;
+window.showAspectSelection = showAspectSelection;
+window.showAspectEdit = showAspectEdit;
+
+// ===== END MOCK DATA =====
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeMockup();
+    initializeEditModalSaveButton();
 });
 
 function initializeMockup() {
@@ -131,7 +1120,11 @@ function setupVideoCardActions() {
         const editBtn = card.querySelector('.btn-edit');
         if (editBtn) {
             editBtn.addEventListener('click', function() {
-                showNotification('Video editing functionality coming soon! This will open an edit page for: ' + card.querySelector('h3').textContent, 'info');
+                console.log('Edit button clicked - NEW FUNCTIONALITY');
+                const videoTitle = card.querySelector('h3').textContent;
+                const videoName = getVideoNameFromTitle(videoTitle);
+                console.log('Opening edit modal for:', videoName);
+                openEditModal(videoName);
             });
         }
         

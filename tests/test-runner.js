@@ -18,6 +18,7 @@ const { initializeBrowser, printTestSummary } = require('./utils/test-helpers');
 const { testHomepage } = require('./pages/homepage.test');
 const { testVideosPage } = require('./pages/videos.test');
 const { testCreatePage } = require('./pages/create.test');
+const { testAspectSelection } = require('./pages/aspect-selection.test');
 const { testApiErrorDetection } = require('./api-error-detection.test');
 
 async function runOptimizedTests() {
@@ -41,6 +42,7 @@ async function runOptimizedTests() {
         await testHomepage(page, counters);
         await testVideosPage(page, counters);
         await testCreatePage(page, counters);
+        await testAspectSelection(page, counters);
         
         // Execute API error detection tests
         await testApiErrorDetection(page, counters);

@@ -10,7 +10,8 @@ export const config = {
   // Endpoints
   endpoints: {
     phases: '/api/videos/phases',
-    videos: '/api/videos/list'
+    videos: '/api/videos/list',
+    aspects: '/api/aspects'
   }
 };
 
