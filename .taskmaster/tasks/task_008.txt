@@ -1,0 +1,92 @@
+# Task ID: 8
+# Title: Implement Video Edit API Client
+# Status: done
+# Dependencies: 2
+# Priority: high
+# Description: Create an API client class that handles all aspect-specific API calls for video editing.
+# Details:
+Create a new file `api/videoEditApi.ts` with the following implementation:
+
+```typescript
+import axios from 'axios';
+import { Video } from '../types/videoEditing';
+
+class VideoEditAPI {
+  private baseUrl: string;
+  
+  constructor(baseUrl = '/api') {
+    this.baseUrl = baseUrl;
+  }
+  
+  // Get full video details
+  async getVideo(videoName: string): Promise<Video> {
+    const response = await axios.get(`${this.baseUrl}/videos/${videoName}`);
+    return response.data;
+  }
+  
+  // Aspect-specific update methods
+  async updateInitialDetails(videoName: string, fields: Partial<Video>): Promise<Video> {
+    const response = await axios.put(`${this.baseUrl}/videos/${videoName}/initial-details`, fields);
+    return response.data;
+  }
+  
+  async updateWorkProgress(videoName: string, fields: Partial<Video>): Promise<Video> {
+    const response = await axios.put(`${this.baseUrl}/videos/${videoName}/work-progress`, fields);
+    return response.data;
+  }
+  
+  async updateDefinition(videoName: string, fields: Partial<Video>): Promise<Video> {
+    const response = await axios.put(`${this.baseUrl}/videos/${videoName}/definition`, fields);
+    return response.data;
+  }
+  
+  async updatePostProduction(videoName: string, fields: Partial<Video>): Promise<Video> {
+    const response = await axios.put(`${this.baseUrl}/videos/${videoName}/post-production`, fields);
+    return response.data;
+  }
+  
+  async updatePublishing(videoName: string, fields: Partial<Video>): Promise<Video> {
+    const response = await axios.put(`${this.baseUrl}/videos/${videoName}/publishing`, fields);
+    return response.data;
+  }
+  
+  async updatePostPublish(videoName: string, fields: Partial<Video>): Promise<Video> {
+    const response = await axios.put(`${this.baseUrl}/videos/${videoName}/post-publish`, fields);
+    return response.data;
+  }
+  
+  // Generic update method that selects the appropriate endpoint based on aspect
+  async updateVideoAspect(videoName: string, aspect: string, fields: Partial<Video>): Promise<Video> {
+    switch (aspect) {
+      case 'initial-details':
+        return this.updateInitialDetails(videoName, fields);
+      case 'work-progress':
+        return this.updateWorkProgress(videoName, fields);
+      case 'definition':
+        return this.updateDefinition(videoName, fields);
+      case 'post-production':
+        return this.updatePostProduction(videoName, fields);
+      case 'publishing':
+        return this.updatePublishing(videoName, fields);
+      case 'post-publish':
+        return this.updatePostPublish(videoName, fields);
+      default:
+        throw new Error(`Unknown aspect: ${aspect}`);
+    }
+  }
+}
+
+// Create and export a singleton instance
+const videoEditApi = new VideoEditAPI();
+export default videoEditApi;
+```
+
+Implement proper error handling and response parsing. Use axios interceptors for common error handling. Add retry logic for network failures.
+
+# Test Strategy:
+Write unit tests using Jest and axios-mock-adapter to verify:
+1. Each API method calls the correct endpoint with the right parameters
+2. Response data is properly parsed and returned
+3. Error handling works correctly for different error scenarios
+4. The generic updateVideoAspect method routes to the correct specific method
+5. Test with various field combinations to ensure proper serialization

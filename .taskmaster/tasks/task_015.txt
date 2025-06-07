@@ -1,0 +1,186 @@
+# Task ID: 15
+# Title: Implement End-to-End Testing
+# Status: pending
+# Dependencies: 10, 13, 14
+# Priority: low
+# Description: Create comprehensive end-to-end tests for the video editing feature to ensure all components work together correctly.
+# Details:
+Implement end-to-end tests using Cypress to verify the complete edit workflow:
+
+1. Create a new Cypress test file `cypress/integration/video-edit.spec.js`:
+
+```javascript
+describe('Video Editing Feature', () => {
+  beforeEach(() => {
+    // Visit the video list page with a phase filter active
+    cy.visit('/videos?phase=definition');
+    cy.intercept('GET', '/api/videos*', { fixture: 'videos.json' }).as('getVideos');
+    cy.wait('@getVideos');
+  });
+  
+  it('should open edit modal when edit button is clicked', () => {
+    // Find the first video card and click its edit button
+    cy.get('.video-card').first().find('.edit-button').click();
+    
+    // Verify modal opens with aspect selection
+    cy.get('.modal-container').should('be.visible');
+    cy.get('.aspect-selection-container').should('be.visible');
+    cy.get('.aspect-card').should('have.length', 6);
+  });
+  
+  it('should navigate to form when aspect is selected', () => {
+    // Open edit modal
+    cy.get('.video-card').first().find('.edit-button').click();
+    
+    // Select the Definition aspect
+    cy.get('.aspect-card').contains('Definition').click();
+    
+    // Verify form is displayed
+    cy.get('.aspect-edit-form').should('be.visible');
+    cy.get('form').should('be.visible');
+    cy.get('h3').should('contain', 'Definition');
+  });
+  
+  it('should save changes when form is submitted', () => {
+    // Mock the API response for saving
+    cy.intercept('PUT', '/api/videos/*/definition', {
+      statusCode: 200,
+      body: { name: 'test-video', title: 'Updated Title' }
+    }).as('saveVideo');
+    
+    // Open edit modal and select Definition aspect
+    cy.get('.video-card').first().find('.edit-button').click();
+    cy.get('.aspect-card').contains('Definition').click();
+    
+    // Fill out the form
+    cy.get('#title').clear().type('Updated Title');
+    
+    // Submit the form
+    cy.get('button[type="submit"]').click();
+    
+    // Verify API call was made
+    cy.wait('@saveVideo');
+    
+    // Verify we return to aspect selection
+    cy.get('.aspect-selection-container').should('be.visible');
+    
+    // Verify success notification appears
+    cy.get('.notification-success').should('be.visible');
+  });
+  
+  it('should handle validation errors', () => {
+    // Open edit modal and select Definition aspect
+    cy.get('.video-card').first().find('.edit-button').click();
+    cy.get('.aspect-card').contains('Definition').click();
+    
+    // Clear required field
+    cy.get('#title').clear();
+    
+    // Submit the form
+    cy.get('button[type="submit"]').click();
+    
+    // Verify validation error appears
+    cy.get('.invalid-feedback').should('be.visible');
+    
+    // Verify form was not submitted (still on form page)
+    cy.get('.aspect-edit-form').should('be.visible');
+  });
+  
+  it('should handle API errors', () => {
+    // Mock API error response
+    cy.intercept('PUT', '/api/videos/*/definition', {
+      statusCode: 500,
+      body: { message: 'Server error' }
+    }).as('saveError');
+    
+    // Open edit modal and select Definition aspect
+    cy.get('.video-card').first().find('.edit-button').click();
+    cy.get('.aspect-card').contains('Definition').click();
+    
+    // Fill out the form
+    cy.get('#title').clear().type('Updated Title');
+    
+    // Submit the form
+    cy.get('button[type="submit"]').click();
+    
+    // Verify API call was made
+    cy.wait('@saveError');
+    
+    // Verify error notification appears
+    cy.get('.notification-error').should('be.visible');
+  });
+  
+  it('should close modal when cancel is clicked', () => {
+    // Open edit modal
+    cy.get('.video-card').first().find('.edit-button').click();
+    
+    // Click cancel button
+    cy.get('.modal-container').find('button').contains('Cancel').click();
+    
+    // Verify modal is closed
+    cy.get('.modal-container').should('not.exist');
+  });
+  
+  it('should support keyboard navigation', () => {
+    // Open edit modal
+    cy.get('.video-card').first().find('.edit-button').click();
+    
+    // Verify focus is trapped in modal
+    cy.focused().should('have.attr', 'aria-label', 'Close');
+    
+    // Tab through focusable elements
+    cy.realPress('Tab');
+    cy.focused().should('have.class', 'aspect-card');
+    
+    // Select aspect with keyboard
+    cy.focused().realPress('Enter');
+    cy.get('.aspect-edit-form').should('be.visible');
+    
+    // Navigate back with keyboard
+    cy.focused().should('have.attr', 'aria-label', 'Back to aspect selection');
+    cy.focused().realPress('Enter');
+    cy.get('.aspect-selection-container').should('be.visible');
+  });
+});
+```
+
+2. Create fixtures for testing:
+   - `cypress/fixtures/videos.json` - Sample video list
+   - `cypress/fixtures/video-details.json` - Sample video details
+
+3. Configure Cypress for accessibility testing by adding the axe plugin:
+
+```javascript
+// cypress/support/index.js
+import 'cypress-axe';
+
+// Add a custom command for accessibility testing
+Cypress.Commands.add('checkA11y', (context, options) => {
+  cy.checkA11y(context, options);
+});
+```
+
+Add accessibility checks to the tests:
+
+```javascript
+it('should be accessible', () => {
+  // Open edit modal
+  cy.get('.video-card').first().find('.edit-button').click();
+  
+  // Check accessibility of aspect selection
+  cy.checkA11y('.modal-container');
+  
+  // Select aspect and check form accessibility
+  cy.get('.aspect-card').first().click();
+  cy.checkA11y('.aspect-edit-form');
+});
+```
+
+# Test Strategy:
+Run the Cypress tests in both headless mode and interactive mode to verify:
+1. All user flows work correctly from start to finish
+2. API interactions are handled properly
+3. Error states are displayed correctly
+4. Accessibility requirements are met
+5. Visual appearance matches design specifications
+6. Test on multiple browsers (Chrome, Firefox, Safari) to ensure cross-browser compatibility

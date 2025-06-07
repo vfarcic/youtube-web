@@ -1,6 +1,6 @@
 /**
  * API Client for Video Management
- * Uses the new optimized video list endpoint
+ * Uses the new optimized video list endpoint and editing aspects API
  */
 
 import { config } from './config';
@@ -39,15 +39,35 @@ export interface OptimizedVideo {
   phase: number; // New field: 0-7 representing different phases
 }
 
-// Basic editing aspect interface (minimal, will be refined based on API response)
-export interface EditingAspect {
+// Editing aspects API types (from Issue #14)
+export interface EditingAspectOverview {
   key: string;
   title: string;
+  description: string;
+  icon: string;
+  fieldCount: number;
+  order: number;
+}
+
+export interface EditingFieldMetadata {
+  name: string;
+  type: 'string' | 'text' | 'boolean' | 'date' | 'number' | 'select';
+  required: boolean;
   description?: string;
-  icon?: string;
-  color?: string;
-  endpoint?: string;
-  fields?: any[]; // Will be refined after API inspection
+  // UI Hints
+  inputType?: string;
+  placeholder?: string;
+  helpText?: string;
+  multiline?: boolean;
+  rows?: number;
+  // Validation
+  minLength?: number;
+  maxLength?: number;
+  min?: number;
+  max?: number;
+  pattern?: string;
+  options?: Array<{ value: string; label: string; }>;
+  defaultValue?: any;
 }
 
 // Video edit related interfaces
@@ -58,8 +78,12 @@ export interface VideoListItem {
   // Other fields as returned by the API
 }
 
-export interface AspectListResponse {
-  aspects: EditingAspect[];
+export interface AspectOverviewResponse {
+  aspects: EditingAspectOverview[];
+}
+
+export interface AspectFieldsResponse {
+  fields: EditingFieldMetadata[];
 }
 
 export interface VideoListResponse {
@@ -104,12 +128,13 @@ export class ApiClient {
   }
 
   /**
-   * Fetch available editing aspects from the API
+   * Fetch available editing aspects overview (lightweight for navigation)
+   * NEW: Uses the optimized aspects overview endpoint
    */
-  async getAspects(): Promise<AspectListResponse> {
-    const endpoint = `${this.baseUrl}/api/aspects`;
+  async getAspectsOverview(): Promise<AspectOverviewResponse> {
+    const endpoint = `${this.baseUrl}/api/editing/aspects`;
     
-    console.log('🔍 ApiClient fetching aspects from:', endpoint);
+    console.log('🔍 ApiClient fetching aspects overview from:', endpoint);
     
     const response = await fetch(endpoint);
     
@@ -117,8 +142,32 @@ export class ApiClient {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
-    const data: AspectListResponse = await response.json();
-    console.log('✅ ApiClient received aspects:', { count: data.aspects?.length, aspects: data.aspects });
+    const data: AspectOverviewResponse = await response.json();
+    console.log('✅ ApiClient received aspects overview:', { count: data.aspects?.length, aspects: data.aspects });
+    
+    return data;
+  }
+
+  /**
+   * Fetch detailed field metadata for a specific editing aspect
+   * NEW: Uses the optimized field details endpoint
+   */
+  async getAspectFields(aspectKey: string): Promise<AspectFieldsResponse> {
+    const endpoint = `${this.baseUrl}/api/editing/aspects/${aspectKey}/fields`;
+    
+    console.log('🔍 ApiClient fetching field metadata for aspect:', aspectKey, 'from:', endpoint);
+    
+    const response = await fetch(endpoint);
+    
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new Error(`Aspect '${aspectKey}' not found`);
+      }
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data: AspectFieldsResponse = await response.json();
+    console.log('✅ ApiClient received field metadata:', { aspect: aspectKey, fieldCount: data.fields?.length });
     
     return data;
   }

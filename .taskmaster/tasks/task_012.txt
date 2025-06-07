@@ -1,0 +1,135 @@
+# Task ID: 12
+# Title: Implement Form Field Components for Different Data Types
+# Status: pending
+# Dependencies: 6
+# Priority: medium
+# Description: Create reusable form field components for different data types (text, checkbox, select, etc.) to be used in the AspectEditForm.
+# Details:
+Create a set of reusable form field components in a new directory `components/form-fields/`:
+
+1. `TextField.tsx` - For text and textarea inputs
+2. `CheckboxField.tsx` - For boolean values
+3. `SelectField.tsx` - For dropdown selections
+4. `DateField.tsx` - For date inputs
+5. `ArrayField.tsx` - For array inputs (e.g., tags)
+6. `ObjectField.tsx` - For nested object inputs (e.g., sponsorship)
+7. `DateTimeField.tsx` - For datetime-local inputs with calendar picker functionality
+8. `BooleanToggleField.tsx` - For Yes/No radio button group styled as toggle buttons
+9. `SmartField.tsx` - A wrapper component that automatically detects field type
+
+Example implementation for TextField:
+
+```typescript
+import React from 'react';
+
+interface TextFieldProps {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+  multiline?: boolean;
+  placeholder?: string;
+  required?: boolean;
+}
+
+const TextField: React.FC<TextFieldProps> = ({
+  id,
+  label,
+  value,
+  onChange,
+  error,
+  multiline = false,
+  placeholder = '',
+  required = false
+}) => {
+  return (
+    <div className="form-group">
+      <label htmlFor={id}>
+        {label}
+        {required && <span className="required-indicator">*</span>}
+      </label>
+      
+      {multiline ? (
+        <textarea
+          id={id}
+          value={value || ''}
+          onChange={e => onChange(e.target.value)}
+          className={error ? 'form-control is-invalid' : 'form-control'}
+          placeholder={placeholder}
+          required={required}
+        />
+      ) : (
+        <input
+          type="text"
+          id={id}
+          value={value || ''}
+          onChange={e => onChange(e.target.value)}
+          className={error ? 'form-control is-invalid' : 'form-control'}
+          placeholder={placeholder}
+          required={required}
+        />
+      )}
+      
+      {error && <div className="invalid-feedback">{error}</div>}
+    </div>
+  );
+};
+
+export default TextField;
+```
+
+**DateTimeField Component**
+Implement a component that renders datetime-local inputs with calendar picker functionality. This component should:
+- Handle ISO date string conversion
+- Provide proper validation
+- Include a calendar picker interface
+
+**BooleanToggleField Component**
+Implement a styled Yes/No radio button group component that:
+- Renders two radio buttons styled as toggle buttons
+- Has clear visual states for selected/unselected
+- Follows the design system with accent colors for selected state
+- Provides accessibility features (proper labeling, keyboard navigation)
+
+CSS styling should include:
+- `.radio-group` for the container
+- `.radio-option` for individual Yes/No buttons
+- Hover and selected state styling with accent colors
+- Proper spacing and alignment
+
+**SmartField Component**
+Implement a wrapper component that automatically detects field type based on:
+- Field names containing "date" → DateTimeField
+- Boolean values or field patterns (ending with "Done", starting with "request", etc.) → BooleanToggleField
+- Long text content → TextAreaField
+- Arrays/objects → JSONField
+- Default → TextInputField
+
+Implement similar components for other field types. Then refactor AspectEditForm to use these components instead of directly rendering inputs.
+
+# Test Strategy:
+Write unit tests for each field component to verify:
+1. Component renders correctly with all props
+2. Value changes are properly handled and passed to onChange
+3. Error states are displayed correctly
+4. Required indicator is shown when required=true
+5. Test accessibility features like labels and ARIA attributes
+
+Additional tests for specialized components:
+
+1. DateTimeField:
+   - Test ISO date string conversion works correctly
+   - Test calendar picker functionality
+   - Test validation of date inputs
+
+2. BooleanToggleField:
+   - Test toggle between Yes/No states
+   - Test keyboard navigation accessibility
+   - Test proper ARIA attributes for accessibility
+   - Verify visual states match design requirements
+
+3. SmartField:
+   - Test field type detection logic for various input patterns
+   - Test that it correctly renders the appropriate field component
+   - Test edge cases with unusual field names or data types

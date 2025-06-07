@@ -1,0 +1,90 @@
+# Task ID: 10
+# Title: Integrate Edit Functionality in Video List Page
+# Status: pending
+# Dependencies: 4, 7, 9
+# Priority: medium
+# Description: Update the video list page to include the edit button on video cards and handle the edit workflow.
+# Details:
+Update the video list page component to integrate the editing functionality:
+
+```typescript
+import React from 'react';
+import VideoCard from '../components/VideoCard';
+import VideoEditModal from '../components/VideoEditModal';
+import { useVideoEdit } from '../hooks/useVideoEdit';
+
+const VideoListPage: React.FC = () => {
+  // Existing state for videos and phase filter
+  const [videos, setVideos] = useState<VideoListItem[]>([]);
+  const [currentPhase, setCurrentPhase] = useState<string | null>(null);
+  
+  // Video edit state management
+  const {
+    editState,
+    startEditing,
+    saveAspect,
+    cancelEditing
+  } = useVideoEdit();
+  
+  // Fetch videos (existing code)
+  
+  // Handle edit button click
+  const handleEditVideo = (video: VideoListItem) => {
+    startEditing(video);
+  };
+  
+  // Handle save from modal
+  const handleSaveVideo = async (aspect: string, updatedFields: Partial<Video>) => {
+    try {
+      const updatedVideo = await saveAspect(updatedFields);
+      
+      // Update the video in the list
+      setVideos(prev => prev.map(video => 
+        video.name === updatedVideo.name ? { ...video, ...updatedVideo } : video
+      ));
+      
+      // Show success message
+      // ...
+    } catch (error) {
+      // Error already handled in hook
+      console.error('Failed to save video:', error);
+    }
+  };
+  
+  return (
+    <div className="video-list-page">
+      {/* Existing phase filter UI */}
+      
+      <div className="video-grid">
+        {videos.map(video => (
+          <VideoCard
+            key={video.name}
+            video={video}
+            isPhaseFiltered={!!currentPhase} // Disable edit when no phase filter
+            onEdit={handleEditVideo}
+          />
+        ))}
+      </div>
+      
+      {/* Edit modal */}
+      <VideoEditModal
+        video={editState.selectedVideo}
+        isOpen={editState.isEditing}
+        onClose={cancelEditing}
+        onSave={handleSaveVideo}
+      />
+    </div>
+  );
+};
+```
+
+Ensure the video list updates immediately after successful edits. Add success and error notifications for user feedback. Maintain the current phase filter when updating the video list.
+
+# Test Strategy:
+Write integration tests to verify:
+1. Edit button appears on video cards when phase filter is active
+2. Clicking edit button opens the modal with the correct video
+3. Saving changes updates the video in the list
+4. Modal can be closed without saving
+5. Error handling works correctly
+6. Test the full edit workflow from button click to save

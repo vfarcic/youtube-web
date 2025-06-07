@@ -28,7 +28,4 @@ dev-debug.log
 *.sln
 *.sw?
 # OS specific
-.DS_Store
-# Task files
-tasks.json
-tasks/ 
+.DS_Store 

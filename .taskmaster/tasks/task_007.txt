@@ -1,0 +1,123 @@
+# Task ID: 7
+# Title: Create VideoEditModal Component
+# Status: pending
+# Dependencies: 5, 6
+# Priority: high
+# Description: Implement the modal component that will contain both the AspectSelectionMenu and AspectEditForm, managing the state between them.
+# Details:
+Create a new component `components/VideoEditModal.tsx` that serves as the container for the editing workflow:
+
+```typescript
+import React, { useState } from 'react';
+import { VideoListItem, EditingAspect } from '../types/videoEditing';
+import AspectSelectionMenu from './AspectSelectionMenu';
+import AspectEditForm from './AspectEditForm';
+
+interface VideoEditModalProps {
+  video: VideoListItem;
+  isOpen: boolean;
+  onClose: () => void;
+  onSave: (aspect: string, updatedFields: Partial<Video>) => Promise<void>;
+}
+
+const VideoEditModal: React.FC<VideoEditModalProps> = ({
+  video,
+  isOpen,
+  onClose,
+  onSave
+}) => {
+  const [selectedAspect, setSelectedAspect] = useState<EditingAspect | null>(null);
+  const [aspectProgress, setAspectProgress] = useState<Record<string, { completed: number; total: number }>>({});
+  
+  // Calculate initial aspect progress when modal opens
+  React.useEffect(() => {
+    if (isOpen && video) {
+      // Calculate completion for each aspect
+      // This would be based on which fields have values
+      // Implementation depends on how you define "completed" fields
+    }
+  }, [isOpen, video]);
+  
+  const handleAspectSelect = (aspect: EditingAspect) => {
+    setSelectedAspect(aspect);
+  };
+  
+  const handleSave = async (updatedFields: Partial<Video>) => {
+    if (!selectedAspect) return;
+    
+    await onSave(selectedAspect.endpoint, updatedFields);
+    
+    // Update progress after save
+    const fieldCount = selectedAspect.fields.length;
+    const completedCount = selectedAspect.fields.filter(field => 
+      updatedFields[field.name] !== undefined && updatedFields[field.name] !== ''
+    ).length;
+    
+    setAspectProgress(prev => ({
+      ...prev,
+      [selectedAspect.key]: {
+        completed: completedCount,
+        total: fieldCount
+      }
+    }));
+    
+    // Return to aspect selection after save
+    setSelectedAspect(null);
+  };
+  
+  const handleBack = () => {
+    setSelectedAspect(null);
+  };
+  
+  if (!isOpen) return null;
+  
+  return (
+    <div className="modal-overlay">
+      <div className="modal-container">
+        <div className="modal-header">
+          <h2>Edit Video: {video.title || video.name}</h2>
+          <button 
+            className="close-button" 
+            onClick={onClose}
+            aria-label="Close"
+          >
+            &times;
+          </button>
+        </div>
+        
+        <div className="modal-body">
+          {selectedAspect ? (
+            <AspectEditForm
+              video={video}
+              aspect={selectedAspect}
+              onSave={handleSave}
+              onCancel={onClose}
+              onBack={handleBack}
+            />
+          ) : (
+            <AspectSelectionMenu
+              video={video}
+              onAspectSelect={handleAspectSelect}
+              aspectProgress={aspectProgress}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default VideoEditModal;
+```
+
+Implement modal with proper focus management for accessibility. Add smooth transitions between aspect selection and form views. Ensure the modal is responsive and works well on different screen sizes.
+
+# Test Strategy:
+Write unit tests to verify:
+1. Modal renders correctly when isOpen is true and doesn't render when false
+2. AspectSelectionMenu is shown initially when modal opens
+3. Selecting an aspect switches to the AspectEditForm
+4. Back button returns to AspectSelectionMenu
+5. Progress is updated correctly after saving
+6. Modal can be closed with the close button
+7. Test keyboard navigation and focus management for accessibility
