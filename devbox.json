@@ -1,0 +1,11 @@
+{
+  "packages": [
+    "nushell@0.104.0",
+    "teller@2.0.7",
+    "git@2.49.0"
+  ],
+  "shell": {
+    "init_hook": null,
+    "scripts":   {}
+  }
+}

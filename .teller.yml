@@ -1,0 +1,10 @@
+project: dot
+providers:
+  google_secrets_manager:
+    kind: google_secretmanager
+    maps:
+      - id: secrets
+        path: projects/vfarcic
+        keys:
+          anthropic-api-key: ANTHROPIC_API_KEY
+          github-token: GITHUB_TOKEN
