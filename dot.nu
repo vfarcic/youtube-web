@@ -6,5 +6,5 @@ def main [] {}
 
 def "main setup" [] {
 
-    main apply mcp --playwright true
+    main apply mcp --enable-playwright true
 }

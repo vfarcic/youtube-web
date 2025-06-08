@@ -29,3 +29,5 @@ dev-debug.log
 # Task files
 tasks.json
 tasks/ 
+# Roo Code
+.roo/mcp.json
