@@ -1,15 +1,16 @@
 # Task ID: 6
 # Title: Implement AspectEditForm Component
-# Status: pending
+# Status: in-progress
 # Dependencies: 2, 5
 # Priority: high
 # Description: Create a dynamic form component that renders the appropriate fields based on the selected editing aspect, with smart field type detection for improved user experience.
 # Details:
-Create a new component `components/AspectEditForm.tsx` that dynamically generates form fields based on the selected aspect, with intelligent field type detection:
+Create a new component `components/AspectEditForm.tsx` that dynamically generates form fields based on the selected aspect, with intelligent field type detection. This component will be integrated with the newly completed AspectEditModal infrastructure.
 
 ```typescript
 import React, { useState, useEffect } from 'react';
 import { VideoListItem, EditingAspect } from '../types/videoEditing';
+import { apiClient } from '../services/apiClient';
 
 interface AspectEditFormProps {
   video: VideoListItem;
@@ -91,6 +92,15 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
     }
   };
 
+  // Format field label from camelCase to "Formatted Label"
+  const formatFieldLabel = (name: string) => {
+    return name
+      // Insert space before capital letters
+      .replace(/([A-Z])/g, ' $1')
+      // Capitalize first letter
+      .replace(/^./, str => str.toUpperCase());
+  };
+
   // Smart field type detection
   const getFieldType = (field: any, value: any) => {
     // If field type is explicitly defined, use it
@@ -129,7 +139,55 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
   
   const renderField = (field: any) => {
     const fieldType = getFieldType(field, formData[field.name]);
+    const isCompleted = !!formData[field.name]; // Simple completion check
     
+    // Determine if AI generation button should be shown (only for Definition aspect)
+    const showAiButton = aspect.key === 'definition';
+    
+    return (
+      <div className="form-field-container">
+        <div className="field-header">
+          <label htmlFor={field.name}>
+            {field.label || formatFieldLabel(field.name)}
+            {field.required && <span className="required-indicator">*</span>}
+          </label>
+          
+          {/* Field completion status indicator */}
+          {isCompleted ? (
+            <span className="completion-indicator completed" aria-label="Field completed">
+              <i className="fas fa-check-circle" aria-hidden="true"></i>
+            </span>
+          ) : (
+            <span className="completion-indicator pending" aria-label="Field pending">
+              <i className="fas fa-clock" aria-hidden="true"></i>
+            </span>
+          )}
+        </div>
+        
+        <div className="field-input-container">
+          {renderFieldInput(field, fieldType)}
+          
+          {/* AI generation button for Definition aspect */}
+          {showAiButton && (
+            <button 
+              type="button" 
+              className="btn btn-ai" 
+              onClick={() => handleAiGenerate(field.name)}
+              aria-label={`Generate ${field.label} with AI`}
+            >
+              <i className="fas fa-magic" aria-hidden="true"></i>
+            </button>
+          )}
+        </div>
+        
+        {errors[field.name] && (
+          <div className="invalid-feedback">{errors[field.name]}</div>
+        )}
+      </div>
+    );
+  };
+  
+  const renderFieldInput = (field: any, fieldType: string) => {
     switch (fieldType) {
       case 'datetime-local':
         return (
@@ -144,8 +202,8 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
       
       case 'boolean':
         return (
-          <div className="yes-no-toggle">
-            <label className="radio-btn">
+          <div className="radio-group">
+            <label className="radio-option">
               <input
                 type="radio"
                 name={field.name}
@@ -154,7 +212,7 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
               />
               <span>Yes</span>
             </label>
-            <label className="radio-btn">
+            <label className="radio-option">
               <input
                 type="radio"
                 name={field.name}
@@ -240,6 +298,24 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
     }
   };
   
+  // Handle AI generation for Definition aspect fields
+  const handleAiGenerate = async (fieldName: string) => {
+    try {
+      // Call AI generation API
+      const generatedContent = await apiClient.generateFieldContent({
+        videoId: video.id,
+        fieldName,
+        currentContent: formData[fieldName] || ''
+      });
+      
+      // Update form with generated content
+      handleChange(fieldName, generatedContent);
+    } catch (error) {
+      console.error('Error generating content:', error);
+      // Show error notification
+    }
+  };
+  
   return (
     <div className="aspect-edit-form">
       <div className="form-header">
@@ -257,11 +333,7 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
       <form onSubmit={handleSubmit}>
         {aspect.fields.map(field => (
           <div key={field.name} className="form-group">
-            <label htmlFor={field.name}>{field.label}</label>
             {renderField(field)}
-            {errors[field.name] && (
-              <div className="invalid-feedback">{errors[field.name]}</div>
-            )}
           </div>
         ))}
         
@@ -307,6 +379,13 @@ Based on the mock analysis, implement these additional features:
 7. Smart data parsing between strings, arrays, objects, and booleans
 8. Integration with the getAspectFields(aspectKey) API endpoint
 
+This component will be integrated with the newly completed AspectEditModal infrastructure, which has been successfully implemented with the following features:
+- Modal container with overlay, header, and close handling
+- Event handling for Escape key, backdrop click, and X button
+- State management for modal open/close with video context
+- Perfect visual compliance with mock design
+- Smart API integration with backend endpoints
+
 # Test Strategy:
 Follow a TDD approach with these phases:
 
@@ -336,7 +415,7 @@ Create `tests/pages/aspect-edit-form.test.js` with comprehensive test suite:
 Implement the component to pass all tests, following the mock implementation exactly.
 
 ### Phase 3: REFACTOR - Polish & Integration
-Optimize the component for performance, accessibility, and integration with the AspectSelection component.
+Optimize the component for performance, accessibility, and integration with the AspectSelection component and the newly completed AspectEditModal infrastructure.
 
 # Subtasks:
 ## 6.1. Create test suite for AspectEditForm [pending]
@@ -420,6 +499,18 @@ Optimize the component for performance, accessibility, and integration with the 
 ## 6.14. Refactor and optimize [pending]
 ### Dependencies: None
 ### Description: Optimize component for performance and integration with AspectSelection component
+### Details:
+
+
+## 6.15. Integrate with AspectEditModal infrastructure [pending]
+### Dependencies: None
+### Description: Ensure seamless integration with the newly completed AspectEditModal component, including proper state management and navigation
+### Details:
+
+
+## 6.16. Handle backend API gap for completion tracking [pending]
+### Dependencies: None
+### Description: Implement temporary workaround for missing completedFieldCount in API response while waiting for backend PRD #227 implementation
 ### Details:
 
 

@@ -29,3 +29,6 @@ dev-debug.log
 *.sw?
 # OS specific
 .DS_Store 
+
+# Roo Code
+.roo/mcp.json

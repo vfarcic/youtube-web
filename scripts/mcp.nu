@@ -7,14 +7,14 @@
 # > main apply mcp --location my-custom-path.json
 # > main apply mcp --location [ my-custom-path.json, another-path.json ]
 # > main apply mcp --memory-file-path /custom/memory.json --anthropic-api-key XYZ --github-token ABC
-# > main apply mcp --playwright
+# > main apply mcp --enable-playwright
 #
 def --env "main apply mcp" [
-    --location: list<string> = [".cursor/mcp.json"], # Path(s) where the MCP servers configuration file will be created.
+    --location: list<string> = [".cursor/mcp.json", ".roo/mcp.json"], # Path(s) where the MCP servers configuration file will be created.
     --memory-file-path: string = "",         # Path to the memory file for the memory MCP server. If empty, defaults to an absolute path for 'memory.json' in CWD.
     --anthropic-api-key: string = "",        # Anthropic API key for the taskmaster-ai MCP server. If empty, $env.ANTHROPIC_API_KEY is used if set.
     --github-token: string = "",             # GitHub Personal Access Token for the github MCP server. If empty, $env.GITHUB_TOKEN is used if set.
-    --playwright = false                     # Enable Playwright MCP server for browser automation.
+    --enable-playwright = false              # Enable Playwright MCP server for browser automation
 ] {
     let resolved_memory_file_path = if $memory_file_path == "" {
         (pwd) | path join "memory.json" | path expand
@@ -80,7 +80,7 @@ def --env "main apply mcp" [
         }
     }
 
-    if $playwright {
+    if $enable_playwright {
         $mcp_servers_map = $mcp_servers_map | upsert "playwright" {
             command: "npx",
             args: ["-y", "@playwright/mcp@latest"]

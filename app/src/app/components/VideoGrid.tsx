@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import VideoCard from './VideoCard';
+import AspectEditModal from './AspectEditModal';
 import { config, getApiUrl } from '../../lib/config';
 import { ApiClient, Video } from '../../lib/api-client';
 
@@ -14,6 +15,8 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingVideo, setEditingVideo] = useState<Video | null>(null);
   const currentRequestRef = useRef<number>(0);
   const apiClient = new ApiClient();
 
@@ -51,8 +54,17 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
   }, [selectedPhase]);
 
   const handleEditVideo = (videoId: string) => {
-    // Navigate to edit page with video ID
-    window.location.href = `/edit?videoId=${videoId}`;
+    // Find the video and open modal
+    const video = videos.find(v => v.id === videoId);
+    if (video) {
+      setEditingVideo(video);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingVideo(null);
   };
 
   const handleDeleteVideo = async (videoId: string) => {
@@ -197,6 +209,14 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
           })
         )}
       </div>
+      
+      {/* Aspect Edit Modal */}
+      <AspectEditModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        videoId={editingVideo?.id}
+        videoTitle={editingVideo ? `Edit: ${editingVideo.title}` : "Edit Video"}
+      />
     </div>
   );
 };

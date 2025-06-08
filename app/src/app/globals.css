@@ -672,3 +672,242 @@ body {
     transition: width 0.3s ease, background-color 0.3s ease;
     min-width: 2px; /* Ensure bar is always visible even at 0% */
 }
+
+/* ===== MODAL STYLES ===== */
+
+/* Modal Overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+/* Modal Container */
+.modal-container {
+    background: var(--primary-bg-color);
+    border-radius: 12px;
+    width: 90%;
+    max-width: 900px;
+    max-height: 90vh;
+    overflow: hidden;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-color);
+}
+
+/* Modal Header */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--secondary-bg-color);
+}
+
+.modal-header h2 {
+    color: var(--primary-text-color);
+    margin: 0;
+    font-size: 1.5rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--secondary-text-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+    background: var(--primary-bg-color);
+    color: var(--primary-text-color);
+}
+
+/* Modal Content */
+.modal-content {
+    padding: 2rem;
+    max-height: calc(90vh - 120px);
+    overflow-y: auto;
+}
+
+/* Edit View Switching */
+.edit-view {
+    display: none;
+}
+
+.edit-view.active {
+    display: block;
+}
+
+.edit-view .view-header h3 {
+    color: var(--primary-text-color);
+    margin-bottom: 0.5rem;
+}
+
+.edit-view .view-header p {
+    color: var(--secondary-text-color);
+    margin-bottom: 2rem;
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+    .modal-container {
+        width: 95%;
+        max-height: 95vh;
+    }
+    
+    .modal-content {
+        padding: 1rem;
+    }
+    
+    .modal-header {
+        padding: 1rem 1.5rem;
+    }
+}
+
+/* ===== ASPECT CARD STYLES ===== */
+
+/* Aspects Grid */
+.aspects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 800px; /* Ensure reasonable max width for modal */
+}
+
+/* Aspect Card */
+.aspect-card {
+    background: var(--secondary-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.aspect-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--primary-accent-color);
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+}
+
+.aspect-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-accent-color);
+}
+
+.aspect-card:hover::before {
+    transform: scaleY(1);
+}
+
+/* Aspect Icon */
+.aspect-icon {
+    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+/* Aspect Content */
+.aspect-content {
+    flex: 1;
+}
+
+.aspect-content h4 {
+    color: var(--primary-text-color);
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.aspect-content p {
+    color: var(--secondary-text-color);
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+/* Aspect Progress */
+.aspect-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.aspect-progress .progress-bar {
+    background: var(--primary-bg-color);
+    border-radius: 8px;
+    height: 8px;
+    overflow: hidden;
+    padding: 0;
+}
+
+.aspect-progress .progress-fill {
+    height: 100%;
+    border-radius: 8px;
+    background: var(--primary-accent-color) !important;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    font-size: 0.75rem;
+    color: var(--secondary-text-color);
+    text-align: right;
+}
+
+.aspect-arrow {
+    color: var(--secondary-text-color);
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.aspect-card:hover .aspect-arrow {
+    color: var(--primary-accent-color);
+}
+
+/* Responsive Aspect Cards */
+@media (max-width: 768px) {
+    .aspects-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .aspect-card {
+        padding: 1rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    
+    .aspect-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+    }
+}

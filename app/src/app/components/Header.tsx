@@ -37,7 +37,7 @@ const Header = () => {
               className={`tab-btn ${pathname === item.href ? 'active' : ''}`}
             >
               <i className={item.icon}></i>
-              {item.label}
+              <span>{item.label}</span>
             </Link>
           ))}
         </nav>
