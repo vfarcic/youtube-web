@@ -167,100 +167,100 @@
       "testStrategy": "Follow a TDD approach with these phases:\n\n### Phase 1: RED - Create Tests\nCreate `tests/pages/aspect-edit-form.test.js` with comprehensive test suite:\n\n1. Form renders all fields from the selected aspect\n2. Form initializes with current values from the video object\n3. Validation works correctly for required fields and custom validation rules\n4. Form submission calls onSave with the correct updated fields\n5. Error messages are displayed correctly\n6. Loading state is shown during save operations\n7. Smart field detection correctly identifies and renders:\n   - Date fields as datetime-local inputs\n   - Boolean fields as Yes/No radio button groups\n   - Long text as textareas\n   - Arrays/objects with appropriate JSON handling\n8. Test that field type detection works with various naming patterns (fields ending with \"Done\", starting with \"request\", etc.)\n9. Field completion status indicators render correctly\n10. AI generation buttons appear only for Definition aspect fields\n11. Label formatting correctly converts camelCase to \"Formatted Label\"\n12. Form properly integrates with the getAspectFields API endpoint\n13. Accessibility compliance (labels, focus management)\n14. User interactions (typing, radio buttons, form submission)\n\n### Phase 2: GREEN - Implement Component\nImplement the component to pass all tests, following the mock implementation exactly.\n\n### Phase 3: REFACTOR - Polish & Integration\nOptimize the component for performance, accessibility, and integration with the AspectSelection component and the newly completed AspectEditModal infrastructure.",
       "subtasks": [
         {
-          "id": "6.1",
+          "id": 1,
           "title": "Create test suite for AspectEditForm",
           "description": "Create comprehensive test suite following TDD approach in tests/pages/aspect-edit-form.test.js",
-          "status": "pending"
+          "status": "done"
         },
         {
-          "id": "6.2",
+          "id": 2,
           "title": "Implement basic AspectEditForm component structure",
           "description": "Create the component with props interface, state management, and form rendering logic",
-          "status": "pending"
+          "status": "done"
         },
         {
-          "id": "6.3",
+          "id": 3,
           "title": "Implement smart field type detection",
           "description": "Implement the getFieldType function based on mock implementation, handling all field types (date, boolean, textarea, JSON, text)",
-          "status": "pending"
+          "status": "done"
         },
         {
-          "id": "6.4",
+          "id": 4,
           "title": "Implement field rendering logic",
           "description": "Create renderField function to generate appropriate input elements based on field type",
-          "status": "pending"
+          "status": "done"
         },
         {
-          "id": "6.5",
+          "id": 5,
           "title": "Add form validation and error handling",
           "description": "Implement validateForm function with real-time feedback and error display",
-          "status": "pending"
+          "status": "done"
         },
         {
-          "id": "6.6",
+          "id": 6,
           "title": "Add field completion status indicators",
           "description": "Implement visual indicators (checkmarks/clocks) for field completion status",
-          "status": "pending"
+          "status": "done"
         },
         {
-          "id": "6.7",
+          "id": 7,
           "title": "Implement styled Yes/No radio button groups",
           "description": "Create styled radio button groups for boolean fields using the .radio-group and .radio-option classes",
-          "status": "pending"
+          "status": "done"
         },
         {
-          "id": "6.8",
+          "id": 8,
           "title": "Add AI generation buttons for Definition aspect",
           "description": "Implement AI generation buttons that appear only for Definition aspect fields",
-          "status": "pending"
+          "status": "done"
         },
         {
-          "id": "6.9",
+          "id": 9,
           "title": "Implement label formatting",
           "description": "Create formatFieldLabel function to convert camelCase to \"Formatted Label\"",
-          "status": "pending"
+          "status": "done"
         },
         {
-          "id": "6.10",
+          "id": 10,
           "title": "Integrate with API client",
           "description": "Connect component with getAspectFields API endpoint for field metadata",
-          "status": "pending"
+          "status": "done"
         },
         {
-          "id": "6.11",
+          "id": 11,
           "title": "Implement form submission and API integration",
           "description": "Complete handleSubmit function with proper API integration and error handling",
-          "status": "pending"
+          "status": "in-progress"
         },
         {
-          "id": "6.12",
+          "id": 12,
           "title": "Add accessibility features",
           "description": "Ensure component is fully accessible with proper labels, focus management, and ARIA attributes",
           "status": "pending"
         },
         {
-          "id": "6.13",
+          "id": 13,
           "title": "Apply visual styling",
           "description": "Implement dark theme with yellow accent colors and match visual design from mock styles",
           "status": "pending"
         },
         {
-          "id": "6.14",
+          "id": 14,
           "title": "Refactor and optimize",
           "description": "Optimize component for performance and integration with AspectSelection component",
           "status": "pending"
         },
         {
-          "id": "6.15",
+          "id": 15,
           "title": "Integrate with AspectEditModal infrastructure",
           "description": "Ensure seamless integration with the newly completed AspectEditModal component, including proper state management and navigation",
           "status": "pending"
         },
         {
-          "id": "6.16",
+          "id": 16,
           "title": "Handle backend API gap for completion tracking",
           "description": "Implement temporary workaround for missing completedFieldCount in API response while waiting for backend PRD #227 implementation",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },

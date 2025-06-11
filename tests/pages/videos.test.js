@@ -713,8 +713,8 @@ async function testVideosPage(page, counters) {
             result: !videosPageResults.api.hasApiErrors,
             errorMessage: 'Videos Page: Console contains API errors - ' + 
                 videosPageResults.api.consoleErrors.filter(e => 
-                    e.includes('HTTP error!') || e.includes('Failed to fetch') || e.includes('status: 400')
-                ).join('; ')
+                    e.includes('HTTP error!') || e.includes('Failed to fetch') || e.includes('status: 400'))
+                .join('; ')
         },
         { 
             name: 'Using real API data (not fallback)', 
@@ -824,4 +824,402 @@ async function testVideosPage(page, counters) {
     return videosPageResults;
 }
 
-module.exports = { testVideosPage };
+/**
+ * Test Modal URL State Management (TDD)
+ * These tests verify that the Edit modal updates the URL and supports direct linking
+ */
+async function testModalUrlState(page, counters) {
+    console.log('\n📝 Testing Modal URL State Management (TDD)...');
+    
+    // Navigate to videos page
+    await page.goto(`${APP_URL}/videos`, { waitUntil: 'networkidle0' });
+    
+    // Wait for video cards to load
+    await page.waitForSelector('.video-card', { timeout: 10000 });
+    
+    // Get initial URL
+    const initialUrl = await page.url();
+    console.log('   Initial URL:', initialUrl);
+    
+    // Test 1: Click Edit button should update URL with modal parameters
+    const editButtonExists = await page.$('.video-card .btn-edit');
+    
+    let modalUrlTests = {
+        editButtonExists: !!editButtonExists,
+        urlUpdatesOnModalOpen: false,
+        modalOpensOnUrlChange: false,
+        urlContainsVideoParams: false,
+        modalClosesOnBackButton: false,
+        directLinkOpensModal: false,
+        modalStateInUrl: false
+    };
+    
+    if (editButtonExists) {
+        // Test: URL should update when modal opens
+        console.log('   🧪 TEST: Clicking Edit button should update URL...');
+        
+        await editButtonExists.click();
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Allow modal to open and URL to update
+        
+        const modalOpenUrl = await page.url();
+        console.log('   URL after Edit click:', modalOpenUrl);
+        
+        modalUrlTests.urlUpdatesOnModalOpen = modalOpenUrl !== initialUrl;
+        modalUrlTests.urlContainsVideoParams = modalOpenUrl.includes('edit=') && modalOpenUrl.includes('video=');
+        modalUrlTests.modalStateInUrl = modalOpenUrl.includes('edit=');
+        
+        // Check if modal is actually open by looking for modal content
+        // Wait a bit more for modal to fully render
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Look for modal heading that contains "Edit:"
+        const modalHeadings = await page.$$('h2, h3, h4');
+        let modalVisible = false;
+        
+        for (const heading of modalHeadings) {
+            try {
+                const headingText = await page.evaluate(el => el.textContent, heading);
+                if (headingText && headingText.includes('Edit:')) {
+                    modalVisible = true;
+                    console.log('   Found modal heading:', headingText);
+                    break;
+                }
+            } catch (e) {
+                // Skip if element is stale
+                continue;
+            }
+        }
+        
+        // Alternative check: look for "Select Aspect to Edit" text
+        if (!modalVisible) {
+            const aspectSelector = await page.$('h3');
+            if (aspectSelector) {
+                const aspectText = await page.evaluate(el => el.textContent, aspectSelector);
+                if (aspectText && aspectText.includes('Select Aspect to Edit')) {
+                    modalVisible = true;
+                    console.log('   Found modal content:', aspectText);
+                }
+            }
+        }
+        
+        if (modalVisible) {
+            console.log('   ✅ Modal opened successfully');
+            modalUrlTests.modalOpensOnUrlChange = true;
+            
+            // Test: Close modal using close button or back button
+            console.log('   🧪 TEST: Modal should close and restore URL...');
+            
+            // Look for close button (often just contains an X or is empty)
+            const buttons = await page.$$('button');
+            let closeButtonFound = false;
+            
+            for (const button of buttons) {
+                try {
+                    const buttonText = await page.evaluate(el => el.textContent.trim(), button);
+                    // Look for empty button (close X) or button with close-like text
+                    if (buttonText === '' || buttonText === '×' || buttonText === 'Close' || buttonText.includes('close')) {
+                        await button.click();
+                        closeButtonFound = true;
+                        console.log('   Found and clicked close button');
+                        break;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+            
+            if (!closeButtonFound) {
+                // Fallback to back button
+                console.log('   No close button found, using browser back');
+                await page.goBack();
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const backButtonUrl = await page.url();
+            
+            // Check if modal is still visible
+            const remainingHeadings = await page.$$('h2, h3, h4');
+            let modalClosed = true;
+            
+            for (const heading of remainingHeadings) {
+                try {
+                    const headingText = await page.evaluate(el => el.textContent, heading);
+                    if (headingText && (headingText.includes('Edit:') || headingText.includes('Select Aspect to Edit'))) {
+                        modalClosed = false;
+                        break;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+            
+            modalUrlTests.modalClosesOnBackButton = (backButtonUrl === initialUrl || !backButtonUrl.includes('edit=')) && modalClosed;
+            console.log('   URL after close/back:', backButtonUrl);
+            console.log('   Modal closed:', modalClosed);
+            
+            // Test: Direct link with modal parameters should open modal
+            console.log('   🧪 TEST: Direct link should open modal...');
+            const directLinkUrl = `${APP_URL}/videos?edit=86&video=86`;
+            await page.goto(directLinkUrl, { waitUntil: 'networkidle0' });
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for full load and modal
+            
+            // Use the same modal detection logic for direct link
+            const directLinkModalHeadings = await page.$$('h2, h3, h4');
+            let directLinkModalOpen = false;
+            
+            for (const heading of directLinkModalHeadings) {
+                try {
+                    const headingText = await page.evaluate(el => el.textContent, heading);
+                    if (headingText && headingText.includes('Edit:')) {
+                        directLinkModalOpen = true;
+                        console.log('   Found direct link modal heading:', headingText);
+                        break;
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+            
+            // Alternative check for direct link
+            if (!directLinkModalOpen) {
+                const aspectSelector = await page.$('h3');
+                if (aspectSelector) {
+                    const aspectText = await page.evaluate(el => el.textContent, aspectSelector);
+                    if (aspectText && aspectText.includes('Select Aspect to Edit')) {
+                        directLinkModalOpen = true;
+                        console.log('   Found direct link modal content:', aspectText);
+                    }
+                }
+            }
+            
+            modalUrlTests.directLinkOpensModal = directLinkModalOpen;
+            
+            console.log('   Modal opened via direct link:', directLinkModalOpen);
+        } else {
+            console.log('   ❌ Modal did not open after Edit click');
+        }
+    } else {
+        console.log('   ⚠️ No Edit button found - skipping modal URL tests');
+    }
+
+    // TDD TESTS: Aspect URL State Management (NEW)
+    console.log('\n🔥 Testing Aspect URL State Management within Modal (TDD)...');
+    
+    let aspectUrlTests = {
+        aspectCardExists: false,
+        urlUpdatesOnAspectSelect: false,
+        urlContainsAspectParam: false,
+        aspectFormOpensFromUrl: false,
+        backButtonFromFormToSelection: false,
+        directLinkToAspectForm: false,
+        aspectParamPreservedOnModalClose: false
+    };
+
+    // Ensure we're in a modal state first  
+    await page.goto(`${APP_URL}/videos?edit=85&video=85`, { waitUntil: 'networkidle0' });
+    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for modal to load
+    
+    // Look for aspect cards in the modal
+    const aspectCard = await page.$('.aspect-card');
+    aspectUrlTests.aspectCardExists = !!aspectCard;
+    
+    if (aspectCard) {
+        console.log('   🧪 TEST: Clicking aspect should update URL with aspect parameter...');
+        
+        // Get URL before aspect selection
+        const beforeAspectUrl = await page.url();
+        console.log('   URL before aspect selection:', beforeAspectUrl);
+        
+        // Click the first aspect card
+        await aspectCard.click();
+        await new Promise(resolve => setTimeout(resolve, 1000)); // Allow URL update and form to load
+        
+        const afterAspectUrl = await page.url();
+        console.log('   URL after aspect selection:', afterAspectUrl);
+        
+        // Test if URL contains aspect parameter
+        aspectUrlTests.urlUpdatesOnAspectSelect = afterAspectUrl !== beforeAspectUrl;
+        aspectUrlTests.urlContainsAspectParam = afterAspectUrl.includes('aspect=');
+        
+        // Test if form is actually showing (instead of aspect selection)
+        const formHeader = await page.$('.aspect-edit-form .form-header');
+        const aspectFormVisible = !!formHeader;
+        
+        if (aspectFormVisible) {
+            console.log('   ✅ Aspect form opened successfully');
+            
+            // Test: Direct link to aspect form should work
+            console.log('   🧪 TEST: Direct link to aspect form should open form directly...');
+            
+            const directAspectUrl = `${APP_URL}/videos?edit=85&video=85&aspect=initial-details`;
+            await page.goto(directAspectUrl, { waitUntil: 'networkidle0' });
+            await new Promise(resolve => setTimeout(resolve, 1500)); // Wait for modal and form to load
+            
+            const directFormHeader = await page.$('.aspect-edit-form .form-header');
+            aspectUrlTests.directLinkToAspectForm = !!directFormHeader;
+            aspectUrlTests.aspectFormOpensFromUrl = !!directFormHeader;
+            
+            console.log('   Aspect form opened from direct URL:', !!directFormHeader);
+            
+            // Test: Back button should remove aspect parameter and show selection
+            console.log('   🧪 TEST: Back button should update URL and return to aspect selection...');
+            
+            const backButton = await page.$('.aspect-edit-form .form-header button');
+            if (backButton) {
+                await backButton.click();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                const backToSelectionUrl = await page.url();
+                console.log('   URL after back button:', backToSelectionUrl);
+                
+                // Should not have aspect parameter after going back
+                aspectUrlTests.backButtonFromFormToSelection = !backToSelectionUrl.includes('aspect=');
+                
+                // Should show aspect selection again
+                const aspectSelectionVisible = await page.$('.aspect-card');
+                console.log('   Aspect selection visible after back:', !!aspectSelectionVisible);
+            }
+            
+            // Test: Closing modal should return to clean videos page
+            console.log('   🧪 TEST: Modal close should return to clean videos page...');
+            
+            // First select an aspect again to set the URL state
+            const aspectCardAgain = await page.$('.aspect-card');
+            if (aspectCardAgain) {
+                await aspectCardAgain.click();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const urlWithAspect = await page.url();
+                console.log('   URL with aspect selected:', urlWithAspect);
+                
+                // Close modal by pressing Escape or clicking close
+                await page.keyboard.press('Escape');
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                const urlAfterClose = await page.url();
+                console.log('   URL after modal close:', urlAfterClose);
+                
+                // Should return to clean videos page without any parameters
+                aspectUrlTests.aspectParamPreservedOnModalClose = urlAfterClose === 'http://localhost:3000/videos';
+            }
+        } else {
+            console.log('   ❌ Aspect form did not open after aspect selection');
+        }
+    } else {
+        console.log('   ⚠️ No aspect cards found - skipping aspect URL tests');
+    }
+    
+    // Additional URL structure tests
+    const urlStructureTests = await page.evaluate(() => {
+        const url = new URL(window.location.href);
+        const params = url.searchParams;
+        
+        return {
+            hasEditParam: params.has('edit'),
+            hasVideoParam: params.has('video'),
+            hasModalParam: params.has('modal'),
+            hasAspectParam: params.has('aspect'),
+            urlStructureValid: url.pathname === '/videos',
+            searchParamsUsed: params.toString().length > 0
+        };
+    });
+    
+    // Test results array for this modal functionality
+    const modalUrlTestResults = [
+        {
+            name: 'Edit button exists for modal testing (TDD)',
+            result: modalUrlTests.editButtonExists,
+            errorMessage: 'Videos Page: No Edit button found to test modal URL functionality'
+        },
+        {
+            name: 'URL updates when modal opens (TDD)',
+            result: modalUrlTests.urlUpdatesOnModalOpen,
+            errorMessage: 'Videos Page: URL does not change when Edit modal opens - users cannot bookmark or share direct links'
+        },
+        {
+            name: 'URL contains video identification parameters (TDD)',
+            result: modalUrlTests.urlContainsVideoParams,
+            errorMessage: 'Videos Page: Modal URL does not contain video identification parameters (edit=, video=, etc.)'
+        },
+        {
+            name: 'Modal state reflected in URL (TDD)',
+            result: modalUrlTests.modalStateInUrl,
+            errorMessage: 'Videos Page: Modal state is not reflected in URL parameters for bookmarking'
+        },
+        {
+            name: 'Browser back button closes modal (TDD)',
+            result: modalUrlTests.modalClosesOnBackButton,
+            errorMessage: 'Videos Page: Browser back button does not close modal or restore original URL'
+        },
+        {
+            name: 'Direct link opens modal (TDD)',
+            result: modalUrlTests.directLinkOpensModal,
+            errorMessage: 'Videos Page: Direct links with modal parameters do not open the modal automatically'
+        },
+        {
+            name: 'URL change triggers modal state (TDD)',
+            result: modalUrlTests.modalOpensOnUrlChange,
+            errorMessage: 'Videos Page: Navigating to modal URL does not trigger modal to open'
+        },
+        {
+            name: 'URL structure maintains /videos path (TDD)',
+            result: urlStructureTests.urlStructureValid,
+            errorMessage: 'Videos Page: Modal URL changes the page path instead of using search parameters'
+        },
+        {
+            name: 'Search parameters used for modal state (TDD)',
+            result: urlStructureTests.searchParamsUsed,
+            errorMessage: 'Videos Page: Modal state is not stored in URL search parameters'
+        },
+        // NEW: Aspect URL State Management Tests (TDD)
+        {
+            name: 'Aspect cards exist for URL testing (TDD)',
+            result: aspectUrlTests.aspectCardExists,
+            errorMessage: 'Videos Page: No aspect cards found in modal to test aspect URL functionality'
+        },
+        {
+            name: 'URL updates when aspect is selected (TDD)',
+            result: aspectUrlTests.urlUpdatesOnAspectSelect,
+            errorMessage: 'Videos Page: URL does not change when aspect is selected - users cannot bookmark specific aspect forms'
+        },
+        {
+            name: 'URL contains aspect parameter (TDD)',
+            result: aspectUrlTests.urlContainsAspectParam,
+            errorMessage: 'Videos Page: URL does not contain aspect parameter (aspect=) for direct linking to forms'
+        },
+        {
+            name: 'Direct link to aspect form works (TDD)',
+            result: aspectUrlTests.directLinkToAspectForm,
+            errorMessage: 'Videos Page: Direct links with aspect parameter do not open the aspect form directly'
+        },
+        {
+            name: 'Aspect form opens from URL parameter (TDD)',
+            result: aspectUrlTests.aspectFormOpensFromUrl,
+            errorMessage: 'Videos Page: Aspect form does not open when URL contains aspect parameter'
+        },
+        {
+            name: 'Back button updates URL and shows selection (TDD)',
+            result: aspectUrlTests.backButtonFromFormToSelection,
+            errorMessage: 'Videos Page: Back button does not remove aspect parameter and return to aspect selection'
+        },
+        {
+            name: 'Modal close returns to clean videos page (TDD)',
+            result: aspectUrlTests.aspectParamPreservedOnModalClose,
+            errorMessage: 'Videos Page: Modal close does not return to clean videos page URL'
+        }
+    ];
+    
+    validateTests({ modalUrl: modalUrlTests, aspectUrl: aspectUrlTests, urlStructure: urlStructureTests }, modalUrlTestResults, counters);
+    
+    console.log('📝 Modal and Aspect URL State Management tests completed');
+    
+    return {
+        modalUrl: modalUrlTests,
+        aspectUrl: aspectUrlTests,
+        urlStructure: urlStructureTests,
+        testResults: modalUrlTestResults
+    };
+}
+
+module.exports = { testVideosPage, testModalUrlState };

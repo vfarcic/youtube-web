@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import VideoCard from './VideoCard';
 import AspectEditModal from './AspectEditModal';
 import { config, getApiUrl } from '../../lib/config';
@@ -19,10 +20,42 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
   const [editingVideo, setEditingVideo] = useState<Video | null>(null);
   const currentRequestRef = useRef<number>(0);
   const apiClient = new ApiClient();
+  
+  // URL state management hooks
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   // Debug logging for prop changes
   console.log('🔍 VideoGrid render - selectedPhase:', selectedPhase, 'selectedPhaseName:', selectedPhaseName);
   console.log('🔍 VideoGrid render - videos.length:', videos.length, 'first video title:', videos[0]?.title);
+
+  // Handle URL-based modal state on component mount and URL changes
+  useEffect(() => {
+    const editVideoId = searchParams.get('edit');
+    const videoId = searchParams.get('video');
+    
+    if (editVideoId || videoId) {
+      const targetVideoId = editVideoId || videoId;
+      console.log('🔗 URL-based modal: Looking for video ID:', targetVideoId);
+      
+      // Find video by ID and open modal
+      const video = videos.find(v => v.id === targetVideoId);
+      if (video && !isModalOpen) {
+        console.log('🔗 URL-based modal: Opening modal for video:', video.title);
+        setEditingVideo(video);
+        setIsModalOpen(true);
+      } else if (!video && videos.length > 0) {
+        console.log('🔗 URL-based modal: Video not found, clearing URL params');
+        // Video not found, clear URL params
+        router.replace('/videos', { scroll: false });
+      }
+    } else if (isModalOpen && !editVideoId && !videoId) {
+      // URL was changed to remove modal params, close modal
+      console.log('🔗 URL-based modal: URL params removed, closing modal');
+      setIsModalOpen(false);
+      setEditingVideo(null);
+    }
+  }, [searchParams, videos, isModalOpen, router]);
 
   useEffect(() => {
     console.log('🔄 VideoGrid useEffect triggered - selectedPhase changed to:', selectedPhase);
@@ -57,12 +90,35 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
     // Find the video and open modal
     const video = videos.find(v => v.id === videoId);
     if (video) {
+      console.log('🔗 Opening modal and updating URL for video:', video.id, video.title);
+      
+      // Update URL with modal state
+      const params = new URLSearchParams(searchParams);
+      params.set('edit', video.id);
+      params.set('video', video.id);
+      router.push(`/videos?${params.toString()}`, { scroll: false });
+      
+      // Set modal state (will be handled by useEffect above as well)
       setEditingVideo(video);
       setIsModalOpen(true);
     }
   };
 
+  // Helper function to generate videoName from title (Issue #16)
+  const generateVideoName = (title: string): string => {
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')  // Replace non-alphanumeric with hyphens
+      .replace(/^-+|-+$/g, '');     // Remove leading/trailing hyphens
+  };
+
   const handleCloseModal = () => {
+    console.log('🔗 Closing modal and updating URL');
+    
+    // Update URL to remove modal state - go back to clean videos page
+    router.push('/videos', { scroll: false });
+    
+    // Close modal (will be handled by useEffect above as well)
     setIsModalOpen(false);
     setEditingVideo(null);
   };
@@ -216,6 +272,8 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
         onClose={handleCloseModal}
         videoId={editingVideo?.id}
         videoTitle={editingVideo ? `Edit: ${editingVideo.title}` : "Edit Video"}
+        videoName={editingVideo ? generateVideoName(editingVideo.title) : undefined}
+        category={editingVideo?.category}
       />
     </div>
   );

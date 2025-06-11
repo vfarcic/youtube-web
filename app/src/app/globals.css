@@ -875,6 +875,19 @@ body {
     transition: width 0.3s ease;
 }
 
+/* Progress Color Coding (Issue #16) */
+.progress-fill.progress-red {
+    background: #D33F3F !important; /* Red: 0-33% complete */
+}
+
+.progress-fill.progress-yellow {
+    background: #FFD700 !important; /* Yellow: 34-66% complete */
+}
+
+.progress-fill.progress-green {
+    background: #0E9F70 !important; /* Green: 67-100% complete */
+}
+
 .progress-text {
     font-size: 0.75rem;
     color: var(--secondary-text-color);
@@ -909,5 +922,441 @@ body {
         width: 50px;
         height: 50px;
         font-size: 1.5rem;
+    }
+}
+
+/* ===== FORM STYLES FROM MOCK DESIGN ===== */
+
+.form-preview {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: var(--primary-text-color);
+    display: block;
+}
+
+/* Field Header Layout - Icon Left, Label Right */
+.field-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.field-header .completion-status {
+    flex-shrink: 0;
+}
+
+.field-header label {
+    margin-bottom: 0;
+    flex: 1;
+}
+
+.field-status {
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.field-status.completed {
+    color: #0E9F70; /* Green for completed */
+}
+
+.field-status.pending {
+    color: #D98E0B; /* Orange for pending */
+}
+
+.label-completed {
+    color: var(--primary-text-color) !important;
+}
+
+.label-pending {
+    color: var(--secondary-text-color) !important;
+}
+
+/* Field containers must be full width */
+.field-input-container {
+    width: 100%;
+}
+
+.field-input-container .form-input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Ensure all form inputs are full width like in the mock */
+.form-group input,
+.form-group select,
+.form-group textarea,
+.form-input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    background-color: var(--primary-bg-color); /* Dark input fields */
+    color: var(--primary-text-color);
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+/* Improve datetime-local input calendar icon visibility */
+.form-group input[type="datetime-local"],
+input[type="datetime-local"].form-input {
+    /* Enhance the calendar icon visibility */
+    color-scheme: dark;
+    background-color: var(--secondary-bg-color); /* Slightly lighter background */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23FFD700'%3e%3cpath fill-rule='evenodd' d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z' clip-rule='evenodd'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.2rem;
+    padding-right: 3rem; /* Make space for the icon */
+}
+
+/* Override the default calendar icon with a visible one */
+.form-group input[type="datetime-local"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"].form-input::-webkit-calendar-picker-indicator {
+    background: transparent;
+    bottom: 0;
+    color: var(--primary-accent-color);
+    cursor: pointer;
+    height: auto;
+    left: auto;
+    position: absolute;
+    right: 0.75rem;
+    top: 0;
+    width: auto;
+    opacity: 0.8;
+    filter: invert(1) sepia(1) saturate(5) hue-rotate(45deg) brightness(1.2);
+}
+
+.form-group input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"].form-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    transform: scale(1.1);
+    transition: all 0.2s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus,
+.form-input:focus {
+    outline: none;
+    border-color: var(--primary-accent-color);
+    box-shadow: 0 0 0 3px rgba(252, 211, 77, 0.1);
+}
+
+/* Form Validation Error Styles */
+.form-input.is-invalid,
+.form-group input.is-invalid,
+.form-group textarea.is-invalid,
+.form-group select.is-invalid {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.invalid-feedback {
+    display: block;
+    margin-top: 0.25rem;
+    color: #ef4444;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+}
+
+.alert-error {
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+}
+
+.form-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 0.5rem;
+}
+
+.form-group textarea,
+textarea.form-input {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Radio button styles for boolean fields */
+.radio-group {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    width: fit-content;
+    align-items: center;
+}
+
+.radio-option {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.25rem;
+    cursor: pointer;
+    padding: 0.4rem 0.75rem;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: var(--secondary-bg-color);
+    transition: all 0.2s ease;
+    min-width: 55px;
+    justify-content: center;
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.radio-option:hover {
+    border-color: var(--primary-accent-color);
+    background: rgba(255, 215, 0, 0.05);
+}
+
+.radio-option input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.radio-option input[type="radio"]:checked + .radio-label {
+    color: var(--primary-accent-color);
+    font-weight: 500;
+}
+
+.radio-option:has(input[type="radio"]:checked) {
+    border-color: var(--primary-accent-color);
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.radio-label {
+    cursor: pointer;
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--primary-text-color);
+    transition: color 0.2s ease;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn-save {
+    background: #0E9F70; /* Green for save */
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.btn-save:hover {
+    background: #0B8A5F; /* Darker green */
+}
+
+.btn-cancel {
+    background: #5A6878; /* Gray for cancel */
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.2s ease;
+}
+
+.btn-cancel:hover {
+    background: #4A5C6E;
+}
+
+/* Back Button Styles from Mock */
+.back-btn {
+    background: var(--secondary-bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--primary-text-color);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.back-btn:hover {
+    background: var(--primary-bg-color);
+    border-color: var(--primary-accent-color);
+}
+
+.back-btn i {
+    margin-right: 0.5rem;
+}
+
+/* AI Generation Button Styles from Mock */
+.input-container-with-ai {
+    display: flex !important;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.input-container-with-ai .form-input {
+    flex: 1;
+}
+
+.ai-generate-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+}
+
+.ai-generate-btn:hover {
+    background: linear-gradient(135deg, #5855eb 0%, #7c3aed 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.ai-generate-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(99, 102, 241, 0.2);
+}
+
+.ai-generate-btn:disabled {
+    background: #6b7280;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.ai-generate-btn i {
+    font-size: 1rem;
+}
+
+.ai-generate-btn .fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* Aspect Form Container */
+.aspect-form-container {
+    margin-bottom: 2rem;
+}
+
+.aspect-form-container .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.aspect-form-container .form-group label {
+    display: block;
+    color: var(--primary-text-color);
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.aspect-form-container .form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--secondary-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--primary-text-color);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.aspect-form-container .form-input:focus {
+    outline: none;
+    border-color: var(--primary-accent-color);
+    box-shadow: 0 0 0 3px rgba(252, 211, 77, 0.1);
+}
+
+.aspect-form-container textarea.form-input {
+    resize: vertical;
+    min-height: 100px;
+    font-family: inherit;
+}
+
+/* Form Actions for Modal from Mock */
+.edit-view .form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+    margin-top: 2rem;
+}
+
+.edit-view .btn-save {
+    background: linear-gradient(135deg, var(--primary-accent-color) 0%, var(--secondary-accent-color) 100%);
+    color: var(--text-on-accent-bg);
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.edit-view .btn-save:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(252, 211, 77, 0.3);
+}
+
+.edit-view .btn-cancel {
+    background: var(--secondary-bg-color);
+    color: var(--secondary-text-color);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.edit-view .btn-cancel:hover {
+    background: var(--primary-bg-color);
+    color: var(--primary-text-color);
+}
+
+/* Mobile responsive for forms */
+@media (max-width: 768px) {
+    .input-container-with-ai {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .ai-generate-btn {
+        margin-top: 0.5rem;
+    }
+    
+    .edit-view .form-actions {
+        flex-direction: column;
     }
 }

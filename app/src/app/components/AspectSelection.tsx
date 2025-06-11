@@ -11,6 +11,8 @@ import {
 
 interface AspectSelectionProps {
   videoId?: string;
+  videoName?: string;        // NEW: For progress tracking API (Issue #16)
+  category?: string;         // NEW: For progress tracking API (Issue #16)
   onAspectSelect?: (aspectKey: string, fields: EditingFieldMetadata[]) => void;
 }
 
@@ -76,34 +78,24 @@ const getAspectDisplayInfo = (aspectKey: string, aspect: EditingAspectOverview) 
   };
 };
 
-// Helper function to calculate completion (using realistic demo data that matches mock)
-const calculateProgress = (aspect: EditingAspectOverview): { completed: number; total: number; percentage: number } => {
-  // Map aspect keys to realistic progress data that matches the mock
-  const progressMapping: Record<string, { completed: number; total: number }> = {
-    'init': { completed: 6, total: 7 },
-    'work': { completed: 4, total: 8 },
-    'definition': { completed: 7, total: 9 },
-    'post-production': { completed: 3, total: 6 },
-    'publishing': { completed: 5, total: 7 },
-    'post-publish': { completed: 2, total: 5 }
-  };
-
-  // Use mapping if available, otherwise calculate from API data
-  const progress = progressMapping[aspect.key];
-  if (progress) {
-    const percentage = Math.round((progress.completed / progress.total) * 100);
-    return { ...progress, percentage };
-  }
-
-  // Fallback to API data or sensible defaults
+// Helper function to calculate completion using real API data (Issue #16)
+const calculateProgress = (aspect: EditingAspectOverview): { completed: number; total: number; percentage: number; colorClass: string } => {
   const total = aspect.fieldCount || 7;
-  const completed = Math.floor(total * 0.6); // Assume 60% completion as default
-  const percentage = Math.round((completed / total) * 100);
+  const completed = aspect.completedFieldCount || 0; // Use real API data from Issue #16
+  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
   
-  return { completed, total, percentage };
+  // Color coding as per Issue #16 requirements
+  let colorClass = 'progress-red';    // 0-33%
+  if (percentage >= 67) {
+    colorClass = 'progress-green';    // 67-100%
+  } else if (percentage >= 34) {
+    colorClass = 'progress-yellow';   // 34-66%
+  }
+  
+  return { completed, total, percentage, colorClass };
 };
 
-export default function AspectSelection({ videoId = "sample-video", onAspectSelect }: AspectSelectionProps) {
+export default function AspectSelection({ videoId = "sample-video", videoName, category, onAspectSelect }: AspectSelectionProps) {
   const [aspects, setAspects] = useState<EditingAspectOverview[]>([]);
   const [selectedFields, setSelectedFields] = useState<EditingFieldMetadata[]>([]);
   const [selectedAspect, setSelectedAspect] = useState<string>('');
@@ -114,7 +106,8 @@ export default function AspectSelection({ videoId = "sample-video", onAspectSele
     const fetchAspects = async () => {
       try {
         setLoading(true);
-        const response: AspectOverviewResponse = await apiClient.getAspectsOverview();
+        // Use enhanced API with progress tracking when video context is available (Issue #16)
+        const response: AspectOverviewResponse = await apiClient.getAspectsOverview(videoName, category);
         setAspects(response.aspects || []);
       } catch (err) {
         setError('Failed to load aspects');
@@ -125,7 +118,7 @@ export default function AspectSelection({ videoId = "sample-video", onAspectSele
     };
 
     fetchAspects();
-  }, [videoId]);
+  }, [videoId, videoName, category]);
 
   const handleAspectClick = async (aspectKey: string) => {
     try {
@@ -201,7 +194,7 @@ export default function AspectSelection({ videoId = "sample-video", onAspectSele
               <div className="aspect-progress">
                 <div className="progress-bar">
                   <div 
-                    className="progress-fill" 
+                    className={`progress-fill ${progress.colorClass}`}
                     style={{ width: `${progress.percentage}%` }}
                   ></div>
                 </div>
