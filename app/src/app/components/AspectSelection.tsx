@@ -18,63 +18,32 @@ interface AspectSelectionProps {
 
 // Helper function to map API data to mock design format
 const getAspectDisplayInfo = (aspectKey: string, aspect: EditingAspectOverview) => {
-  // Map API aspect keys to mock design specifications
-  const aspectMapping: Record<string, {
-    title: string;
-    description: string;
-    icon: string;
-    color: string;
-  }> = {
-    'init': {
-      title: 'Initial Details',
-      description: 'Project information, publication date, and gist path',
-      icon: 'fas fa-play-circle',
-      color: '#3B82F6' // Blue
-    },
-    'work': {
-      title: 'Work Progress', 
-      description: 'Content creation tasks: code, recordings, thumbnails, diagrams',
-      icon: 'fas fa-cogs',
-      color: '#D98E0B' // Orange
-    },
-    'definition': {
-      title: 'Definition',
-      description: 'Title, description, tags, and social media content',
-      icon: 'fas fa-edit',
-      color: '#7A4FD0' // Purple
-    },
-    'post-production': {
-      title: 'Post-Production',
-      description: 'Thumbnail, members, editing requests, and timecodes',
-      icon: 'fas fa-video',
-      color: '#D33F3F' // Red
-    },
-    'publishing': {
-      title: 'Publishing',
-      description: 'Upload settings, scheduling, and distribution',
-      icon: 'fas fa-upload',
-      color: '#0E9F70' // Green
-    },
-    'post-publish': {
-      title: 'Post-Publish',
-      description: 'Analytics, promotion, and audience engagement',
-      icon: 'fas fa-chart-line',
-      color: '#3575D9' // Light Blue
-    }
+  // Convert simple icon names from API to Font Awesome class names
+  const iconMapping: Record<string, string> = {
+    'info': 'fas fa-info-circle',
+    'video': 'fas fa-video',
+    'edit': 'fas fa-edit', 
+    'scissors': 'fas fa-cut',
+    'upload': 'fas fa-upload',
+    'share': 'fas fa-share-alt'
   };
 
-  // Use mapping if available, otherwise fall back to API data
-  const mapped = aspectMapping[aspectKey];
-  if (mapped) {
-    return mapped;
-  }
+  // Color mapping for visual consistency (this could also come from API in the future)
+  const colorMapping: Record<string, string> = {
+    'initial-details': '#3B82F6', // Blue
+    'work-progress': '#D98E0B',   // Orange
+    'definition': '#7A4FD0',      // Purple
+    'post-production': '#D33F3F', // Red
+    'publishing': '#0E9F70',      // Green
+    'post-publish': '#3575D9'     // Light Blue
+  };
 
-  // Fallback to API data with default formatting
+  // Use API data with icon conversion
   return {
-    icon: aspect.icon || 'fas fa-circle',
-    color: '#FFD700',
-    title: aspect.title || aspectKey,
-    description: aspect.description || `Edit ${aspectKey} aspect details`
+    icon: iconMapping[aspect.icon] || 'fas fa-circle',
+    color: colorMapping[aspectKey] || '#FFD700',
+    title: aspect.title,
+    description: aspect.description
   };
 };
 

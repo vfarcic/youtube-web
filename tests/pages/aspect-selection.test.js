@@ -158,8 +158,95 @@ async function testAspectSelection(page, counters) {
         apiErrors.forEach(error => console.log(`  ❌ ${error.url}: ${error.status}`));
     }
 
+    // Test Icon Rendering (Issue Fix: API icon conversion)
+    console.log('\n🔥 Testing Icon Rendering and API Conversion...');
+    const iconTests = await page.evaluate(async () => {
+        try {
+            // Get aspects data from API 
+            const response = await fetch('http://localhost:8080/api/editing/aspects?videoName=a-definitive-test&category=ai');
+            const data = await response.json();
+            
+            if (!data.aspects || data.aspects.length === 0) {
+                return {
+                    iconTestsPossible: false,
+                    error: 'No aspects data available for icon testing'
+                };
+            }
+            
+            // Test icon conversion mapping
+            const iconMapping = {
+                'info': 'fas fa-info-circle',
+                'video': 'fas fa-video', 
+                'edit': 'fas fa-edit',
+                'scissors': 'fas fa-cut',
+                'upload': 'fas fa-upload',
+                'share': 'fas fa-share-alt'
+            };
+            
+            const iconTests = {
+                iconTestsPossible: true,
+                totalAspects: data.aspects.length,
+                apiIconsPresent: data.aspects.every(aspect => !!aspect.icon),
+                apiIconTypes: data.aspects.map(aspect => aspect.icon),
+                conversionWorksForAllIcons: data.aspects.every(aspect => !!iconMapping[aspect.icon]),
+                sampleConversions: data.aspects.slice(0, 3).map(aspect => ({
+                    apiIcon: aspect.icon,
+                    fontAwesomeClass: iconMapping[aspect.icon] || 'fas fa-circle',
+                    hasMapping: !!iconMapping[aspect.icon]
+                }))
+            };
+            
+            return iconTests;
+        } catch (error) {
+            return {
+                iconTestsPossible: false,
+                error: error.message
+            };
+        }
+    });
+    
+    // Test icon visibility in actual rendered component
+    const iconVisibilityTests = await page.evaluate(() => {
+        // Look for aspect cards in modal or page
+        const aspectCards = document.querySelectorAll('.aspect-card');
+        const iconElements = document.querySelectorAll('.aspect-card .aspect-icon i');
+        
+        return {
+            aspectCardsFound: aspectCards.length,
+            iconElementsFound: iconElements.length, 
+            iconsHaveFontAwesomeClasses: Array.from(iconElements).every(icon => 
+                icon.className && icon.className.includes('fas fa-')
+            ),
+            iconClassesSample: Array.from(iconElements).slice(0, 3).map(icon => icon.className)
+        };
+    });
+    
+    // Additional icon tests
+    const iconTestDefinitions = [
+        { name: 'API provides icon data for all aspects', result: iconTests.iconTestsPossible && iconTests.apiIconsPresent },
+        { name: 'Icon conversion mapping covers all API icons', result: iconTests.conversionWorksForAllIcons },
+        { name: 'Aspect cards render with icon elements', result: iconVisibilityTests.aspectCardsFound > 0 && iconVisibilityTests.iconElementsFound > 0 },
+        { name: 'Icons use correct Font Awesome classes', result: iconVisibilityTests.iconsHaveFontAwesomeClasses },
+    ];
+    
+    validateTests(iconTests, iconTestDefinitions, counters);
+    
+    console.log('\n📊 Icon Rendering Test Results:');
+    console.log(`API Icons Available: ${iconTests.iconTestsPossible ? '✅' : '❌'}`);
+    console.log(`Total Aspects with Icons: ${iconTests.totalAspects || 0}`);
+    console.log(`Icon Conversion Coverage: ${iconTests.conversionWorksForAllIcons ? '✅' : '❌'}`);
+    console.log(`Rendered Icon Elements: ${iconVisibilityTests.iconElementsFound}`);
+    console.log(`Font Awesome Classes: ${iconVisibilityTests.iconsHaveFontAwesomeClasses ? '✅' : '❌'}`);
+    
+    if (iconTests.sampleConversions) {
+        console.log('\n📝 Sample Icon Conversions:');
+        iconTests.sampleConversions.forEach(conversion => {
+            console.log(`  "${conversion.apiIcon}" → "${conversion.fontAwesomeClass}" ${conversion.hasMapping ? '✅' : '❌'}`);
+        });
+    }
+
     logTestCompletion('Aspect Selection API Tests', aspectPageTime, 0);
-    return testDefinitions.every(test => test.result);
+    return testDefinitions.every(test => test.result) && iconTestDefinitions.every(test => test.result);
 }
 
 module.exports = { testAspectSelection }; 

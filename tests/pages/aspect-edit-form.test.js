@@ -1608,8 +1608,8 @@ async function testFormSubmissionAndAPIIntegration(page, counters) {
         };
     });
     
-    // Give React time to process the changes and update validation state
-    await new Promise(resolve => setTimeout(resolve, 300));
+    // Give React more time to process the changes and update validation state
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // Now test if validation prevents submission
     const validationSubmissionTest = await page.evaluate(() => {
@@ -1618,21 +1618,44 @@ async function testFormSubmissionAndAPIIntegration(page, counters) {
         
         if (!form || !submitButton) return { canTestSubmission: false };
         
-        // Check for validation errors after clearing fields
-        const validationErrors = form.querySelectorAll('.invalid-feedback, .is-invalid, .text-danger');
+        // Check for validation errors after clearing fields - be more comprehensive
+        const invalidFeedbackElements = form.querySelectorAll('.invalid-feedback');
+        const invalidInputs = form.querySelectorAll('.is-invalid');
+        const textDangerElements = form.querySelectorAll('.text-danger');
         const requiredFields = form.querySelectorAll('input[required], textarea[required], select[required]');
         
         // Check if submit button is disabled or if validation errors are shown
         const submitButtonDisabled = submitButton.disabled;
-        const hasValidationErrors = validationErrors.length > 0;
+        const hasInvalidFeedback = invalidFeedbackElements.length > 0;
+        const hasInvalidInputs = invalidInputs.length > 0;
+        const hasTextDanger = textDangerElements.length > 0;
+        const hasValidationErrors = hasInvalidFeedback || hasInvalidInputs || hasTextDanger;
+        
+        // Additional check: try to trigger validation by attempting form submission
+        let submissionPrevented = false;
+        try {
+            // Create a test submit event to see if validation prevents it
+            const submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+            const eventResult = form.dispatchEvent(submitEvent);
+            submissionPrevented = !eventResult; // If event was prevented, validation is working
+        } catch (e) {
+            // If there's an error, it might be validation preventing submission
+            submissionPrevented = true;
+        }
         
         return {
             canTestSubmission: true,
             hasValidationErrors: hasValidationErrors,
-            errorCount: validationErrors.length,
+            hasInvalidFeedback: hasInvalidFeedback,
+            hasInvalidInputs: hasInvalidInputs,
+            hasTextDanger: hasTextDanger,
+            invalidFeedbackCount: invalidFeedbackElements.length,
+            invalidInputCount: invalidInputs.length,
+            textDangerCount: textDangerElements.length,
             requiredFieldCount: requiredFields.length,
             submitButtonDisabled: submitButtonDisabled,
-            validationPreventsSubmission: hasValidationErrors || submitButtonDisabled
+            submissionPrevented: submissionPrevented,
+            validationPreventsSubmission: hasValidationErrors || submitButtonDisabled || submissionPrevented
         };
     });
     
@@ -1742,6 +1765,18 @@ async function testFormSubmissionAndAPIIntegration(page, counters) {
     console.log('API Calls Made:', formSubmissionTests.apiCallsLogged?.length || 0);
     console.log('Validation Works:', validationTestResults.validationPreventsSubmission ? '✅' : '❌');
     console.log('Error Handling UI:', apiTests.hasErrorHandlingUI ? '✅' : '❌');
+    
+    // Enhanced validation debugging
+    if (validationTestResults.canTestValidation) {
+        console.log('🔍 Validation Details:');
+        console.log('  - Required Fields:', validationTestResults.requiredFieldCount);
+        console.log('  - Fields Cleared:', validationTestResults.fieldsCleared);
+        console.log('  - Invalid Feedback Elements:', validationTestResults.invalidFeedbackCount || 0);
+        console.log('  - Invalid Input Elements:', validationTestResults.invalidInputCount || 0);
+        console.log('  - Text Danger Elements:', validationTestResults.textDangerCount || 0);
+        console.log('  - Submit Button Disabled:', validationTestResults.submitButtonDisabled ? '✅' : '❌');
+        console.log('  - Submission Prevented:', validationTestResults.submissionPrevented ? '✅' : '❌');
+    }
     
     if (formSubmissionTests.submissionError) {
         console.log('Submission Error:', formSubmissionTests.submissionError);

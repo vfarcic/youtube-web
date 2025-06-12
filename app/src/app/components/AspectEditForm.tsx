@@ -358,6 +358,15 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
             });
         }
         
+        // Validate required fields when they become empty
+        const field = fields.find(f => f.name === fieldName);
+        if (field?.required && (!value || value === '')) {
+            setErrors(prev => ({
+                ...prev,
+                [fieldName]: `${formatFieldLabel(fieldName)} is required`
+            }));
+        }
+        
         // Optional: Real-time validation for specific fields
         // Can be enabled for immediate feedback on critical fields
         if (fieldName.toLowerCase().includes('email') || fieldName.toLowerCase().includes('url')) {
@@ -492,7 +501,18 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                         name={field.name}
                         value={dateValue}
                         onChange={e => handleChange(field.name, e.target.value)}
+                        onBlur={() => {
+                            // Validate required fields on blur
+                            const currentValue = formData[field.name] || '';
+                            if (field.required && (!currentValue || currentValue === '')) {
+                                setErrors(prev => ({
+                                    ...prev,
+                                    [field.name]: `${formatFieldLabel(field.name)} is required`
+                                }));
+                            }
+                        }}
                         className={`form-input ${errors[field.name] ? 'is-invalid' : ''}`}
+                        required={field.required}
                     />
                 );
             
@@ -531,9 +551,20 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                         name={field.name}
                         value={fieldValue}
                         onChange={e => handleChange(field.name, e.target.value)}
+                        onBlur={() => {
+                            // Validate required fields on blur
+                            const currentValue = formData[field.name] || '';
+                            if (field.required && (!currentValue || currentValue === '')) {
+                                setErrors(prev => ({
+                                    ...prev,
+                                    [field.name]: `${formatFieldLabel(field.name)} is required`
+                                }));
+                            }
+                        }}
                         className={`form-input ${errors[field.name] ? 'is-invalid' : ''}`}
                         rows={field.rows || 4}
                         placeholder={field.placeholder}
+                        required={field.required}
                     />
                 );
             
@@ -563,9 +594,20 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                             }
                             handleChange(field.name, value);
                         }}
+                        onBlur={() => {
+                            // Validate required fields on blur
+                            const currentValue = formData[field.name] || '';
+                            if (field.required && (!currentValue || currentValue === '')) {
+                                setErrors(prev => ({
+                                    ...prev,
+                                    [field.name]: `${formatFieldLabel(field.name)} is required`
+                                }));
+                            }
+                        }}
                         className={`form-input ${errors[field.name] ? 'is-invalid' : ''}`}
                         rows={4}
                         placeholder="Enter JSON object, array, or comma-separated values"
+                        required={field.required}
                     />
                 );
             
@@ -578,8 +620,19 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                         name={field.name}
                         value={fieldValue}
                         onChange={e => handleChange(field.name, e.target.value)}
+                        onBlur={() => {
+                            // Validate required fields on blur
+                            const currentValue = formData[field.name] || '';
+                            if (field.required && (!currentValue || currentValue === '')) {
+                                setErrors(prev => ({
+                                    ...prev,
+                                    [field.name]: `${formatFieldLabel(field.name)} is required`
+                                }));
+                            }
+                        }}
                         className={`form-input ${errors[field.name] ? 'is-invalid' : ''}`}
                         placeholder={field.placeholder}
+                        required={field.required}
                     />
                 );
         }
