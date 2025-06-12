@@ -48,8 +48,8 @@ async function testAspectEditFormBasics(page, counters) {
         
         // Test 4: Check for form actions (buttons)
         const formActions = document.querySelector('.aspect-edit-form .form-actions');
-        const cancelButton = document.querySelector('.aspect-edit-form .form-actions .btn-secondary');
-        const saveButton = document.querySelector('.aspect-edit-form .form-actions .btn-primary');
+        const cancelButton = document.querySelector('.aspect-edit-form .form-actions .btn-cancel');
+        const saveButton = document.querySelector('.aspect-edit-form .form-actions .btn-save');
         
         // Test 5: Check if fields have labels
         const fieldLabels = document.querySelectorAll('.aspect-edit-form label');
@@ -353,11 +353,33 @@ async function testFormValidationAndErrorHandling(page, counters) {
             });
         });
         
-        // Try to submit form
-        const submitButton = await page.$('.aspect-edit-form button[type="submit"]');
-        if (submitButton) {
-            await submitButton.click();
-            await new Promise(resolve => setTimeout(resolve, 1000));
+        // Try to submit form - trigger actual form submission
+        const form = await page.$('.aspect-edit-form form');
+        if (form) {
+            // First try clicking the submit button
+            const submitButton = await page.$('.aspect-edit-form button[type="submit"]');
+            if (submitButton) {
+                await submitButton.click();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // If that doesn't trigger validation, try form.submit()
+                const hasErrors = await page.evaluate(() => {
+                    return document.querySelectorAll('.invalid-feedback').length > 0;
+                });
+                
+                if (!hasErrors) {
+                    // Try triggering form submission event directly
+                    await page.evaluate(() => {
+                        const form = document.querySelector('.aspect-edit-form form');
+                        if (form) {
+                            const event = new Event('submit', { bubbles: true, cancelable: true });
+                            form.dispatchEvent(event);
+                        }
+                    });
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Additional wait time
             
             submitValidationTests = await page.evaluate(() => {
                 const form = document.querySelector('.aspect-edit-form');
@@ -366,6 +388,11 @@ async function testFormValidationAndErrorHandling(page, counters) {
                 const errorMessages = form.querySelectorAll('.invalid-feedback');
                 const invalidInputs = form.querySelectorAll('.form-input.is-invalid');
                 const generalError = form.querySelector('.alert-error');
+                
+                // Debug: Check all elements with error-related classes
+                const allInvalidFeedback = document.querySelectorAll('.invalid-feedback');
+                const allIsInvalid = document.querySelectorAll('.is-invalid');
+                const allFormInputs = form.querySelectorAll('.form-input');
                 
                 // Check if form prevents submission (should not navigate away)
                 const stillOnForm = !!form && window.location.href.includes('aspect=definition');
@@ -378,7 +405,14 @@ async function testFormValidationAndErrorHandling(page, counters) {
                     invalidInputCount: invalidInputs.length,
                     hasGeneralError: !!generalError,
                     formPreventedSubmission: stillOnForm,
-                    errorTexts: Array.from(errorMessages).map(el => el.textContent.trim())
+                    errorTexts: Array.from(errorMessages).map(el => el.textContent.trim()),
+                    // Debug info
+                    debug: {
+                        allInvalidFeedbackCount: allInvalidFeedback.length,
+                        allIsInvalidCount: allIsInvalid.length,
+                        allFormInputsCount: allFormInputs.length,
+                        formHTML: form.innerHTML.substring(0, 500) + '...'
+                    }
                 };
             });
         }
@@ -513,6 +547,15 @@ async function testFormValidationAndErrorHandling(page, counters) {
     console.log('Real-time Error Clearing:', realTimeValidationTests.errorClearedOnType ? '✅' : '❌');
     console.log('Date Validation:', fieldSpecificValidationTests.dateValidationWorks ? '✅' : '❌');
     
+    // Debug output
+    if (submitValidationTests.debug) {
+        console.log('\n🔍 Debug Info:');
+        console.log('All .invalid-feedback elements:', submitValidationTests.debug.allInvalidFeedbackCount);
+        console.log('All .is-invalid elements:', submitValidationTests.debug.allIsInvalidCount);
+        console.log('All .form-input elements:', submitValidationTests.debug.allFormInputsCount);
+        console.log('Error texts found:', submitValidationTests.errorTexts);
+    }
+    
     if (submitValidationTests.errorTexts && submitValidationTests.errorTexts.length > 0) {
         console.log('Error Messages Found:', submitValidationTests.errorTexts);
     }
@@ -568,11 +611,33 @@ async function testFocusOnValidationFailure(page, counters) {
     
     let focusTests = { canTest: false };
     if (focusValidationTests.setupComplete) {
-        // Click submit to trigger validation
-        const submitButton = await page.$('.aspect-edit-form button[type="submit"]');
-        if (submitButton) {
-            await submitButton.click();
-            await new Promise(resolve => setTimeout(resolve, 1000));
+        // Click submit to trigger validation - same fix as validation test
+        const form = await page.$('.aspect-edit-form form');
+        if (form) {
+            // First try clicking the submit button
+            const submitButton = await page.$('.aspect-edit-form button[type="submit"]');
+            if (submitButton) {
+                await submitButton.click();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // If that doesn't trigger validation, try form.submit()
+                const hasErrors = await page.evaluate(() => {
+                    return document.querySelectorAll('.invalid-feedback').length > 0;
+                });
+                
+                if (!hasErrors) {
+                    // Try triggering form submission event directly
+                    await page.evaluate(() => {
+                        const form = document.querySelector('.aspect-edit-form form');
+                        if (form) {
+                            const event = new Event('submit', { bubbles: true, cancelable: true });
+                            form.dispatchEvent(event);
+                        }
+                    });
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+            await new Promise(resolve => setTimeout(resolve, 1000)); // Additional wait time
             
             // Check if the first field with an error received focus
             focusTests = await page.evaluate(() => {

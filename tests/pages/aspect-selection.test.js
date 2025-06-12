@@ -206,10 +206,21 @@ async function testAspectSelection(page, counters) {
     });
     
     // Test icon visibility in actual rendered component
+    // First ensure we're on the right page with aspect cards
+    await page.goto('http://localhost:3000/videos?edit=85&video=85');
+    await page.waitForSelector('.aspect-card', { timeout: 5000 });
+    
     const iconVisibilityTests = await page.evaluate(() => {
         // Look for aspect cards in modal or page
         const aspectCards = document.querySelectorAll('.aspect-card');
         const iconElements = document.querySelectorAll('.aspect-card .aspect-icon i');
+        
+        // Debug information
+        const debugInfo = {
+            aspectCardsHTML: Array.from(aspectCards).slice(0, 2).map(card => card.outerHTML.substring(0, 200)),
+            iconElementsHTML: Array.from(iconElements).slice(0, 3).map(icon => icon.outerHTML),
+            aspectIconDivs: document.querySelectorAll('.aspect-card .aspect-icon').length
+        };
         
         return {
             aspectCardsFound: aspectCards.length,
@@ -217,7 +228,8 @@ async function testAspectSelection(page, counters) {
             iconsHaveFontAwesomeClasses: Array.from(iconElements).every(icon => 
                 icon.className && icon.className.includes('fas fa-')
             ),
-            iconClassesSample: Array.from(iconElements).slice(0, 3).map(icon => icon.className)
+            iconClassesSample: Array.from(iconElements).slice(0, 3).map(icon => icon.className),
+            debugInfo: debugInfo
         };
     });
     
@@ -237,6 +249,22 @@ async function testAspectSelection(page, counters) {
     console.log(`Icon Conversion Coverage: ${iconTests.conversionWorksForAllIcons ? '✅' : '❌'}`);
     console.log(`Rendered Icon Elements: ${iconVisibilityTests.iconElementsFound}`);
     console.log(`Font Awesome Classes: ${iconVisibilityTests.iconsHaveFontAwesomeClasses ? '✅' : '❌'}`);
+    
+    // Debug information
+    if (iconVisibilityTests.debugInfo) {
+        console.log(`\n🔍 Debug Info:`);
+        console.log(`  Aspect Cards Found: ${iconVisibilityTests.aspectCardsFound}`);
+        console.log(`  Aspect Icon Divs: ${iconVisibilityTests.debugInfo.aspectIconDivs}`);
+        console.log(`  Icon Elements Found: ${iconVisibilityTests.iconElementsFound}`);
+        
+        if (iconVisibilityTests.debugInfo.iconElementsHTML.length > 0) {
+            console.log(`  Sample Icon HTML: ${iconVisibilityTests.debugInfo.iconElementsHTML[0]}`);
+        }
+        
+        if (iconVisibilityTests.debugInfo.aspectCardsHTML.length > 0) {
+            console.log(`  Sample Card HTML: ${iconVisibilityTests.debugInfo.aspectCardsHTML[0]}...`);
+        }
+    }
     
     if (iconTests.sampleConversions) {
         console.log('\n📝 Sample Icon Conversions:');
