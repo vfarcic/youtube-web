@@ -1110,7 +1110,14 @@ async function testModalUrlState(page, counters) {
         console.log('   ⚠️ No aspect cards found - skipping aspect URL tests');
     }
     
-    // Additional URL structure tests
+    // Additional URL structure tests - check while modal is open
+    // First, reopen the modal to test URL structure with parameters
+    const editButtonForUrlTest = await page.$('.video-card .btn-edit');
+    if (editButtonForUrlTest) {
+        await editButtonForUrlTest.click();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
     const urlStructureTests = await page.evaluate(() => {
         const url = new URL(window.location.href);
         const params = url.searchParams;
