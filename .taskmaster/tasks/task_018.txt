@@ -1,0 +1,129 @@
+# Task ID: 18
+# Title: Update VideoGrid and VideoCard Components for String-Based Video IDs
+# Status: done
+# Dependencies: 17
+# Priority: high
+# Description: Update VideoGrid and VideoCard components to use string-based video IDs instead of numeric IDs, implementing the new "category/filename" format throughout video display functionality including selection logic, URL generation, and routing.
+# Details:
+This task implements the UI layer changes required for the string-based video ID migration, building on the TypeScript interface updates:
+
+1. **Update VideoCard Component:**
+```typescript
+// In components/VideoCard.tsx
+interface VideoCardProps {
+  video: VideoListItem; // Now uses string ID format
+  onSelect?: (videoId: string) => void; // Updated parameter type
+  selected?: boolean;
+}
+
+// Update click handlers and prop passing
+const handleCardClick = () => {
+  onSelect?.(video.id); // video.id is now string format "category/filename"
+};
+
+// Update any internal ID usage for styling, keys, etc.
+<div key={video.id} className={`video-card ${selected ? 'selected' : ''}`}>
+```
+
+2. **Update VideoGrid Component:**
+```typescript
+// In components/VideoGrid.tsx
+interface VideoGridProps {
+  videos: VideoListItem[];
+  selectedVideoIds?: string[]; // Changed from number[] to string[]
+  onVideoSelect?: (videoId: string) => void;
+  onVideoDeselect?: (videoId: string) => void;
+}
+
+// Update selection logic
+const handleVideoSelect = (videoId: string) => {
+  if (selectedVideoIds?.includes(videoId)) {
+    onVideoDeselect?.(videoId);
+  } else {
+    onVideoSelect?.(videoId);
+  }
+};
+
+// Update rendering logic
+{videos.map(video => (
+  <VideoCard
+    key={video.id} // Now string-based
+    video={video}
+    selected={selectedVideoIds?.includes(video.id)}
+    onSelect={handleVideoSelect}
+  />
+))}
+```
+
+3. **Update URL Generation and Routing:**
+```typescript
+// Update any URL generation that uses video IDs
+const generateVideoEditUrl = (videoId: string) => {
+  // Handle the "category/filename" format properly in URLs
+  const encodedId = encodeURIComponent(videoId);
+  return `/edit/${encodedId}`;
+};
+
+// Update route parameter parsing
+const parseVideoIdFromUrl = (urlParam: string) => {
+  return decodeURIComponent(urlParam); // Returns "category/filename"
+};
+```
+
+4. **Update Video List Operations:**
+- Update filtering logic to work with string IDs
+- Update sorting operations if they reference IDs
+- Update any bulk operations (select all, delete multiple, etc.)
+- Update local state management for selected videos
+
+5. **Update Event Handlers:**
+```typescript
+// Update all event handlers that pass or receive video IDs
+const handleBulkDelete = (videoIds: string[]) => {
+  // Updated to handle string array
+};
+
+const handleVideoAction = (action: string, videoId: string) => {
+  // All video actions now use string IDs
+};
+```
+
+6. **Update Component State:**
+- Update any component state that stores video IDs
+- Update localStorage/sessionStorage operations
+- Update any caching mechanisms that use video IDs as keys
+
+# Test Strategy:
+1. **Component Rendering Tests:**
+   - Verify VideoCard renders correctly with string-based video IDs
+   - Test VideoGrid displays all videos with proper string ID handling
+   - Confirm no TypeScript compilation errors after updates
+
+2. **Selection Logic Tests:**
+   - Test single video selection with string IDs
+   - Test multi-video selection and deselection
+   - Verify selected state persists correctly with string IDs
+   - Test bulk selection operations (select all, clear selection)
+
+3. **URL Generation and Routing Tests:**
+   - Test video edit URL generation with "category/filename" format
+   - Verify URLs are properly encoded/decoded for special characters
+   - Test navigation to video edit pages using string IDs
+   - Confirm browser back/forward navigation works correctly
+
+4. **Integration Tests:**
+   - Test video grid with real API data using string IDs
+   - Verify video selection state synchronizes with parent components
+   - Test video actions (edit, delete, etc.) work with string IDs
+   - Confirm video filtering and sorting operations function correctly
+
+5. **Edge Case Testing:**
+   - Test videos with special characters in category/filename
+   - Test very long video ID strings
+   - Verify empty video list handling
+   - Test error states when video IDs are malformed
+
+6. **Performance Testing:**
+   - Verify video grid performance with large lists using string IDs
+   - Test memory usage doesn't increase significantly
+   - Confirm selection operations remain responsive

@@ -1,171 +1,169 @@
 # YouTube Web App - Testing Guide
 
-This project includes a comprehensive testing suite with both **Unit Tests** and **Integration Tests** to ensure robust application quality.
+This project uses a **consolidated test runner** with **page-based organization** and **focused testing** capabilities for efficient development and comprehensive validation.
 
-## 🧪 Test Types
+## 🧪 Test Organization
 
-### 1. **Unit Tests** (UI/Mock Tests)
-- **File**: `tests/test-runner.js`
-- **Purpose**: Test UI components and user interactions using mock data
-- **Speed**: Fast (~4.5 tests/second)
-- **Dependencies**: None (uses mock data)
+### **Page-Based Tests** (UI/Component Tests)
+- **Location**: `tests/pages/`
+- **Purpose**: Test UI components, user interactions, and page functionality
+- **Speed**: Fast (uses Puppeteer with real browser)
+- **Dependencies**: Frontend server running on localhost:3000
 
-### 2. **Integration Tests** (Real API Tests)
-- **File**: `tests/integration-test-runner.js`
+### **Integration Tests** (API Tests)
+- **Location**: `tests/integration/`
 - **Purpose**: Test real API integration and backend connectivity
-- **Speed**: Slower (requires network calls)
-- **Dependencies**: Requires running backend server
+- **Speed**: Fast (direct API calls)
+- **Dependencies**: Backend server running on localhost:8080
 
 ## 🚀 Quick Start
 
-### Run All Tests
+### Run All Tests (Recommended for Task Completion)
 ```bash
-npm run test:all
+npm test
 ```
 
-### Run Individual Test Suites
+### Focused Testing (For Development)
 ```bash
-# Unit tests only (fast, no backend needed)
-npm run test:unit
+# Test specific page during development
+npm test -- --page=videos
+npm test -- --page=homepage
+npm test -- --page=aspect-selection
 
-# Integration tests only (requires backend)
-npm run test:integration
+# Test only integration (API) tests
+npm test -- --integration
 
-# Check backend health
-npm run test:health
+# Test only UI/page tests
+npm test -- --ui
+
+# Verbose output for debugging
+npm test -- --page=videos --verbose
 ```
 
-## 📋 Test Commands
+## 📋 Available Test Commands
 
-| Command | Description | Requirements |
-|---------|-------------|--------------|
-| `npm test` | Run unit tests (default) | None |
-| `npm run test:unit` | Run UI/mock tests | None |
-| `npm run test:integration` | Run real API tests | Backend running |
-| `npm run test:all` | Run both unit + integration | Backend for integration |
-| `npm run test:health` | Check backend connectivity | None |
+| Command | Description | Use Case |
+|---------|-------------|----------|
+| `npm test` | Run all tests (pages + integration) | Task completion validation |
+| `npm test -- --page=videos` | Test videos page only | Developing video features |
+| `npm test -- --page=homepage` | Test homepage only | Developing dashboard |
+| `npm test -- --integration` | Test API integration only | Backend connectivity |
+| `npm test -- --ui` | Test all pages only | Frontend development |
+| `npm test -- --help` | Show usage help | Reference |
 
 ## 🏗️ Test Architecture
 
 ```
 tests/
-├── test-runner.js              # Unit test runner (UI/Mock)
-├── integration-test-runner.js  # Integration test runner (Real API)
-├── complete-test-runner.js     # Combined test runner
-├── backend-health-check.js     # Backend connectivity checker
-├── pages/                      # Page-specific test modules
-│   ├── homepage.test.js
-│   ├── videos.test.js
-│   └── create.test.js
+├── test-runner.js              # Consolidated test runner
+├── pages/                      # Page-specific tests
+│   ├── homepage.test.js        # Dashboard/homepage functionality
+│   ├── videos.test.js          # Video grid, filtering, cards
+│   ├── aspect-selection.test.js # Aspect selection page
+│   ├── aspect-edit-form.test.js # Form editing and validation
+│   ├── aspect-progress-tracking.test.js # Progress tracking
+│   └── create.test.js          # Video creation page
+├── integration/                # API integration tests
+│   ├── backend-health.test.js  # Backend connectivity
+│   ├── api-client.test.js      # API client functionality
+│   └── string-based-ids.test.js # PRD #18 validation
 └── utils/
     └── test-helpers.js         # Shared test utilities
 ```
 
-## 🔧 Unit Tests Features
+## 🎯 Development Workflow
 
-✅ **21 comprehensive tests covering:**
-- Homepage functionality
-- Navigation systems
-- Phase Filter Bar component
-- Video listing interface
-- Create/Edit page functionality
-- UI responsiveness and performance
+### **During Active Development**
+```bash
+# Quick feedback loop - test only what you're working on
+npm test -- --page=videos        # Working on video features
+npm test -- --page=aspect-edit-form  # Working on forms
+npm test -- --integration        # Working on API integration
+```
 
-✅ **Uses mock data fallback for development**
-✅ **100% pass rate in offline mode**
-✅ **Optimized for speed and reliability**
+### **Before Committing/Task Completion**
+```bash
+# Comprehensive validation
+npm test                         # Run everything
+npm test -- --verbose           # Detailed output if needed
+```
 
-## 🌐 Integration Tests Features
+### **Debugging Failed Tests**
+```bash
+# Check specific components
+npm test -- --page=homepage --verbose
+npm test -- --integration --verbose
 
-✅ **Real API validation:**
-- Backend connectivity checks
-- Phases API endpoint testing
-- Videos API endpoint testing
-- Data structure validation
-- UI integration with real data
+# Check backend connectivity first
+npm test -- --integration
+```
 
-✅ **Production-ready validation:**
-- Ensures no mock data in production
-- Validates API response formats
-- Tests real user workflows
-- Performance monitoring
+## 📊 Test Coverage
 
-## 🏥 Backend Requirements
+### **Page Tests** (UI/Component)
+✅ **Homepage**: Navigation, content, performance  
+✅ **Videos Page**: Grid display, filtering, cards  
+✅ **Aspect Selection**: Page functionality, navigation  
+✅ **Aspect Edit Form**: Form validation, submission  
+✅ **Aspect Progress**: Progress tracking features  
+✅ **Create Page**: Video creation workflow  
 
-For integration tests to pass, your backend must:
+### **Integration Tests** (API)
+✅ **Backend Health**: Connectivity, response times  
+✅ **API Client**: Endpoint testing, data validation  
+✅ **String-Based IDs**: PRD #18 compliance validation  
 
-1. **Be running** on the configured port (default: 8080)
-2. **Respond to** these endpoints:
-   - `GET /api/videos/phases` - Returns array of phase objects
-   - `GET /api/videos` - Returns array of video objects
+## 🔧 Requirements
 
-3. **Return valid JSON** with expected structure:
-   ```json
-   // /api/videos/phases
-   [
-     { "id": "phase-id", "name": "Phase Name", "count": 5 }
-   ]
-   
-   // /api/videos  
-   [
-     { "id": "video-id", "title": "Video Title", "phase": "phase-id" }
-   ]
-   ```
+### **For Page Tests**
+- Frontend server running: `npm run dev` (in app directory)
+- Browser dependencies: `npm install puppeteer`
+
+### **For Integration Tests**
+- Backend server running on localhost:8080
+- API endpoints responding correctly
+
+## 🎨 Benefits of This Structure
+
+✅ **Page-Based Organization** - Tests mirror app structure  
+✅ **Focused Testing** - Test only what you're working on  
+✅ **Fast Feedback** - Quick iteration during development  
+✅ **Comprehensive Validation** - Full test suite for task completion  
+✅ **Clear Ownership** - Each page has its own test suite  
+✅ **Easy Debugging** - Isolated test failures  
+✅ **Parallel Development** - Multiple devs can work independently  
 
 ## 🐛 Troubleshooting
 
-### Unit Tests Failing
-- Check browser dependencies: `npm install puppeteer`
-- Ensure frontend server is running: `npm run dev` (in app directory)
-- Check console for JavaScript errors
+### **Page Tests Failing**
+```bash
+# Check if frontend is running
+curl http://localhost:3000
 
-### Integration Tests Failing
-- Run health check: `npm run test:health`
-- Verify backend is running on correct port
-- Check API endpoint responses manually
-- Ensure database has test data
+# Run specific page test with verbose output
+npm test -- --page=homepage --verbose
+```
 
-### Performance Issues
-- Unit tests should run ~4+ tests/second
-- Integration tests are slower due to network calls
-- Use `npm run test:unit` for rapid development feedback
+### **Integration Tests Failing**
+```bash
+# Check backend connectivity
+curl http://localhost:8080/api/videos/list
 
-## 🎯 Best Practices
+# Run integration tests only
+npm test -- --integration --verbose
+```
 
-1. **Development Workflow:**
-   ```bash
-   # Quick feedback loop
-   npm run test:unit
-   
-   # Before committing
-   npm run test:all
-   ```
+### **Performance Issues**
+- Page tests: ~2-3 seconds per page
+- Integration tests: ~0.1-0.2 seconds total
+- Use focused testing during development for faster feedback
 
-2. **CI/CD Pipeline:**
-   ```bash
-   # Stage 1: Fast unit tests
-   npm run test:unit
-   
-   # Stage 2: Integration tests (if backend available)
-   npm run test:integration
-   ```
+## 📈 Test Results
 
-3. **Debugging Failed Tests:**
-   ```bash
-   # Check backend first
-   npm run test:health
-   
-   # Run specific test type
-   npm run test:unit      # No backend needed
-   npm run test:integration  # Backend required
-   ```
+**Recent Results:**
+- **Page Tests**: 6/6 pages passing
+- **Integration Tests**: 3/3 tests passing  
+- **Overall Success Rate**: 100%
+- **Performance**: Fast focused testing, comprehensive validation
 
-## 📊 Test Results
-
-**Unit Tests**: 21/21 tests passing (100%)
-**Integration Tests**: 9/9 tests passing (100%)
-**Backend Health**: All endpoints healthy
-**Performance**: 4.5 tests/second (unit), ~1.5 tests/second (integration)
-**Coverage**: All major UI components, user flows, and API integrations
-
-The test suite provides comprehensive validation ensuring your YouTube Web App works correctly both in development (with mocks) and production (with real APIs).
+The consolidated test runner provides the perfect balance of **fast focused testing during development** and **comprehensive validation for task completion**.

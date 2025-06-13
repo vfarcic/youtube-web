@@ -692,7 +692,7 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
             console.log('🏷️ Aspect key:', aspect.key);
             
             // Call the API to save aspect values
-            await apiClient.saveAspectValues(videoData.videoId, aspect.key, formData);
+            await apiClient.saveAspectValues(videoData.videoId, aspect.key, formData, videoData.videoName, videoData.category);
             console.log('✅ API submission completed successfully');
             
             // Call the onSave callback if provided

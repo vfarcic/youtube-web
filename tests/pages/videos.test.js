@@ -448,6 +448,14 @@ async function testVideosPage(page, counters) {
             phasePersistenceCorrect: false
         };
 
+        // String-Based IDs Tests (PRD #18) - Integrated into API validation
+        let stringBasedIdTests = {
+            allVideosHaveStringIds: false,
+            idFormatCorrect: false,
+            nameFieldPresent: false,
+            idConsistentWithFields: false
+        };
+
         try {
             // Test 1: Phase field present in API response
             const apiResponse = await fetch('http://localhost:8080/api/videos/list');
@@ -463,14 +471,43 @@ async function testVideosPage(page, counters) {
                     Number.isInteger(video.phase) && video.phase >= 0 && video.phase <= 7
                 );
                 phaseIntegrationTests.phaseValuesValid = validPhaseValues;
+
+                // PRD #18: String-Based ID Tests (integrated into existing API validation)
+                // Test 3: All videos have string-based IDs
+                const allHaveStringIds = apiData.videos.every(video => 
+                    typeof video.id === 'string'
+                );
+                stringBasedIdTests.allVideosHaveStringIds = allHaveStringIds;
+
+                // Test 4: ID format is "category/filename"
+                const correctIdFormat = apiData.videos.every(video => 
+                    typeof video.id === 'string' && video.id.includes('/')
+                );
+                stringBasedIdTests.idFormatCorrect = correctIdFormat;
+
+                // Test 5: Name field is present
+                const hasNameField = apiData.videos.every(video => 
+                    video.hasOwnProperty('name') && typeof video.name === 'string'
+                );
+                stringBasedIdTests.nameFieldPresent = hasNameField;
+
+                // Test 6: ID format is consistent with category and name fields
+                const idConsistent = apiData.videos.every(video => {
+                    if (typeof video.id === 'string' && video.id.includes('/')) {
+                        const [category, filename] = video.id.split('/');
+                        return video.category === category && video.name === filename;
+                    }
+                    return false;
+                });
+                stringBasedIdTests.idConsistentWithFields = idConsistent;
             }
 
-            // Test 3: Phase filtering API calls correct
+            // Test 7: Phase filtering API calls correct
             // Check if we made API calls with phase parameters during testing  
             // Since networkRequests might not be available, check if phase buttons work
             phaseIntegrationTests.phaseFilteringApiCallsCorrect = phaseButtons.length >= 8; // All 8 phases + All button
 
-            // Test 4: Phase color consistency
+            // Test 8: Phase color consistency
             // Phase badges should only show when viewing "All" phases for UX
             const phaseBadges = document.querySelectorAll('.phase-badge');
             const isViewingAllPhases = Array.from(phaseButtons).some(btn => 
@@ -486,7 +523,7 @@ async function testVideosPage(page, counters) {
                 phaseIntegrationTests.phaseColorConsistency = true;
             }
 
-            // Test 5: Phase count accuracy  
+            // Test 9: Phase count accuracy  
             // Get phase counts from buttons and verify format
             let countAccuracy = true;
             if (phaseButtons.length > 1) {
@@ -501,7 +538,7 @@ async function testVideosPage(page, counters) {
             }
             phaseIntegrationTests.phaseCountAccuracy = countAccuracy;
 
-            // Test 6: Invalid phase handling
+            // Test 10: Invalid phase handling
             // Check if application handles display gracefully
             phaseIntegrationTests.invalidPhaseHandling = true; // Default to true
             
@@ -512,7 +549,7 @@ async function testVideosPage(page, counters) {
                 phaseIntegrationTests.invalidPhaseHandling = !!cardTitle;
             }
 
-            // Test 7: Phase persistence across navigation
+            // Test 11: Phase persistence across navigation
             // Check if any phase button is active (indicates proper state management)
             const activeButton = Array.from(phaseButtons).find(btn => 
                 btn.classList.contains('active') || 
@@ -559,7 +596,8 @@ async function testVideosPage(page, counters) {
                 phaseButtonsText: phaseButtons.map(b => b.textContent),
                 videoCardsCount: videoCards.length
             },
-            phaseIntegration: phaseIntegrationTests
+            phaseIntegration: phaseIntegrationTests,
+            stringBasedId: stringBasedIdTests
         };
     }, maxAttemptsForVideosPage);
 
@@ -724,7 +762,7 @@ async function testVideosPage(page, counters) {
         { 
             name: 'No error state displayed to user', 
             result: !videosPageResults.api.errorDisplayed,
-            errorMessage: 'Videos Page: Error state is displayed to user, indicating API failure'
+            errorMessage: 'Videos Page: Error state is displayed to users'
         },
         // Enhanced Phase Integration Tests (Task 7)
         { 
@@ -761,6 +799,27 @@ async function testVideosPage(page, counters) {
             name: 'Phase persistence across navigation (Enhanced Integration)', 
             result: videosPageResults.phaseIntegration.phasePersistenceCorrect,
             errorMessage: 'Videos Page: Selected phase filter does not persist correctly when navigating or refreshing'
+        },
+        // String-Based IDs Tests (PRD #18)
+        { 
+            name: 'All videos have string-based IDs (PRD #18)', 
+            result: videosPageResults.stringBasedId.allVideosHaveStringIds,
+            errorMessage: 'Videos Page: API response does not include string-based IDs for all videos'
+        },
+        { 
+            name: 'ID format is "category/filename" (PRD #18)', 
+            result: videosPageResults.stringBasedId.idFormatCorrect,
+            errorMessage: 'Videos Page: API response does not include string-based IDs in the correct format'
+        },
+        { 
+            name: 'Name field is present in API response (PRD #18)', 
+            result: videosPageResults.stringBasedId.nameFieldPresent,
+            errorMessage: 'Videos Page: API response does not include a name field for all videos'
+        },
+        { 
+            name: 'ID format is consistent with category and name fields (PRD #18)', 
+            result: videosPageResults.stringBasedId.idConsistentWithFields,
+            errorMessage: 'Videos Page: API response does not include string-based IDs that are consistent with category and name fields'
         }
     ];
     
@@ -1228,5 +1287,7 @@ async function testModalUrlState(page, counters) {
         testResults: modalUrlTestResults
     };
 }
+
+
 
 module.exports = { testVideosPage, testModalUrlState };

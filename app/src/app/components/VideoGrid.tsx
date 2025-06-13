@@ -32,10 +32,9 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
   // Handle URL-based modal state on component mount and URL changes
   useEffect(() => {
     const editVideoId = searchParams.get('edit');
-    const videoId = searchParams.get('video');
     
-    if (editVideoId || videoId) {
-      const targetVideoId = editVideoId || videoId;
+    if (editVideoId) {
+      const targetVideoId = editVideoId;
       console.log('🔗 URL-based modal: Looking for video ID:', targetVideoId);
       
       // Find video by ID and open modal
@@ -49,7 +48,7 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
         // Video not found, clear URL params
         router.replace('/videos', { scroll: false });
       }
-    } else if (isModalOpen && !editVideoId && !videoId) {
+    } else if (isModalOpen && !editVideoId) {
       // URL was changed to remove modal params, close modal
       console.log('🔗 URL-based modal: URL params removed, closing modal');
       setIsModalOpen(false);
@@ -95,7 +94,6 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
       // Update URL with modal state
       const params = new URLSearchParams(searchParams);
       params.set('edit', video.id);
-      params.set('video', video.id);
       router.push(`/videos?${params.toString()}`, { scroll: false });
       
       // Set modal state (will be handled by useEffect above as well)

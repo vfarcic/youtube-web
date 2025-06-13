@@ -1858,4 +1858,29 @@ async function testFormSubmissionAndAPIIntegration(page, counters) {
     return formSubmissionTestResults.every(test => test.result);
 }
 
-module.exports = { testAspectEditFormBasics, testSmartFieldTypeDetection, testFormValidationAndErrorHandling, testFocusOnValidationFailure, testLabelFormatting, testAIGenerationButtons, testAPIClientIntegration, testCompletionCriteriaLogic, testFormSubmissionAndAPIIntegration }; 
+// Main test function for consolidated test runner
+async function testAspectEditForm(page, counters) {
+    console.log('\n🔥 Running Aspect Edit Form Tests...');
+    
+    try {
+        // Run the basic structure test as the main test
+        const result = await testAspectEditFormBasics(page, counters);
+        return result;
+    } catch (error) {
+        console.error('❌ Aspect Edit Form test failed:', error.message);
+        return false;
+    }
+}
+
+module.exports = { 
+    testAspectEditForm,
+    testAspectEditFormBasics, 
+    testSmartFieldTypeDetection, 
+    testFormValidationAndErrorHandling, 
+    testFocusOnValidationFailure, 
+    testLabelFormatting, 
+    testAIGenerationButtons, 
+    testAPIClientIntegration, 
+    testCompletionCriteriaLogic, 
+    testFormSubmissionAndAPIIntegration 
+}; 

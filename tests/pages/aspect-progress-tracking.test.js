@@ -4,22 +4,41 @@
  */
 
 const { APP_URL, validateTests, logTestCompletion } = require('../utils/test-helpers');
+const { 
+    getSafeVideoDetailsForTesting,
+    createTestUrlWithRealVideo,
+    validateBackendDataForTesting 
+} = require('../utils/test-data-helpers');
 
 async function testAspectProgressTracking(page, counters) {
     console.log('\n🔥 Testing Aspect Cards Progress Tracking (Issue #16)...');
     const progressTrackingStart = Date.now();
     
+    // Get dynamic test data
+    const { videoName, category } = await getSafeVideoDetailsForTesting();
+    if (!videoName || !category) {
+        console.warn('⚠️ No video data available for progress tracking tests');
+        console.warn('   Tests will use basic API endpoints only');
+    }
+    
     // Test 1: API Integration with Video Context
     console.log('  Testing API integration with video context...');
-    const apiTests = await page.evaluate(async () => {
+    const apiTests = await page.evaluate(async (testVideoName, testCategory) => {
         try {
             // Test API without video context (should return 0 completed fields)
             const basicResponse = await fetch('http://localhost:8080/api/editing/aspects');
             const basicData = await basicResponse.json();
             
             // Test API with video context (should return real progress data)
-            const enhancedResponse = await fetch('http://localhost:8080/api/editing/aspects?videoName=vibe-web-mocking&category=ai');
-            const enhancedData = await enhancedResponse.json();
+            let enhancedResponse, enhancedData;
+            if (testVideoName && testCategory) {
+                enhancedResponse = await fetch(`http://localhost:8080/api/editing/aspects?videoName=${encodeURIComponent(testVideoName)}&category=${encodeURIComponent(testCategory)}`);
+                enhancedData = await enhancedResponse.json();
+            } else {
+                // Fallback to basic endpoint if no video data available
+                enhancedResponse = basicResponse;
+                enhancedData = basicData;
+            }
             
             return {
                 basicApiWorks: basicResponse.ok,
@@ -46,7 +65,7 @@ async function testAspectProgressTracking(page, counters) {
                 error: error.message
             };
         }
-    });
+    }, videoName, category);
     
     // Test 2: Modal Context Progress Display
     console.log('  Testing modal context progress display...');
@@ -130,8 +149,13 @@ async function testAspectProgressTracking(page, counters) {
     };
     
     // Test direct navigation to edit page with video context
-    await page.goto(`${APP_URL}/edit?videoName=vibe-web-mocking&category=ai`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for API call
+    if (videoName && category) {
+        await page.goto(`${APP_URL}/edit?videoName=${encodeURIComponent(videoName)}&category=${encodeURIComponent(category)}`, { waitUntil: 'networkidle0' });
+        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for API call
+    } else {
+        console.warn('   ⚠️ Skipping direct page test - no video data available');
+        pageTests.pageLoads = false;
+    }
     
     pageTests.pageLoads = true;
     

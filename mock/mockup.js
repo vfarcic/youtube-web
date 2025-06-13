@@ -4,6 +4,7 @@
 const MOCK_VIDEO_DATA = {
     // Sample videos with all aspects data
     'kubernetes-advanced-tutorial': {
+        id: 'devops/kubernetes-advanced-tutorial', // PRD #18: String-based ID format "category/filename"
         name: 'kubernetes-advanced-tutorial',
         title: 'Kubernetes Advanced Tutorial',
         category: 'devops',
@@ -68,6 +69,7 @@ const MOCK_VIDEO_DATA = {
         }
     },
     'docker-compose-deep-dive': {
+        id: 'containers/docker-compose-deep-dive', // PRD #18: String-based ID format "category/filename"
         name: 'docker-compose-deep-dive',
         title: 'Docker Compose Deep Dive',
         category: 'containers',
@@ -126,6 +128,7 @@ const MOCK_VIDEO_DATA = {
         }
     },
     'terraform-infrastructure': {
+        id: 'infrastructure/terraform-infrastructure', // PRD #18: String-based ID format "category/filename"
         name: 'terraform-infrastructure',
         title: 'Terraform Infrastructure',
         category: 'infrastructure',
@@ -184,6 +187,7 @@ const MOCK_VIDEO_DATA = {
         }
     },
     'aws-lambda-serverless': {
+        id: 'serverless/aws-lambda-serverless', // PRD #18: String-based ID format "category/filename"
         name: 'aws-lambda-serverless',
         title: 'AWS Lambda Serverless Architecture',
         category: 'serverless',
@@ -248,6 +252,7 @@ const MOCK_VIDEO_DATA = {
         }
     },
     'gitops-argocd': {
+        id: 'gitops/gitops-argocd', // PRD #18: String-based ID format "category/filename"
         name: 'gitops-argocd',
         title: 'GitOps with ArgoCD',
         category: 'gitops',
@@ -303,6 +308,7 @@ const MOCK_VIDEO_DATA = {
         }
     },
     'microservices-patterns': {
+        id: 'architecture/microservices-patterns', // PRD #18: String-based ID format "category/filename"
         name: 'microservices-patterns',
         title: 'Microservices Design Patterns',
         category: 'architecture',

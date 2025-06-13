@@ -1,0 +1,165 @@
+# Task ID: 17
+# Title: Update TypeScript Interfaces for String-Based Video IDs
+# Status: done
+# Dependencies: 2, 16
+# Priority: high
+# Description: Implement breaking changes to convert video ID from number to string format ("category/filename"), update VideoListItem interface to include missing id field, and fix all TypeScript compilation errors across the application.
+# Details:
+This is a BREAKING CHANGE that requires comprehensive updates to the TypeScript type system based on analysis of `app/src/lib/api-client.ts`:
+
+**CURRENT INTERFACE ANALYSIS:**
+
+1. **VideoListItem Interface (line 78-82):**
+   - Current: `name: string, title: string, phase: number`
+   - MISSING: `id` field entirely
+   - REQUIRED: Add `id: string` field (format: "category/filename")
+   - KEEP: existing `name: string` (provides filename access)
+
+2. **Video Interface (line 9):**
+   - Current: `id: string`
+   - STATUS: ✅ Already correct format
+
+3. **OptimizedVideo Interface (line 29):**
+   - Current: `id: number`
+   - REQUIRED: Change to `id: string`
+
+**SPECIFIC IMPLEMENTATION STEPS:**
+
+1. **Update Core Interfaces in api-client.ts:**
+```typescript
+// VideoListItem - ADD missing id field
+interface VideoListItem {
+  id: string; // Format: "category/filename" - MISSING FIELD
+  name: string; // Keep existing - provides filename access
+  title: string; // Keep existing
+  phase: number; // Keep existing
+}
+
+// OptimizedVideo - CHANGE id type
+interface OptimizedVideo {
+  id: string; // Change from number to string
+  // other existing fields...
+}
+```
+
+2. **Update Transformation Logic:**
+   - Modify `transformOptimizedVideo()` function to handle string IDs
+   - Ensure proper ID format conversion ("category/filename")
+
+3. **Fix Application-Wide TypeScript Errors:**
+   - Update all components that use VideoListItem (VideoCard, VideoEditModal, etc.)
+   - Fix API client functions that send/receive OptimizedVideo objects
+   - Update state management hooks to handle string IDs consistently
+   - Fix any utility functions that process video IDs
+   - Update routing logic that uses video IDs as URL parameters
+   - Fix comparison operations or sorting logic that assumes numeric IDs
+
+4. **Component and Integration Updates:**
+   - Fix all React components that display or manipulate video IDs
+   - Update prop types and component interfaces
+   - Fix any key props in lists that use video IDs
+   - Update error handling to work with string-based IDs
+
+# Test Strategy:
+1. **TypeScript Compilation:** Run `tsc --noEmit` to ensure zero TypeScript errors across the entire application after interface changes.
+
+2. **Interface Validation:** Create unit tests to verify:
+   - VideoListItem interface includes required `id: string` field
+   - OptimizedVideo interface uses `id: string` instead of `id: number`
+   - transformOptimizedVideo() function handles string ID conversion correctly
+
+3. **Live Server Testing:** Test with both development servers:
+   - Frontend: localhost:3000
+   - Backend: localhost:8081
+   - Verify API communication works with updated interfaces
+
+4. **Component Testing:** Test all components that use VideoListItem to ensure they handle the new id field correctly:
+   - VideoCard component renders with string ID
+   - VideoEditModal accepts and processes string IDs
+   - Video list filtering and sorting works with string IDs
+
+5. **API Integration Testing:** Verify:
+   - API client functions send correct string ID format
+   - Response parsing handles string IDs properly
+   - OptimizedVideo objects are transformed correctly
+
+6. **End-to-End ID Flow:** Test complete user workflows:
+   - Video selection using string IDs
+   - Edit workflow with string-based video identification
+   - URL routing with string IDs as parameters
+
+7. **Format Validation:** Test that video IDs follow the expected "category/filename" format and that the name field provides direct filename access.
+
+# Subtasks:
+## 1. undefined [done]
+### Dependencies: None
+### Description: Update VideoListItem interface in api-client.ts to add missing id: string field
+### Details:
+<info added on 2025-06-13T02:55:57.692Z>
+SUBTASK COMPLETE: VideoListItem interface already updated
+
+COMPLETED WORK:
+✅ VideoListItem interface (line 78): Already has `id: string` field with PRD #18 comment
+✅ OptimizedVideo interface (line 29): Already has `id: string` with PRD #18 comment  
+✅ Fixed transformOptimizedVideo function: Removed `.toString()` call since ID is already string
+✅ TypeScript compilation: Zero errors after updates
+
+EVIDENCE:
+- VideoListItem interface: `id: string; // PRD #18: Added string-based ID field in format "category/filename"`
+- OptimizedVideo interface: `id: string; // PRD #18: Changed from number to string format "category/filename"`
+- Transform function: `id: optimizedVideo.id, // PRD #18: ID is already string format "category/filename"`
+- TypeScript check: `npx tsc --noEmit` passed with exit code 0
+
+STATUS: Both interfaces were already correctly updated. Only needed to fix the transform function to handle string IDs directly.
+</info added on 2025-06-13T02:55:57.692Z>
+
+## 2. undefined [done]
+### Dependencies: None
+### Description: Update OptimizedVideo interface in api-client.ts to change id from number to string
+### Details:
+
+
+## 3. undefined [done]
+### Dependencies: None
+### Description: Update transformOptimizedVideo() function to handle string ID conversion
+### Details:
+
+
+## 4. undefined [done]
+### Dependencies: None
+### Description: Run TypeScript compilation to identify all errors caused by interface changes
+### Details:
+<info added on 2025-06-13T02:57:05.814Z>
+TypeScript compilation successful with zero errors found. Ran `npx tsc --noEmit` command which returned exit code 0, confirming all interface changes for string-based video IDs are properly typed and TypeScript-compliant. No compilation errors reported after the interface updates.
+</info added on 2025-06-13T02:57:05.814Z>
+
+## 5. undefined [done]
+### Dependencies: None
+### Description: Fix all TypeScript compilation errors in components and API client functions
+### Details:
+
+
+## 6. undefined [done]
+### Dependencies: None
+### Description: Test interface changes with live servers (localhost:3000 and localhost:8081)
+### Details:
+<info added on 2025-06-13T02:58:09.291Z>
+Live server testing successful
+
+COMPLETED WORK:
+✅ Ran focused videos page tests with live servers
+✅ All string-based ID validations passing (PRD #18)
+✅ Live API communication working (localhost:8080)
+✅ 100% test success rate
+
+EVIDENCE:
+- Test command: `npm test -- --page=videos`
+- Success rate: 100.0% (1/1 test suites passed)
+- Duration: 2.98s
+- String-based ID tests: ✅ All videos have string-based IDs, ✅ ID format is "category/filename", ✅ Name field present, ✅ ID format consistent
+- API calls: 47 successful requests to localhost:8080 (all 200 OK)
+- Live server integration: Frontend (localhost:3000) ↔ Backend (localhost:8080) working correctly
+
+STATUS: Interface changes validated with live servers. String-based ID migration working correctly.
+</info added on 2025-06-13T02:58:09.291Z>
+

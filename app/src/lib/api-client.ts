@@ -27,7 +27,7 @@ export interface Video {
 
 // Type definitions for optimized API response
 export interface OptimizedVideo {
-  id: number;
+  id: string; // PRD #18: Changed from number to string format "category/filename"
   title: string;
   date: string;
   thumbnail: string;
@@ -74,11 +74,24 @@ export interface EditingFieldMetadata {
   defaultValue?: any;
 }
 
-// Video edit related interfaces
+/**
+ * Video edit related interfaces
+ * 
+ * Field Usage Guidelines (based on backend API consistency update):
+ * - Use `ProjectName` for user-friendly display names (e.g., "My Video Name")
+ * - Use `Name` for file operations, URLs, and technical references (sanitized filename)
+ * - Use `Title` for legacy compatibility where needed
+ * 
+ * The `Name` field now consistently returns sanitized filenames (lowercase with hyphens)
+ * that match the filename part of the `id` field.
+ */
 export interface VideoListItem {
-  name: string;
-  title: string;
-  phase: number;
+  id: string; // PRD #18: Added string-based ID field in format "category/filename"
+  Name: string; // API returns sanitized filename (lowercase with hyphens) - use for technical operations
+  Title?: string; // API may return "Title" - legacy field
+  ProjectName?: string; // API returns user-friendly display name - use for UI display
+  phase?: number; // API may return phase
+  Category: string; // PRD #18: API returns "Category" with capital C
   // Other fields as returned by the API
 }
 
@@ -147,7 +160,7 @@ export class ApiClient {
     // Add video context parameters for progress tracking (Issue #16)
     if (videoName && category) {
       const params = new URLSearchParams({
-        videoName: videoName,
+        videoName: videoName, // URLSearchParams automatically handles encoding
         category: category
       });
       endpoint = `${endpoint}?${params.toString()}`;
@@ -209,11 +222,10 @@ export class ApiClient {
     let actualCategory = category;
     
     if (!actualVideoName || !actualCategory) {
-      // Fallback: Try to get video details 
-      // Note: This may not work if the backend doesn't provide category in this endpoint
+      // Fallback: Get video details which now includes separate Name and Category fields
       const videoDetails = await this.getVideoForEditing(videoId);
-      actualVideoName = actualVideoName || videoDetails.name;
-      // actualCategory = actualCategory || videoDetails.category; // May not exist
+      actualVideoName = actualVideoName || videoDetails.Name;
+      actualCategory = actualCategory || videoDetails.Category;
     }
     
     if (!actualVideoName) {
@@ -221,6 +233,7 @@ export class ApiClient {
     }
     
     // Call the correct endpoint that actually exists in the backend
+    // PRD #18: Use separate name and category fields instead of encoding combined ID
     const endpoint = actualCategory 
       ? `${this.baseUrl}/api/videos/${actualVideoName}?category=${actualCategory}`
       : `${this.baseUrl}/api/videos/${actualVideoName}`;
@@ -306,8 +319,9 @@ export class ApiClient {
    * NEW: Save field values for a specific video and aspect
    * Based on OpenAPI spec: Uses phase-specific PUT endpoints
    */
-  async saveAspectValues(videoId: string, aspectKey: string, values: Record<string, any>): Promise<void> {
+  async saveAspectValues(videoId: string, aspectKey: string, values: Record<string, any>, videoName?: string, category?: string): Promise<void> {
     console.log('🔄 ApiClient saving field values for video:', videoId, 'aspect:', aspectKey, 'values:', values);
+    console.log('🔄 Video context - videoName:', videoName, 'category:', category);
     
     // Validate inputs
     if (!videoId || !aspectKey) {
@@ -334,50 +348,18 @@ export class ApiClient {
       throw new Error(`Unsupported aspect key: ${aspectKey}. Supported aspects: ${Object.keys(aspectEndpointMap).join(', ')}`);
     }
     
-    // For now, simulate the API call since we don't have actual video names/categories
-    // In real implementation, this would need proper video name and category
+    // Check if we have the required data for real API call
+    if (!videoName || !category) {
+      console.warn('⚠️ Missing videoName or category, cannot make real API call');
+      throw new Error('Video name and category are required for saving aspect values');
+    }
+    
     try {
-      // Simulate API processing time
-      const processingTime = Math.random() * 800 + 200; // 200-1000ms
-      console.log(`⏳ Simulating ${processingTime.toFixed(0)}ms API processing time...`);
-      
-      await new Promise(resolve => setTimeout(resolve, processingTime));
-      
-      // Simulate various success/error scenarios for testing (90% success rate)
-      const shouldSucceed = Math.random() > 0.1;
-      
-      if (!shouldSucceed) {
-        // Simulate random errors for testing error handling
-        const errorTypes = [
-          'Network error: Connection timeout',
-          'Server error: Internal server error (500)',
-          'Validation error: Invalid field format',
-          'Permission error: Insufficient privileges (403)'
-        ];
-        const randomError = errorTypes[Math.floor(Math.random() * errorTypes.length)];
-        throw new Error(randomError);
-      }
-      
-      // Log successful save operation details
-      console.log('✅ ApiClient saved field values successfully');
-      console.log('📊 Save operation details:', {
-        videoId,
-        aspectKey,
-        endpoint: endpointSuffix,
-        fieldCount: Object.keys(values).length,
-        fieldsModified: Object.keys(values),
-        timestamp: new Date().toISOString(),
-        processingTimeMs: processingTime.toFixed(0)
-      });
-      
-      // TODO: When ready for production, replace simulation with actual API call:
-      /*
-      // This would require getting actual video name and category, e.g.:
-      // const videoDetails = await this.getVideoForEditing(videoId);
-      // const videoName = videoDetails.name;
-      // const category = 'some-category'; // Would need to be determined
-      
+      // Make the real API call based on OpenAPI spec
+      // PRD #18: Use separate name and category fields from the API response
       const endpoint = `${this.baseUrl}/api/videos/${videoName}/${endpointSuffix}?category=${category}`;
+      console.log('🌐 Making PUT request to:', endpoint);
+      console.log('📤 Request body:', values);
       
       const response = await fetch(endpoint, {
         method: 'PUT',
@@ -387,20 +369,43 @@ export class ApiClient {
         body: JSON.stringify(values) // PhaseUpdateRequest: dynamic object with phase-specific fields
       });
       
+      console.log('📥 Response status:', response.status, response.statusText);
+      
       if (!response.ok) {
         if (response.status === 404) {
           throw new Error(`Video '${videoName}' not found`);
         } else if (response.status === 403) {
           throw new Error('You do not have permission to edit this video');
         } else if (response.status === 400) {
-          throw new Error('Invalid request data - check field values and formats');
+          const errorText = await response.text();
+          throw new Error(`Invalid request data: ${errorText}`);
         }
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
       
-      const result = await response.json();
+      // Try to parse response as JSON, but handle cases where there's no response body
+      let result;
+      const responseText = await response.text();
+      if (responseText) {
+        try {
+          result = JSON.parse(responseText);
+        } catch (e) {
+          result = responseText;
+        }
+      }
+      
       console.log('✅ ApiClient saved field values successfully:', result);
-      */
+      console.log('📊 Save operation details:', {
+        videoId,
+        videoName,
+        category,
+        aspectKey,
+        endpoint: endpointSuffix,
+        fieldCount: Object.keys(values).length,
+        fieldsModified: Object.keys(values),
+        timestamp: new Date().toISOString(),
+        responseStatus: response.status
+      });
       
     } catch (error) {
       console.error('❌ ApiClient save operation failed:', error);
@@ -418,7 +423,14 @@ export class ApiClient {
    * Fetch video details for editing (includes all aspect data)
    */
   async getVideoForEditing(videoId: string): Promise<VideoListItem> {
-    const endpoint = `${this.baseUrl}/api/videos/${videoId}`;
+    // PRD #18: Extract name and category from "category/filename" ID format
+    // The backend API expects separate name and category parameters
+    const [category, name] = videoId.split('/');
+    if (!category || !name) {
+      throw new Error(`Invalid video ID format. Expected "category/filename", got: ${videoId}`);
+    }
+    
+    const endpoint = `${this.baseUrl}/api/videos/${name}?category=${category}`;
     
     console.log('🔍 ApiClient fetching video for editing from:', endpoint);
     
@@ -428,18 +440,25 @@ export class ApiClient {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
-    const data: VideoListItem = await response.json();
-    console.log('✅ ApiClient received video for editing:', data);
+    const rawData = await response.json();
+    console.log('✅ ApiClient received raw video data:', rawData);
     
-    return data;
+    // Return the video data directly as the API provides it
+    // No field mapping needed - use the API field names as-is
+    const videoData: VideoListItem = rawData.video;
+    
+    console.log('✅ ApiClient returning video for editing:', videoData);
+    
+    return videoData;
   }
 
   /**
    * Transform optimized video format to VideoGrid format
+   * PRD #18: Updated to handle string-based IDs directly
    */
   private transformOptimizedVideo(optimizedVideo: OptimizedVideo): Video {
     return {
-      id: optimizedVideo.id.toString(),
+      id: optimizedVideo.id, // PRD #18: ID is already string format "category/filename"
       title: optimizedVideo.title,
       description: '', // Not available in optimized format, could be added in future
       status: optimizedVideo.status,

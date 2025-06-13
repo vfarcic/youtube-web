@@ -1,0 +1,72 @@
+# Task ID: 16
+# Title: Integrate Backend API Fix for Video Name Field
+# Status: pending
+# Dependencies: 6
+# Priority: high
+# Description: Update the frontend to use the new videoName field from the optimized video list API, remove the generateVideoName function, and complete the end-to-end video editing workflow integration.
+# Details:
+This task integrates the backend API fix for PRD #236 by updating the frontend to consume the new videoName field from the /api/videos/list endpoint:
+
+1. **Update API Integration:**
+   - Modify the video list API client to expect and handle the new `videoName` field
+   - Update the `VideoListItem` interface to include the `videoName` property
+   - Remove any fallback logic that was using `generateVideoName()`
+
+2. **Remove Deprecated Function:**
+   - Delete the `generateVideoName` function from the codebase
+   - Update all references to use the API-provided `videoName` instead
+   - Clean up any related utility functions or constants
+
+3. **Update Video Editing Components:**
+   - Modify AspectEditForm to display the correct video name from the API
+   - Update any video selection or display components to use the new field
+   - Ensure the video editing workflow shows consistent video names throughout
+
+4. **Code Changes:**
+```typescript
+// Update VideoListItem interface
+interface VideoListItem {
+  id: string;
+  videoName: string; // New field from backend
+  // ... other existing fields
+}
+
+// Update API client
+async function fetchVideoList(): Promise<VideoListItem[]> {
+  const response = await fetch('/api/videos/list');
+  const data = await response.json();
+  // videoName is now provided by backend
+  return data.videos;
+}
+```
+
+5. **Integration Testing:**
+   - Verify the complete video editing workflow uses consistent video names
+   - Test that AspectEditForm displays the correct video name
+   - Ensure no broken references to the removed generateVideoName function
+
+# Test Strategy:
+1. **API Integration Verification:**
+   - Confirm /api/videos/list endpoint returns videoName field for all videos
+   - Verify frontend correctly parses and displays the videoName from API response
+   - Test error handling when videoName is missing or null
+
+2. **Function Removal Verification:**
+   - Search codebase to ensure generateVideoName function is completely removed
+   - Verify no remaining references or imports to the deleted function
+   - Run build process to catch any compilation errors from missing references
+
+3. **End-to-End Workflow Testing:**
+   - Navigate through complete video editing workflow from video list to AspectEditForm
+   - Verify video name consistency across all components and screens
+   - Test AspectEditForm displays correct video name in header/title
+   - Confirm video selection and editing aspects show matching video names
+
+4. **Regression Testing:**
+   - Test video list loading and display functionality
+   - Verify existing video editing features still work correctly
+   - Check that video filtering and search still function properly
+
+5. **Cross-browser Testing:**
+   - Test the updated video editing workflow in multiple browsers
+   - Verify video name display formatting is consistent across different screen sizes
