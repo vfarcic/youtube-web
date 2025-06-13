@@ -691,8 +691,25 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
             console.log('🎯 Video ID:', videoData.videoId);
             console.log('🏷️ Aspect key:', aspect.key);
             
+            // Convert form data from display names to backend field names
+            const backendFormData: Record<string, any> = {};
+            Object.entries(formData).forEach(([displayName, value]) => {
+                // Find the field metadata for this display name
+                const field = fields.find(f => f.name === displayName);
+                if (field && field.fieldName) {
+                    backendFormData[field.fieldName] = value;
+                    console.log(`🔄 Converting field "${displayName}" -> "${field.fieldName}": ${value}`);
+                } else {
+                    // Fallback: use display name if field metadata not found
+                    backendFormData[displayName] = value;
+                    console.warn(`⚠️ No fieldName found for "${displayName}", using display name`);
+                }
+            });
+            
+            console.log('📤 Backend form data:', backendFormData);
+            
             // Call the API to save aspect values
-            await apiClient.saveAspectValues(videoData.videoId, aspect.key, formData, videoData.videoName, videoData.category);
+            await apiClient.saveAspectValues(videoData.videoId, aspect.key, backendFormData, videoData.videoName, videoData.category);
             console.log('✅ API submission completed successfully');
             
             // Call the onSave callback if provided
@@ -827,7 +844,7 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                         >
                             {loading ? (
                                 <>
-                                    <i className="fas fa-spinner"></i> Saving...
+                                    <i className="fas fa-spinner fa-spin"></i> Saving...
                                 </>
                             ) : (
                                 'Save Changes'

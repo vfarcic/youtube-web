@@ -53,6 +53,7 @@ export interface EditingAspectOverview {
 
 export interface EditingFieldMetadata {
   name: string;
+  fieldName: string; // NEW: Actual property name from backend field metadata enhancement
   type: 'string' | 'text' | 'boolean' | 'date' | 'number' | 'select';
   required: boolean;
   description?: string;
@@ -257,39 +258,11 @@ export class ApiClient {
     const values: Record<string, any> = {};
     
     fieldsResponse.fields.forEach(field => {
-      // Map frontend field names to backend field names dynamically
-      const fieldName = field.name;
-      let backendFieldName = fieldName;
+      // Use the fieldName property from backend field metadata enhancement
+      const displayName = field.name; // For UI display
+      const backendFieldName = field.fieldName; // For API data mapping
       
-      // Dynamic mapping function: Convert API field names to backend property names
-      function mapFieldNameToBackend(apiFieldName: string): string {
-        // Handle special cases for nested properties
-        if (apiFieldName.startsWith('Sponsorship ')) {
-          const sponsorshipField = apiFieldName.replace('Sponsorship ', '').replace(' (comma separated)', '').replace(' Reason', '');
-          return `Sponsorship.${sponsorshipField}`;
-        }
-        
-        // Handle date field
-        if (apiFieldName.includes('Publish Date')) {
-          return 'Date';
-        }
-        
-        // Handle gist field  
-        if (apiFieldName.includes('Gist Path')) {
-          return 'Gist';
-        }
-        
-        // Standard conversion: Remove spaces, parentheses, and special chars, convert to PascalCase
-        return apiFieldName
-          .replace(/\s*\([^)]*\)/g, '') // Remove parentheses and content
-          .split(' ')                    // Split by spaces
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // PascalCase each word
-          .join('');                     // Join without spaces
-      }
-      
-      backendFieldName = mapFieldNameToBackend(fieldName);
-      
-      // Handle nested properties (e.g., Sponsorship.Amount)
+      // Handle nested properties (e.g., sponsorship.amount)
       let fieldValue;
       if (backendFieldName.includes('.')) {
         const [parentField, childField] = backendFieldName.split('.');
@@ -301,12 +274,12 @@ export class ApiClient {
       }
       
       if (fieldValue !== undefined && fieldValue !== null) {
-        values[fieldName] = fieldValue;
-        console.log(`✅ Mapped field "${fieldName}" -> "${backendFieldName}": ${fieldValue}`);
+        values[displayName] = fieldValue;
+        console.log(`✅ Mapped field "${displayName}" -> "${backendFieldName}": ${fieldValue}`);
       } else {
         // Field doesn't exist in video object, set to appropriate default
-        values[fieldName] = field.type === 'boolean' ? false : '';
-        console.log(`⚠️ Field "${fieldName}" (backend: "${backendFieldName}") not found, using default`);
+        values[displayName] = field.type === 'boolean' ? false : '';
+        console.log(`⚠️ Field "${displayName}" (backend: "${backendFieldName}") not found, using default`);
       }
     });
     

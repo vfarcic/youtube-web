@@ -15,6 +15,9 @@ const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs');
 
+// Import test utilities
+const { initializeBrowser, setupApiMocking, printTestSummary } = require('./utils/test-helpers.js');
+
 // Import page test modules
 const { testHomepage } = require('./pages/homepage.test.js');
 const { testVideosPage } = require('./pages/videos.test.js');
@@ -190,6 +193,12 @@ async function runPageTests(browser, options, results) {
     const page = await browser.newPage();
     await page.setViewport(CONFIG.VIEWPORT);
     
+    // Set up API mocking BEFORE any navigation to prevent data modification
+    await setupApiMocking(page);
+    
+    // Add a small delay to ensure interception is fully established
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
     // Set up page monitoring
     const counters = { passed: 0, failed: 0 };
     
@@ -211,8 +220,29 @@ async function runPageTests(browser, options, results) {
             
             try {
                 const testResult = await pageTest.testFunction(page, counters);
-                results.addResult(`Page: ${pageTest.name}`, true, testResult);
-                console.log(`✅ ${pageTest.name} tests completed successfully`);
+                
+                // Determine success based on the type of result returned
+                let success = false;
+                if (typeof testResult === 'boolean') {
+                    // Simple boolean return (like aspect-selection test)
+                    success = testResult;
+                } else if (testResult && typeof testResult === 'object') {
+                    // Complex object return - check if it has a success indicator
+                    // For now, assume complex objects indicate the test ran successfully
+                    // Individual test failures are handled by validateTests() within the test function
+                    success = true;
+                } else {
+                    // Undefined, null, or other unexpected return
+                    success = false;
+                }
+                
+                results.addResult(`Page: ${pageTest.name}`, success, { result: testResult });
+                
+                if (success) {
+                    console.log(`✅ ${pageTest.name} tests completed successfully`);
+                } else {
+                    console.log(`❌ ${pageTest.name} tests failed - some assertions did not pass`);
+                }
             } catch (error) {
                 console.error(`❌ ${pageTest.name} tests failed:`, error.message);
                 results.addResult(`Page: ${pageTest.name}`, false, { error: error.message });
@@ -239,8 +269,28 @@ async function runIntegrationTests(options, results) {
         
         try {
             const testResult = await integrationTest.testFunction();
-            results.addResult(`Integration: ${integrationTest.name}`, true, testResult);
-            console.log(`✅ ${integrationTest.name} tests completed successfully`);
+            
+            // Determine success based on the type of result returned
+            let success = false;
+            if (typeof testResult === 'boolean') {
+                // Simple boolean return
+                success = testResult;
+            } else if (testResult && typeof testResult === 'object') {
+                // Complex object return - assume success if object is returned
+                // Individual test failures are handled within the test function
+                success = true;
+            } else {
+                // Undefined, null, or other unexpected return
+                success = false;
+            }
+            
+            results.addResult(`Integration: ${integrationTest.name}`, success, { result: testResult });
+            
+            if (success) {
+                console.log(`✅ ${integrationTest.name} tests completed successfully`);
+            } else {
+                console.log(`❌ ${integrationTest.name} tests failed - some assertions did not pass`);
+            }
         } catch (error) {
             console.error(`❌ ${integrationTest.name} tests failed:`, error.message);
             results.addResult(`Integration: ${integrationTest.name}`, false, { error: error.message });
