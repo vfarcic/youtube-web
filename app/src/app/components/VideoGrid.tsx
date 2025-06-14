@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import VideoCard from './VideoCard';
 import AspectEditModal from './AspectEditModal';
@@ -12,7 +12,12 @@ interface VideoGridProps {
   selectedPhaseName: string;
 }
 
-const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName }) => {
+// Add ref interface for external refresh capability
+export interface VideoGridRef {
+  refreshVideos: () => Promise<void>;
+}
+
+const VideoGrid = forwardRef<VideoGridRef, VideoGridProps>(({ selectedPhase, selectedPhaseName }, ref) => {
   const [videos, setVideos] = useState<Video[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +33,34 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
   // Debug logging for prop changes
   console.log('🔍 VideoGrid render - selectedPhase:', selectedPhase, 'selectedPhaseName:', selectedPhaseName);
   console.log('🔍 VideoGrid render - videos.length:', videos.length, 'first video title:', videos[0]?.title);
+
+  // Refresh function that can be called externally
+  const refreshVideos = async () => {
+    console.log('🔄 VideoGrid: External refresh triggered');
+    setLoading(true);
+    
+    try {
+      console.log(`🔄 API CALL for refresh - phase ${selectedPhase} using API client`);
+      
+      const videoData = await apiClient.getVideoList(selectedPhase);
+      
+      console.log(`✅ API SUCCESS for refresh - phase ${selectedPhase}:`, videoData?.videos?.length || 0, 'videos');
+      console.log(`📝 Refreshed ${videoData.videos.length} videos in state for phase ${selectedPhase}`);
+      
+      setVideos(videoData.videos);
+      setError(null);
+    } catch (err) {
+      console.error('❌ API FAILED for refresh - phase', selectedPhase, ':', err);
+      setError(`Unable to refresh videos. Please check your connection and try again.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Expose refresh function through ref
+  useImperativeHandle(ref, () => ({
+    refreshVideos
+  }));
 
   // Handle URL-based modal state on component mount and URL changes
   useEffect(() => {
@@ -110,7 +143,7 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
       .replace(/^-+|-+$/g, '');     // Remove leading/trailing hyphens
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = async () => {
     console.log('🔗 Closing modal and updating URL');
     
     // Update URL to remove modal state - go back to clean videos page
@@ -119,6 +152,15 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
     // Close modal (will be handled by useEffect above as well)
     setIsModalOpen(false);
     setEditingVideo(null);
+    
+    // Refresh video data after modal closes to reflect any changes
+    console.log('🔄 VideoGrid: Refreshing video data after modal close...');
+    try {
+      await refreshVideos();
+      console.log('✅ VideoGrid: Video data refreshed successfully after modal close');
+    } catch (error) {
+      console.error('❌ VideoGrid: Failed to refresh video data after modal close:', error);
+    }
   };
 
   const handleDeleteVideo = async (videoId: string) => {
@@ -275,6 +317,6 @@ const VideoGrid: React.FC<VideoGridProps> = ({ selectedPhase, selectedPhaseName 
       />
     </div>
   );
-};
+});
 
 export default VideoGrid;

@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import AspectSelection from './AspectSelection';
+import AspectSelection, { AspectSelectionRef } from './AspectSelection';
 import AspectEditForm from './AspectEditForm';
-import { EditingFieldMetadata } from '../../lib/api-client';
-import { apiClient } from '../../lib/api-client';
+import { apiClient, EditingFieldMetadata } from '../../lib/api-client';
 
 interface AspectEditModalProps {
   isOpen: boolean;
@@ -35,6 +34,9 @@ export default function AspectEditModal({
     description?: string;
   } | undefined>(undefined);
   const [selectedFields, setSelectedFields] = useState<EditingFieldMetadata[]>([]);
+
+  // Add ref to AspectSelection for refreshing progress data
+  const aspectSelectionRef = useRef<AspectSelectionRef>(null);
 
   // Handle escape key to close modal
   useEffect(() => {
@@ -161,11 +163,21 @@ export default function AspectEditModal({
     setSelectedFields([]);
   };
 
-  // Handle form save
-  const handleFormSave = (formData: any) => {
+  // Handle form save with progress refresh
+  const handleFormSave = async (formData: any) => {
     console.log('Form data saved:', formData);
-    // TODO: Implement API call to save data
-    // For now, just go back to selection
+    
+    // Refresh the aspect progress data after successful save
+    try {
+      console.log('🔄 Refreshing aspect progress data after save...');
+      await aspectSelectionRef.current?.refreshAspects();
+      console.log('✅ Aspect progress data refreshed');
+    } catch (error) {
+      console.error('❌ Failed to refresh aspect progress:', error);
+      // Don't block the user flow if refresh fails
+    }
+    
+    // Navigate back to selection view
     handleBackToSelection();
   };
 
@@ -198,6 +210,7 @@ export default function AspectEditModal({
             </div>
             
             <AspectSelection 
+              ref={aspectSelectionRef}
               videoId={videoId}
               videoName={videoName}      // NEW: Pass video context for progress tracking
               category={category}        // NEW: Pass video context for progress tracking  

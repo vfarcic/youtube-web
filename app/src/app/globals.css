@@ -1018,28 +1018,25 @@ input[type="datetime-local"].form-input {
     /* Enhance the calendar icon visibility */
     color-scheme: dark;
     background-color: var(--secondary-bg-color); /* Slightly lighter background */
-    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%23FFD700'%3e%3cpath fill-rule='evenodd' d='M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z' clip-rule='evenodd'/%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 0.75rem center;
-    background-size: 1.2rem;
-    padding-right: 3rem; /* Make space for the icon */
+    /* Adjust padding for native calendar icon positioning */
+    padding-right: 1rem; /* Reduced padding since native icon is positioned differently */
 }
 
-/* Override the default calendar icon with a visible one */
+/* Style the native calendar icon to be visible and functional */
 .form-group input[type="datetime-local"]::-webkit-calendar-picker-indicator,
 input[type="datetime-local"].form-input::-webkit-calendar-picker-indicator {
-    background: transparent;
-    bottom: 0;
-    color: var(--primary-accent-color);
     cursor: pointer;
-    height: auto;
-    left: auto;
-    position: absolute;
-    right: 0.75rem;
-    top: 0;
-    width: auto;
-    opacity: 0.8;
-    filter: invert(1) sepia(1) saturate(5) hue-rotate(45deg) brightness(1.2);
+    opacity: 1;
+    /* Make the native calendar icon orange/gold to match theme */
+    filter: invert(0.7) sepia(1) saturate(3) hue-rotate(15deg) brightness(1.5) contrast(1.2);
+    /* Ensure proper sizing and positioning */
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-right: 0.25rem; /* Reduced margin to move icon closer to edge */
+    /* Add a subtle background to make it more visible */
+    background-color: rgba(255, 215, 0, 0.1);
+    border-radius: 3px;
+    padding: 2px;
 }
 
 .form-group input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,

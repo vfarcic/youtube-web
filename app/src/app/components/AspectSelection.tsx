@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { 
   apiClient, 
   EditingAspectOverview, 
@@ -14,6 +14,11 @@ interface AspectSelectionProps {
   videoName?: string;        // NEW: For progress tracking API (Issue #16)
   category?: string;         // NEW: For progress tracking API (Issue #16)
   onAspectSelect?: (aspectKey: string, fields: EditingFieldMetadata[]) => void;
+}
+
+// Add ref interface for external refresh capability
+export interface AspectSelectionRef {
+  refreshAspects: () => Promise<void>;
 }
 
 // Helper function to map API data to mock design format
@@ -64,28 +69,37 @@ const calculateProgress = (aspect: EditingAspectOverview): { completed: number; 
   return { completed, total, percentage, colorClass };
 };
 
-export default function AspectSelection({ videoId = "sample-video", videoName, category, onAspectSelect }: AspectSelectionProps) {
+const AspectSelection = forwardRef<AspectSelectionRef, AspectSelectionProps>(
+  ({ videoId = "sample-video", videoName, category, onAspectSelect }, ref) => {
   const [aspects, setAspects] = useState<EditingAspectOverview[]>([]);
   const [selectedFields, setSelectedFields] = useState<EditingFieldMetadata[]>([]);
   const [selectedAspect, setSelectedAspect] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
 
-  useEffect(() => {
-    const fetchAspects = async () => {
-      try {
-        setLoading(true);
-        // Use enhanced API with progress tracking when video context is available (Issue #16)
-        const response: AspectOverviewResponse = await apiClient.getAspectsOverview(videoName, category);
-        setAspects(response.aspects || []);
-      } catch (err) {
-        setError('Failed to load aspects');
-        console.error('Error loading aspects:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchAspects = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      console.log('🔄 Fetching aspects with progress data...');
+      // Use enhanced API with progress tracking when video context is available (Issue #16)
+      const response: AspectOverviewResponse = await apiClient.getAspectsOverview(videoName, category);
+      setAspects(response.aspects || []);
+      console.log('✅ Aspects refreshed:', response.aspects?.length || 0);
+    } catch (err) {
+      setError('Failed to load aspects');
+      console.error('Error loading aspects:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Expose refresh function through ref
+  useImperativeHandle(ref, () => ({
+    refreshAspects: fetchAspects
+  }));
+
+  useEffect(() => {
     fetchAspects();
   }, [videoId, videoName, category]);
 
@@ -179,4 +193,6 @@ export default function AspectSelection({ videoId = "sample-video", videoName, c
       })}
     </div>
   );
-} 
+});
+
+export default AspectSelection; 

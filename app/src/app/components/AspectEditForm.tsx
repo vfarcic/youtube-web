@@ -81,15 +81,22 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
 
     // Smart field type detection function (Subtask 6.3)
     const getFieldType = (field: EditingFieldMetadata, value: any): string => {
-        // If field type is explicitly defined in metadata, use it
-        if (field.type === 'date') return 'datetime-local';
+        // Priority 1: Use uiHints.inputType if provided by API
+        if (field.uiHints?.inputType) {
+            return field.uiHints.inputType;
+        }
+        
+        // Priority 2: If field type is explicitly defined in metadata, use it
+        if (field.type === 'date') {
+            return 'datetime';
+        }
         if (field.type === 'boolean') return 'boolean';
         if (field.multiline || field.inputType === 'textarea') return 'textarea';
         
-        // Date detection based on field name
+        // Date detection based on field name (fallback)
         if (field.name.toLowerCase().includes('date') || 
             field.name.toLowerCase().includes('time')) {
-            return 'datetime-local';
+            return 'datetime';
         }
         
         // Boolean detection based on field name patterns
@@ -172,6 +179,9 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
             case 'conditional':
                 return handleConditionalLogic(field, value, allFieldValues);
             
+            case 'conditional_sponsorship':
+                return handleSponsorshipConditionalLogic(field, value, allFieldValues);
+            
             case 'true_only':
                 return value === true;
             
@@ -187,25 +197,26 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
         }
     };
 
-    // NEW: Handle conditional completion logic for fields like "Sponsored Emails"
+    // NEW: Handle generic conditional completion logic
     const handleConditionalLogic = (field: EditingFieldMetadata, value: any, allFieldValues: Record<string, any>): boolean => {
-        if (field.name === 'Sponsorship Emails (comma separated)') {
-            // Only required if Sponsorship Amount is filled and not "N/A" or "-"
-            const sponsorAmount = allFieldValues['Sponsorship Amount'];
-            const hasSponsor = sponsorAmount && sponsorAmount !== 'N/A' && sponsorAmount !== '-' && sponsorAmount.toString().trim() !== '';
-            
-            if (hasSponsor) {
-                // If sponsored, emails must be filled
-                return value && value.toString().trim() !== '' && value !== '-';
-            } else {
-                // If not sponsored, empty is complete
-                return true;
-            }
-        }
-        
-        // Add other conditional fields as needed
+        // Generic conditional logic - can be extended for other conditional fields
         // For now, default to filled_only logic for unknown conditional fields
         return value && value.toString().trim() !== '' && value !== '-';
+    };
+
+    // NEW: Handle sponsorship-specific conditional completion logic
+    const handleSponsorshipConditionalLogic = (field: EditingFieldMetadata, value: any, allFieldValues: Record<string, any>): boolean => {
+        // Sponsorship emails are only required if Sponsorship Amount is filled and not "N/A" or "-"
+        const sponsorAmount = allFieldValues['Sponsorship Amount'];
+        const hasSponsor = sponsorAmount && sponsorAmount !== 'N/A' && sponsorAmount !== '-' && sponsorAmount.toString().trim() !== '';
+        
+        if (hasSponsor) {
+            // If sponsored, emails must be filled
+            return value && value.toString().trim() !== '' && value !== '-';
+        } else {
+            // If not sponsored, empty is complete
+            return true;
+        }
     };
 
     // NEW: Calculate progress using API-driven completion logic (Issue #17)
@@ -237,7 +248,8 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
             
             // Field-specific validation based on type
             switch (fieldType) {
-                case 'datetime-local':
+                case 'datetime':
+                case 'datetime-local': // Handle both API 'datetime' and legacy 'datetime-local'
                     if (fieldValue && typeof fieldValue === 'string') {
                         // Validate datetime format
                         const dateValue = new Date(fieldValue);
@@ -488,7 +500,8 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
         const fieldValue = formData[field.name] || '';
         
         switch (fieldType) {
-            case 'datetime-local':
+            case 'datetime':
+            case 'datetime-local': // Handle both API 'datetime' and legacy 'datetime-local'
                 let dateValue = fieldValue;
                 // Convert ISO date string to datetime-local format if needed
                 if (fieldValue && typeof fieldValue === 'string') {
@@ -517,6 +530,7 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                 );
             
             case 'boolean':
+            case 'checkbox': // Handle checkbox inputType from API (Issue #18)
                 return (
                     <div className="radio-group" data-field={field.name}>
                         <div className="radio-option">
@@ -857,4 +871,4 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
     );
 };
 
-export default AspectEditForm; 
+export default AspectEditForm;

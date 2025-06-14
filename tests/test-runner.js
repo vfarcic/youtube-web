@@ -20,7 +20,7 @@ const { initializeBrowser, setupApiMocking, printTestSummary } = require('./util
 
 // Import page test modules
 const { testHomepage } = require('./pages/homepage.test.js');
-const { testVideosPage } = require('./pages/videos.test.js');
+const { testVideosPage, testVideoGridRefreshAfterModalClose } = require('./pages/videos.test.js');
 const { testAspectSelection } = require('./pages/aspect-selection.test.js');
 const { testAspectEditForm } = require('./pages/aspect-edit-form.test.js');
 const { testAspectProgressTracking } = require('./pages/aspect-progress-tracking.test.js');
@@ -83,6 +83,7 @@ USAGE:
 AVAILABLE PAGES:
   homepage                    # Dashboard/homepage tests
   videos                      # Video grid, filtering, cards
+  video-grid-refresh          # Video grid refresh after modal close (TDD)
   aspect-selection           # Aspect selection page
   aspect-edit-form           # Form editing tests
   aspect-progress-tracking   # Progress tracking features
@@ -151,6 +152,11 @@ const PAGE_TESTS = {
         name: 'Videos Page',
         description: 'Video grid, filtering, and card functionality',
         testFunction: testVideosPage
+    },
+    'video-grid-refresh': {
+        name: 'Video Grid Refresh',
+        description: 'Video grid refresh after modal close (TDD)',
+        testFunction: testVideoGridRefreshAfterModalClose
     },
     'aspect-selection': {
         name: 'Aspect Selection',

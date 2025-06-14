@@ -66,7 +66,7 @@ async function testVideosPage(page, counters) {
             
             return {
                 expectedPhases: data.phases ? data.phases.length : 0,
-                actualPhaseButtons: actualPhaseCount,
+                actualPhaseButtons: actualCount,
                 expectedTotal: expectedPhaseCount,
                 apiResponseCorrect: !!data.phases,
                 phasesFromAPI: data.phases ? data.phases.map(p => p.name) : [],
@@ -1288,6 +1288,198 @@ async function testModalUrlState(page, counters) {
     };
 }
 
+/**
+ * TDD Test for Video Grid Refresh After Modal Close
+ * RED phase: This test should fail initially because the refresh functionality doesn't exist yet
+ */
+async function testVideoGridRefreshAfterModalClose(page, counters) {
+    console.log('\n🔥 Testing Video Grid Refresh After Modal Close (TDD - RED phase)...');
+    const testStart = Date.now();
+    
+    // Navigate to videos page
+    await page.goto(`${APP_URL}/videos`, { waitUntil: 'networkidle0' });
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    let refreshTests = {
+        initialVideoData: {},
+        modalOpened: false,
+        modalClosed: false,
+        videoDataRefreshed: false,
+        refreshTriggered: false,
+        apiCallsMade: []
+    };
+    
+    // Capture initial video data and API calls
+    const initialState = await page.evaluate(() => {
+        const videoCards = document.querySelectorAll('.video-card');
+        const videoData = {};
+        
+        videoCards.forEach((card, index) => {
+            const title = card.querySelector('.video-title')?.textContent?.trim();
+            const progress = card.querySelector('.progress-text')?.textContent?.trim();
+            const progressBar = card.querySelector('.progress-bar');
+            const progressWidth = progressBar ? progressBar.style.width : '0%';
+            
+            if (title) {
+                videoData[title] = {
+                    progress: progress,
+                    progressWidth: progressWidth,
+                    cardIndex: index
+                };
+            }
+        });
+        
+        return {
+            videoCount: videoCards.length,
+            videoData: videoData,
+            hasVideoCards: videoCards.length > 0
+        };
+    });
+    
+    refreshTests.initialVideoData = initialState;
+    
+    // Monitor API calls during the test
+    const apiCalls = [];
+    page.on('response', response => {
+        const url = response.url();
+        if (url.includes('/api/videos/list') || url.includes('/api/editing/aspects')) {
+            apiCalls.push({
+                url: url,
+                status: response.status(),
+                timestamp: Date.now()
+            });
+        }
+    });
+    
+    // Open modal by clicking Edit button
+    const editButton = await page.$('.video-card .btn-edit');
+    if (editButton) {
+        await editButton.click();
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        refreshTests.modalOpened = true;
+        
+        // Verify modal is open
+        const modalOpen = await page.evaluate(() => {
+            return !!document.querySelector('.modal-overlay');
+        });
+        
+        if (modalOpen) {
+            // Navigate through modal (aspect selection → form → save → back)
+            const aspectCard = await page.$('.aspect-card');
+            if (aspectCard) {
+                await aspectCard.click();
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Fill in a field and save
+                const textInput = await page.$('.aspect-edit-form input[type="text"]');
+                if (textInput) {
+                    await textInput.click();
+                    await textInput.type(' - Test refresh');
+                    await new Promise(resolve => setTimeout(resolve, 200));
+                }
+                
+                // Submit form
+                const submitButton = await page.$('.aspect-edit-form button[type="submit"]');
+                if (submitButton) {
+                    await submitButton.click();
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                }
+            }
+            
+            // Close modal
+            const closeButton = await page.$('.modal-close');
+            if (closeButton) {
+                await closeButton.click();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                refreshTests.modalClosed = true;
+            }
+        }
+    }
+    
+    // Capture video data after modal close to check for refresh
+    const finalState = await page.evaluate(() => {
+        const videoCards = document.querySelectorAll('.video-card');
+        const videoData = {};
+        
+        videoCards.forEach((card, index) => {
+            const title = card.querySelector('.video-title')?.textContent?.trim();
+            const progress = card.querySelector('.progress-text')?.textContent?.trim();
+            const progressBar = card.querySelector('.progress-bar');
+            const progressWidth = progressBar ? progressBar.style.width : '0%';
+            
+            if (title) {
+                videoData[title] = {
+                    progress: progress,
+                    progressWidth: progressWidth,
+                    cardIndex: index
+                };
+            }
+        });
+        
+        return {
+            videoCount: videoCards.length,
+            videoData: videoData,
+            hasVideoCards: videoCards.length > 0
+        };
+    });
+    
+    // Check if video data was refreshed by comparing API calls
+    const initialApiCallCount = apiCalls.filter(call => 
+        call.timestamp < (testStart + 2000) && call.url.includes('/api/videos/list')
+    ).length;
+    
+    const postModalApiCallCount = apiCalls.filter(call => 
+        call.timestamp > (testStart + 2000) && call.url.includes('/api/videos/list')
+    ).length;
+    
+    refreshTests.videoDataRefreshed = postModalApiCallCount > 0;
+    refreshTests.refreshTriggered = postModalApiCallCount > initialApiCallCount;
+    refreshTests.apiCallsMade = apiCalls;
+    
+    const testPageTime = Date.now() - testStart;
+    
+    // TDD Test Definitions - These should FAIL initially (RED phase)
+    const testDefinitions = [
+        // Basic flow tests
+        { name: 'Initial video data loaded', result: refreshTests.initialVideoData.hasVideoCards },
+        { name: 'Modal opened successfully', result: refreshTests.modalOpened },
+        { name: 'Modal closed successfully', result: refreshTests.modalClosed },
+        
+        // Refresh functionality tests (should FAIL in RED phase)
+        { name: 'Video grid refresh triggered after modal close', result: refreshTests.refreshTriggered },
+        { name: 'Fresh video data loaded after modal close', result: refreshTests.videoDataRefreshed },
+        { name: 'API call made to refresh video list', result: refreshTests.videoDataRefreshed },
+        
+        // Data consistency tests
+        { name: 'Video grid structure maintained', result: finalState.videoCount === refreshTests.initialVideoData.videoCount },
+        { name: 'Video cards still present after refresh', result: finalState.hasVideoCards }
+    ];
+    
+    validateTests(refreshTests, testDefinitions, counters);
+    
+    // Log detailed test results
+    console.log('\n📊 Video Grid Refresh Test Results (TDD):');
+    console.log(`Initial Videos: ${refreshTests.initialVideoData.videoCount}`);
+    console.log(`Modal Flow: ${refreshTests.modalOpened && refreshTests.modalClosed ? '✅' : '❌'}`);
+    console.log(`Refresh Triggered: ${refreshTests.refreshTriggered ? '✅' : '❌'} (Expected: ❌ in RED phase)`);
+    console.log(`API Calls Made: ${refreshTests.apiCallsMade.length}`);
+    console.log(`Video Data Refreshed: ${refreshTests.videoDataRefreshed ? '✅' : '❌'} (Expected: ❌ in RED phase)`);
+    
+    // Show API call timeline
+    if (refreshTests.apiCallsMade.length > 0) {
+        console.log('\n📡 API Call Timeline:');
+        refreshTests.apiCallsMade.forEach((call, index) => {
+            const relativeTime = call.timestamp - testStart;
+            console.log(`  ${index + 1}. ${call.url} (${call.status}) at +${relativeTime}ms`);
+        });
+    }
+    
+    // TDD Phase indicator
+    const refreshFunctionalityExists = refreshTests.refreshTriggered && refreshTests.videoDataRefreshed;
+    console.log(`\n🔴 TDD Phase: ${refreshFunctionalityExists ? 'GREEN (functionality exists)' : 'RED (functionality missing)'}`);
+    
+    logTestCompletion('Video Grid Refresh After Modal Close', testPageTime, 0);
+    return testDefinitions.every(test => test.result);
+}
 
-
-module.exports = { testVideosPage, testModalUrlState };
+module.exports = { testVideosPage, testModalUrlState, testVideoGridRefreshAfterModalClose };

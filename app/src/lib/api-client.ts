@@ -57,9 +57,21 @@ export interface EditingFieldMetadata {
   type: 'string' | 'text' | 'boolean' | 'date' | 'number' | 'select';
   required: boolean;
   description?: string;
+  order?: number; // NEW: Field ordering from API
   // NEW: Completion criteria from API (Issue #17)
-  completionCriteria?: 'filled_only' | 'empty_or_filled' | 'conditional' | 'true_only' | 'false_only' | 'filled_required';
-  // UI Hints
+  completionCriteria?: 'filled_only' | 'empty_or_filled' | 'conditional' | 'conditional_sponsorship' | 'true_only' | 'false_only' | 'filled_required';
+  // NEW: UI Hints from API
+  uiHints?: {
+    inputType: string;
+    placeholder: string;
+    helpText: string;
+    multiline: boolean;
+  };
+  // NEW: Validation hints from API
+  validationHints?: {
+    required: boolean;
+  };
+  // Legacy UI Hints (for backward compatibility)
   inputType?: string;
   placeholder?: string;
   helpText?: string;
