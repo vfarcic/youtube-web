@@ -1342,6 +1342,159 @@ textarea.form-input {
     color: var(--primary-text-color);
 }
 
+/* AI Title Selection Modal Styles */
+.ai-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.ai-modal {
+    background: var(--primary-bg-color);
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    max-width: 600px;
+    width: 100%;
+    max-height: 80vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.ai-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--secondary-bg-color);
+}
+
+.ai-modal-header h4 {
+    margin: 0;
+    color: var(--primary-text-color);
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.ai-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--secondary-text-color);
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ai-modal-close:hover {
+    background: var(--primary-bg-color);
+    color: var(--primary-text-color);
+}
+
+.ai-modal-body {
+    padding: 1.5rem;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.ai-modal-body p {
+    margin: 0 0 1rem 0;
+    color: var(--secondary-text-color);
+    font-size: 0.95rem;
+}
+
+.ai-title-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.ai-title-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--secondary-bg-color);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+    width: 100%;
+}
+
+.ai-title-option:hover {
+    border-color: var(--primary-accent-color);
+    background: rgba(252, 211, 77, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(252, 211, 77, 0.15);
+}
+
+.ai-title-option:active {
+    transform: translateY(0);
+}
+
+.option-number {
+    background: var(--primary-accent-color);
+    color: var(--text-on-accent-bg);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+}
+
+.option-text {
+    color: var(--primary-text-color);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    flex: 1;
+}
+
+.ai-modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    background: var(--secondary-bg-color);
+    display: flex;
+    justify-content: flex-end;
+}
+
+.ai-modal-footer .btn-cancel {
+    background: var(--secondary-bg-color);
+    color: var(--secondary-text-color);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.9rem;
+}
+
+.ai-modal-footer .btn-cancel:hover {
+    background: var(--primary-bg-color);
+    color: var(--primary-text-color);
+}
+
 /* Mobile responsive for forms */
 @media (max-width: 768px) {
     .input-container-with-ai {
@@ -1355,5 +1508,27 @@ textarea.form-input {
     
     .edit-view .form-actions {
         flex-direction: column;
+    }
+    
+    .ai-modal {
+        margin: 0.5rem;
+        max-height: 90vh;
+    }
+    
+    .ai-modal-header {
+        padding: 1rem;
+    }
+    
+    .ai-modal-body {
+        padding: 1rem;
+    }
+    
+    .ai-title-option {
+        padding: 0.75rem;
+        gap: 0.75rem;
+    }
+    
+    .option-text {
+        font-size: 0.9rem;
     }
 }

@@ -417,13 +417,40 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
     };
 
     // Handle AI generation for Definition aspect fields
+    // State for AI title selection
+    const [aiTitles, setAiTitles] = useState<string[]>([]);
+    const [showTitleSelection, setShowTitleSelection] = useState(false);
+    const [generatingAI, setGeneratingAI] = useState<string | null>(null);
+
     const handleAiGenerate = async (fieldName: string) => {
         try {
             console.log(`🤖 AI generation requested for field: ${fieldName}`);
-            // TODO: Implement AI generation API call when backend is ready
-            // For now, show a placeholder message
-            const placeholderContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldName)}`;
-            handleChange(fieldName, placeholderContent);
+            
+            // Handle Title field with real AI generation
+            if (fieldName === 'Title') {
+                setGeneratingAI(fieldName);
+                
+                // For now, use a placeholder manuscript - in future this could come from:
+                // 1. A manuscript field in another aspect
+                // 2. Video description or other content
+                // 3. User input in a modal
+                const placeholderManuscript = "This is a sample video about web development and modern JavaScript frameworks.";
+                
+                console.log('🤖 Generating AI titles for Title field...');
+                const titles = await apiClient.generateAITitles(placeholderManuscript);
+                
+                if (titles && titles.length > 0) {
+                    console.log('✅ AI titles received:', titles);
+                    setAiTitles(titles);
+                    setShowTitleSelection(true);
+                } else {
+                    throw new Error('No titles generated');
+                }
+            } else {
+                // For non-Title fields, use placeholder (to be implemented later)
+                const placeholderContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldName)}`;
+                handleChange(fieldName, placeholderContent);
+            }
         } catch (error) {
             console.error('Error generating AI content:', error);
             // Show error in form
@@ -431,7 +458,22 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                 ...prev,
                 [fieldName]: 'Failed to generate AI content. Please try again.'
             }));
+        } finally {
+            setGeneratingAI(null);
         }
+    };
+
+    const handleTitleSelection = (selectedTitle: string) => {
+        handleChange('Title', selectedTitle);
+        setShowTitleSelection(false);
+        setAiTitles([]);
+        console.log('✅ AI title selected by user:', selectedTitle);
+    };
+
+    const handleCancelTitleSelection = () => {
+        setShowTitleSelection(false);
+        setAiTitles([]);
+        console.log('❌ AI title selection cancelled');
     };
 
     // Render complete field with completion indicators and AI buttons
@@ -470,12 +512,17 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                         {renderFieldInput(field, fieldType)}
                         <button 
                             type="button" 
-                            className="ai-generate-btn" 
+                            className={`ai-generate-btn ${generatingAI === field.name ? 'generating' : ''}`}
                             onClick={() => handleAiGenerate(field.name)}
+                            disabled={generatingAI === field.name}
                             aria-label={`Generate ${formatFieldLabel(field.name)} with AI`}
                             title={`Generate ${formatFieldLabel(field.name)} with AI`}
                         >
-                            <i className="fas fa-magic" aria-hidden="true"></i>
+                            {generatingAI === field.name ? (
+                                <i className="fas fa-spinner fa-spin" aria-hidden="true"></i>
+                            ) : (
+                                <i className="fas fa-magic" aria-hidden="true"></i>
+                            )}
                         </button>
                     </div>
                 ) : (
@@ -866,6 +913,52 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                         </button>
                     </div>
                 </form>
+            )}
+            
+            {/* AI Title Selection Modal */}
+            {showTitleSelection && (
+                <div className="ai-modal-overlay">
+                    <div className="ai-modal">
+                        <div className="ai-modal-header">
+                            <h4>🤖 Select AI Generated Title</h4>
+                            <button 
+                                type="button" 
+                                className="ai-modal-close"
+                                onClick={handleCancelTitleSelection}
+                                aria-label="Close title selection"
+                            >
+                                ×
+                            </button>
+                        </div>
+                        
+                        <div className="ai-modal-body">
+                            <p>Choose one of the AI-generated titles below:</p>
+                            <div className="ai-title-options">
+                                {aiTitles.map((title, index) => (
+                                    <button
+                                        key={index}
+                                        type="button"
+                                        className="ai-title-option"
+                                        onClick={() => handleTitleSelection(title)}
+                                    >
+                                        <span className="option-number">{index + 1}</span>
+                                        <span className="option-text">{title}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        
+                        <div className="ai-modal-footer">
+                            <button 
+                                type="button" 
+                                className="btn-cancel"
+                                onClick={handleCancelTitleSelection}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

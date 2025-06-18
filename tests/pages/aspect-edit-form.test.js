@@ -2235,6 +2235,218 @@ async function testProgressRefreshAfterSubmission(page, counters) {
 }
 
 /**
+ * TDD Test for Title Field AI Generation (Subtask 6.8)
+ * Testing real AI integration for Title field using /api/ai/titles endpoint
+ */
+async function testTitleFieldAIGeneration(page, counters) {
+    console.log('\n🔥 Testing Title Field AI Generation (TDD - Subtask 6.8)...');
+    const testStart = Date.now();
+    
+    // Navigate to Definition aspect which has Title field and AI buttons
+    await page.goto(`${APP_URL}/videos?edit=85&video=85&aspect=definition`, { waitUntil: 'networkidle0' });
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    let titleAITests = { formExists: false, titleFieldFound: false };
+    
+    // Test 1: Check if Title field exists and has AI button
+    titleAITests = await page.evaluate(() => {
+        const form = document.querySelector('.aspect-edit-form');
+        if (!form) return { formExists: false };
+        
+        // Look for Title field specifically
+        const titleField = form.querySelector('[name="Title"], [name="title"]');
+        const titleFieldGroup = titleField ? titleField.closest('.form-group') : null;
+        const titleAIButton = titleFieldGroup ? titleFieldGroup.querySelector('.ai-generate-btn') : null;
+        
+        return {
+            formExists: true,
+            titleFieldFound: !!titleField,
+            titleFieldType: titleField ? titleField.type : null,
+            titleFieldName: titleField ? titleField.name : null,
+            titleAIButtonFound: !!titleAIButton,
+            titleAIButtonAriaLabel: titleAIButton ? titleAIButton.getAttribute('aria-label') : null
+        };
+    });
+    
+    // Test 2: Mock the AI API response and test AI generation functionality
+    let aiGenerationTests = { canTest: false };
+    
+    if (titleAITests.titleFieldFound && titleAITests.titleAIButtonFound) {
+        // Mock the API response for testing
+        await page.setRequestInterception(true);
+        
+        page.on('request', (request) => {
+            if (request.url().includes('/api/ai/titles')) {
+                // Mock successful AI response
+                request.respond({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        titles: [
+                            "AI Generated Title Option 1",
+                            "AI Generated Title Option 2", 
+                            "AI Generated Title Option 3",
+                            "AI Generated Title Option 4",
+                            "AI Generated Title Option 5"
+                        ]
+                    })
+                });
+            } else {
+                request.continue();
+            }
+        });
+        
+        // Click the AI button for Title field
+        const titleAIButton = await page.$('.form-group:has([name="Title"], [name="title"]) .ai-generate-btn');
+        if (titleAIButton) {
+            await titleAIButton.click();
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            aiGenerationTests = await page.evaluate(() => {
+                // Check if title selection modal appears with proper structure
+                const modal = document.querySelector('.ai-modal-overlay');
+                const modalContent = document.querySelector('.ai-modal');
+                const modalHeader = document.querySelector('.ai-modal-header h4');
+                const titleOptions = document.querySelectorAll('.ai-title-option');
+                const cancelButton = document.querySelector('.ai-modal-close');
+                const titleField = document.querySelector('[name="Title"], [name="title"]');
+                
+                return {
+                    canTest: true,
+                    modalAppeared: !!modal,
+                    modalHasContent: !!modalContent,
+                    modalHasHeader: !!modalHeader && modalHeader.textContent.includes('Select AI Generated Title'),
+                    titleOptionsCount: titleOptions.length,
+                    modalHasCancelButton: !!cancelButton,
+                    titleFieldValue: titleField ? titleField.value : '',
+                    titleFieldUpdated: titleField ? titleField.value.includes('AI Generated') : false
+                };
+            });
+            
+            // Test user selection functionality if modal appeared with options
+            if (aiGenerationTests.modalAppeared && aiGenerationTests.titleOptionsCount >= 2) {
+                try {
+                    // Click the second title option to test selection
+                    const secondOption = await page.$('.ai-title-option:nth-child(2)');
+                    if (secondOption) {
+                        await secondOption.click();
+                        await new Promise(resolve => setTimeout(resolve, 500)); // Wait for selection
+                        
+                        // Check if modal closed and title was applied
+                        const selectionResults = await page.evaluate(() => {
+                            const modal = document.querySelector('.ai-modal-overlay');
+                            const titleField = document.querySelector('[name="Title"], [name="title"]');
+                            
+                            return {
+                                modalClosed: !modal,
+                                titleFieldValue: titleField ? titleField.value : '',
+                                titleFromSelection: titleField ? titleField.value.includes('AI Generated Title Option 2') : false
+                            };
+                        });
+                        
+                        aiGenerationTests.userSelectionWorks = selectionResults.modalClosed && selectionResults.titleFromSelection;
+                        aiGenerationTests.modalClosedAfterSelection = selectionResults.modalClosed;
+                        aiGenerationTests.finalTitleValue = selectionResults.titleFieldValue;
+                    }
+                } catch (error) {
+                    console.warn('Could not test user selection:', error.message);
+                    aiGenerationTests.userSelectionError = error.message;
+                }
+            }
+        }
+        
+        // Disable request interception
+        await page.setRequestInterception(false);
+    }
+    
+    // Create test results
+    const titleAITestResults = [
+        {
+            name: 'Form renders for Title AI testing (TDD)',
+            result: titleAITests.formExists,
+            errorMessage: 'AspectEditForm: Form does not render for Title AI testing'
+        },
+        {
+            name: 'Title field exists in Definition aspect (TDD)',
+            result: titleAITests.titleFieldFound,
+            errorMessage: 'AspectEditForm: Title field not found in Definition aspect'
+        },
+        {
+            name: 'Title field has AI generation button (TDD)',
+            result: titleAITests.titleAIButtonFound,
+            errorMessage: 'AspectEditForm: Title field does not have AI generation button'
+        },
+        {
+            name: 'Title AI button has proper accessibility label (TDD)',
+            result: titleAITests.titleAIButtonAriaLabel && titleAITests.titleAIButtonAriaLabel.includes('Title'),
+            errorMessage: 'AspectEditForm: Title AI button does not have proper accessibility label'
+        },
+        {
+            name: 'Title AI generation can be triggered (TDD)',
+            result: aiGenerationTests.canTest,
+            errorMessage: 'AspectEditForm: Cannot test Title AI generation functionality'
+        },
+        {
+            name: 'Title AI generation shows modal overlay (TDD)',
+            result: aiGenerationTests.modalAppeared,
+            errorMessage: 'AspectEditForm: Title AI generation modal overlay does not appear'
+        },
+        {
+            name: 'AI modal has proper content structure (TDD)',
+            result: aiGenerationTests.modalHasContent,
+            errorMessage: 'AspectEditForm: AI modal does not have proper content structure'
+        },
+        {
+            name: 'AI modal has proper header with title selection text (TDD)',
+            result: aiGenerationTests.modalHasHeader,
+            errorMessage: 'AspectEditForm: AI modal does not have proper header with title selection text'
+        },
+        {
+            name: 'AI modal shows multiple title options (TDD)',
+            result: aiGenerationTests.titleOptionsCount >= 3,
+            errorMessage: `AspectEditForm: AI modal shows ${aiGenerationTests.titleOptionsCount || 0} title options, expected at least 3`
+        },
+        {
+            name: 'AI modal has cancel/close button (TDD)',
+            result: aiGenerationTests.modalHasCancelButton,
+            errorMessage: 'AspectEditForm: AI modal does not have cancel/close button'
+        },
+        {
+            name: 'User can select a title option (TDD)',
+            result: aiGenerationTests.userSelectionWorks || !aiGenerationTests.modalAppeared,
+            errorMessage: 'AspectEditForm: User cannot select a title option from the modal'
+        },
+        {
+            name: 'Modal closes after title selection (TDD)',
+            result: aiGenerationTests.modalClosedAfterSelection || !aiGenerationTests.modalAppeared,
+            errorMessage: 'AspectEditForm: Modal does not close after title selection'
+        }
+    ];
+    
+    validateTests({ titleField: titleAITests, aiGeneration: aiGenerationTests }, titleAITestResults, counters);
+    
+    console.log('\n📊 Title Field AI Generation Results:');
+    console.log('Form Exists:', titleAITests.formExists ? '✅' : '❌');
+    console.log('Title Field Found:', titleAITests.titleFieldFound ? '✅' : '❌');
+    console.log('Title Field Name:', titleAITests.titleFieldName || 'N/A');
+    console.log('Title AI Button Found:', titleAITests.titleAIButtonFound ? '✅' : '❌');
+    console.log('AI Generation Testable:', aiGenerationTests.canTest ? '✅' : '❌');
+    console.log('Modal Appeared:', aiGenerationTests.modalAppeared ? '✅' : '❌');
+    console.log('Modal Has Content:', aiGenerationTests.modalHasContent ? '✅' : '❌');
+    console.log('Modal Has Header:', aiGenerationTests.modalHasHeader ? '✅' : '❌');
+    console.log('Title Options Count:', aiGenerationTests.titleOptionsCount || 0);
+    console.log('Modal Has Cancel Button:', aiGenerationTests.modalHasCancelButton ? '✅' : '❌');
+    console.log('User Selection Works:', aiGenerationTests.userSelectionWorks ? '✅' : '❌');
+    console.log('Modal Closed After Selection:', aiGenerationTests.modalClosedAfterSelection ? '✅' : '❌');
+    console.log('Final Title Value:', aiGenerationTests.finalTitleValue || 'N/A');
+    
+    const testEndTime = Date.now();
+    console.log(`   ⏱️  Title Field AI Generation test: ${testEndTime - testStart}ms`);
+    
+    return titleAITestResults.every(test => test.result);
+}
+
+/**
  * TDD Test for Checkbox Field Rendering Bug (Issue #18)
  * Testing that fields with inputType="checkbox" render as radio groups, not text inputs
  */
@@ -2389,8 +2601,11 @@ async function testAspectEditForm(page, counters) {
         // Run the checkbox field rendering test (TDD for Issue #18)
         const checkboxResult = await testCheckboxFieldRendering(page, counters);
         
+        // Run the Title field AI generation test (TDD for Subtask 6.8)
+        const titleAIResult = await testTitleFieldAIGeneration(page, counters);
+        
         // All tests must pass
-        return basicResult && completionResult && submissionResult && refreshResult && checkboxResult;
+        return basicResult && completionResult && submissionResult && refreshResult && checkboxResult && titleAIResult;
     } catch (error) {
         console.error('❌ Aspect Edit Form test failed:', error.message);
         return false;
@@ -2409,5 +2624,6 @@ module.exports = {
     testCompletionCriteriaLogic, 
     testFormSubmissionAndAPIIntegration,
     testProgressRefreshAfterSubmission,
-    testCheckboxFieldRendering
+    testCheckboxFieldRendering,
+    testTitleFieldAIGeneration
 }; 

@@ -438,6 +438,52 @@ export class ApiClient {
   }
 
   /**
+   * Generate AI titles for video content
+   * Uses the /api/ai/titles endpoint from backend
+   */
+  async generateAITitles(manuscript: string): Promise<string[]> {
+    console.log('🤖 ApiClient generating AI titles for manuscript length:', manuscript.length);
+    
+    const endpoint = `${this.baseUrl}/api/ai/titles`;
+    
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ manuscript })
+      });
+      
+      console.log('📥 AI titles response status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        if (response.status === 400) {
+          throw new Error('Invalid manuscript content provided');
+        } else if (response.status === 500) {
+          throw new Error('AI service temporarily unavailable');
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('✅ ApiClient received AI titles:', data);
+      
+      // API returns { titles: string[] }
+      return data.titles || [];
+      
+    } catch (error) {
+      console.error('❌ ApiClient AI title generation failed:', error);
+      
+      if (error instanceof Error) {
+        throw new Error(`AI title generation failed: ${error.message}`);
+      } else {
+        throw new Error('AI title generation failed: Unknown error occurred');
+      }
+    }
+  }
+
+  /**
    * Transform optimized video format to VideoGrid format
    * PRD #18: Updated to handle string-based IDs directly
    */
