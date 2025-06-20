@@ -426,18 +426,22 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
         try {
             console.log(`🤖 AI generation requested for field: ${fieldName}`);
             
-            // Handle Title field with real AI generation
+            // Handle Title field with real AI generation using optimized endpoints
             if (fieldName === 'Title') {
                 setGeneratingAI(fieldName);
                 
-                // For now, use a placeholder manuscript - in future this could come from:
-                // 1. A manuscript field in another aspect
-                // 2. Video description or other content
-                // 3. User input in a modal
-                const placeholderManuscript = "This is a sample video about web development and modern JavaScript frameworks.";
+                let titles: string[];
                 
-                console.log('🤖 Generating AI titles for Title field...');
-                const titles = await apiClient.generateAITitles(placeholderManuscript);
+                // Use optimized endpoint when video context is available
+                if (videoData?.videoName && videoData?.category) {
+                    console.log('🤖 Generating AI titles using optimized endpoint for video:', videoData.videoName, 'category:', videoData.category);
+                    titles = await apiClient.generateAITitles(videoData.videoName, videoData.category);
+                } else {
+                    // Fallback to legacy endpoint with placeholder manuscript
+                    console.log('🤖 Generating AI titles using legacy endpoint (no video context available)');
+                    const placeholderManuscript = "This is a sample video about web development and modern JavaScript frameworks.";
+                    titles = await apiClient.generateAITitles(placeholderManuscript);
+                }
                 
                 if (titles && titles.length > 0) {
                     console.log('✅ AI titles received:', titles);
@@ -447,9 +451,62 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                     throw new Error('No titles generated');
                 }
             } else {
-                // For non-Title fields, use placeholder (to be implemented later)
-                const placeholderContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldName)}`;
-                handleChange(fieldName, placeholderContent);
+                // Handle other AI-supported fields using optimized endpoints when available
+                setGeneratingAI(fieldName);
+                
+                let generatedContent: string | string[] = '';
+                
+                try {
+                    if (videoData?.videoName && videoData?.category) {
+                        console.log(`🤖 Generating AI content for ${fieldName} using optimized endpoint for video:`, videoData.videoName, 'category:', videoData.category);
+                        
+                        // Map field names to appropriate AI generation methods
+                        // Normalize field name by removing spaces and converting to lowercase
+                        const normalizedFieldName = fieldName.toLowerCase().replace(/\s+/g, '');
+                        
+                        switch (normalizedFieldName) {
+                            case 'description':
+                                generatedContent = await apiClient.generateAIDescription(videoData.videoName, videoData.category);
+                                break;
+                            case 'tags':
+                                const tags = await apiClient.generateAITags(videoData.videoName, videoData.category);
+                                generatedContent = Array.isArray(tags) ? tags.join(', ') : tags;
+                                break;
+                            case 'tweettext':
+                            case 'tweet':
+                                const tweets = await apiClient.generateAITweets(videoData.videoName, videoData.category);
+                                generatedContent = Array.isArray(tweets) && tweets.length > 0 ? tweets[0] : tweets;
+                                break;
+                            case 'highlight':
+                            case 'highlights':
+                                const highlights = await apiClient.generateAIHighlights(videoData.videoName, videoData.category);
+                                generatedContent = Array.isArray(highlights) && highlights.length > 0 ? highlights[0] : highlights;
+                                break;
+                            case 'descriptiontags':
+                                generatedContent = await apiClient.generateAIDescriptionTags(videoData.videoName, videoData.category);
+                                break;
+                            default:
+                                // For unsupported fields, use placeholder
+                                generatedContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldName)}`;
+                                break;
+                        }
+                    } else {
+                        // Fallback when no video context is available
+                        console.log(`🤖 Generating AI content for ${fieldName} using placeholder (no video context available)`);
+                        generatedContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldName)}`;
+                    }
+                    
+                    // Update the field with generated content
+                    if (typeof generatedContent === 'string') {
+                        handleChange(fieldName, generatedContent);
+                    }
+                    
+                } catch (error) {
+                    console.error(`Error generating AI content for ${fieldName}:`, error);
+                    // Fallback to placeholder content on error
+                    const placeholderContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldName)}`;
+                    handleChange(fieldName, placeholderContent);
+                }
             }
         } catch (error) {
             console.error('Error generating AI content:', error);

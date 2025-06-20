@@ -164,7 +164,115 @@ async function testApiClient() {
             });
         }
         
-        // Test 5: Error handling
+        // Test 5: AI Endpoints - Optimized endpoints (Backend Enhancement)
+        console.log('  🤖 Testing optimized AI endpoints...');
+        if (sampleVideoId) {
+            // Extract video name and category from ID for testing optimized endpoints
+            const [category, videoName] = sampleVideoId.split('/');
+            
+            // Test optimized AI titles endpoint
+            const aiTitlesResponse = await fetch(`${API_BASE_URL}/api/ai/titles/${videoName}?category=${category}`, {
+                method: 'POST'
+            });
+            const aiTitlesSuccess = aiTitlesResponse.ok;
+            tests.push({
+                name: 'Optimized AI titles endpoint',
+                success: aiTitlesSuccess,
+                details: { 
+                    status: aiTitlesResponse.status,
+                    endpoint: `/api/ai/titles/${videoName}?category=${category}`,
+                    method: 'POST',
+                    videoName,
+                    category
+                }
+            });
+            
+            if (aiTitlesSuccess) {
+                const aiTitlesData = await aiTitlesResponse.json();
+                // Handle both array format and object format with titles property
+                const titlesArray = Array.isArray(aiTitlesData) ? aiTitlesData : aiTitlesData.titles || [];
+                const hasValidStructure = titlesArray.length > 0;
+                tests.push({
+                    name: 'AI titles response structure',
+                    success: hasValidStructure,
+                    details: { 
+                        isArray: Array.isArray(aiTitlesData),
+                        hasObjectFormat: !Array.isArray(aiTitlesData) && aiTitlesData.titles,
+                        titleCount: titlesArray.length,
+                        sampleTitles: titlesArray.slice(0, 2)
+                    }
+                });
+            }
+            
+            // Test optimized AI description endpoint
+            const aiDescResponse = await fetch(`${API_BASE_URL}/api/ai/description/${videoName}?category=${category}`, {
+                method: 'POST'
+            });
+            const aiDescSuccess = aiDescResponse.ok;
+            tests.push({
+                name: 'Optimized AI description endpoint',
+                success: aiDescSuccess,
+                details: { 
+                    status: aiDescResponse.status,
+                    endpoint: `/api/ai/description/${videoName}?category=${category}`,
+                    method: 'POST'
+                }
+            });
+            
+            // Test optimized AI tags endpoint
+            const aiTagsResponse = await fetch(`${API_BASE_URL}/api/ai/tags/${videoName}?category=${category}`, {
+                method: 'POST'
+            });
+            const aiTagsSuccess = aiTagsResponse.ok;
+            tests.push({
+                name: 'Optimized AI tags endpoint',
+                success: aiTagsSuccess,
+                details: { 
+                    status: aiTagsResponse.status,
+                    endpoint: `/api/ai/tags/${videoName}?category=${category}`,
+                    method: 'POST'
+                }
+            });
+            
+            // Test error handling for missing video
+            const aiErrorResponse = await fetch(`${API_BASE_URL}/api/ai/titles/nonexistent-video?category=${category}`, {
+                method: 'POST'
+            });
+            const handlesAiErrors = aiErrorResponse.status === 404; // Should return 404 for missing video
+            tests.push({
+                name: 'AI endpoint error handling (missing video)',
+                success: handlesAiErrors,
+                details: { 
+                    status: aiErrorResponse.status,
+                    endpoint: `/api/ai/titles/nonexistent-video?category=${category}`,
+                    expectedStatus: 404
+                }
+            });
+            
+            // Test error handling for missing category
+            const aiCategoryErrorResponse = await fetch(`${API_BASE_URL}/api/ai/titles/${videoName}`, {
+                method: 'POST'
+            });
+            const handlesAiCategoryErrors = aiCategoryErrorResponse.status === 400; // Should return 400 for missing category
+            tests.push({
+                name: 'AI endpoint error handling (missing category)',
+                success: handlesAiCategoryErrors,
+                details: { 
+                    status: aiCategoryErrorResponse.status,
+                    endpoint: `/api/ai/titles/${videoName}`,
+                    expectedStatus: 400
+                }
+            });
+            
+        } else {
+            tests.push({
+                name: 'Optimized AI endpoints',
+                success: false,
+                details: { error: 'No sample video ID available for AI endpoint testing' }
+            });
+        }
+
+        // Test 6: Error handling
         console.log('  ⚠️  Testing error handling...');
         const errorResponse = await fetch(`${API_BASE_URL}/api/videos/list?phase=999`);
         const handlesErrors = errorResponse.status === 400 || errorResponse.ok; // Either handles gracefully or returns valid data

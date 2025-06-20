@@ -312,7 +312,7 @@ const VideoGrid = forwardRef<VideoGridRef, VideoGridProps>(({ selectedPhase, sel
         onClose={handleCloseModal}
         videoId={editingVideo?.id}
         videoTitle={editingVideo ? `Edit: ${editingVideo.title}` : "Edit Video"}
-        videoName={editingVideo ? generateVideoName(editingVideo.title) : undefined}
+        videoName={editingVideo?.name || (editingVideo ? generateVideoName(editingVideo.title) : undefined)}
         category={editingVideo?.category}
       />
     </div>

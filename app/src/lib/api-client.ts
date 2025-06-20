@@ -8,6 +8,7 @@ import { config } from './config';
 // Video interface matching what VideoGrid expects
 export interface Video {
   id: string;
+  name?: string; // NEW: Backend video name field (e.g., "ai-kills-iac")
   title: string;
   description: string;
   status: string;
@@ -28,6 +29,7 @@ export interface Video {
 // Type definitions for optimized API response
 export interface OptimizedVideo {
   id: string; // PRD #18: Changed from number to string format "category/filename"
+  name: string; // Backend video name field (e.g., "ai-kills-iac")
   title: string;
   date: string;
   thumbnail: string;
@@ -439,46 +441,424 @@ export class ApiClient {
 
   /**
    * Generate AI titles for video content
-   * Uses the /api/ai/titles endpoint from backend
+   * Uses the optimized /api/ai/titles/{videoName}?category={category} endpoint when video context is available,
+   * or falls back to the legacy /api/ai/titles endpoint
    */
-  async generateAITitles(manuscript: string): Promise<string[]> {
-    console.log('🤖 ApiClient generating AI titles for manuscript length:', manuscript.length);
+  async generateAITitles(manuscriptOrVideoName?: string, category?: string): Promise<string[]> {
+    // Determine if we should use optimized or legacy endpoint
+    const useOptimizedEndpoint = manuscriptOrVideoName && category;
     
-    const endpoint = `${this.baseUrl}/api/ai/titles`;
-    
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ manuscript })
-      });
+    if (useOptimizedEndpoint) {
+      console.log('🤖 ApiClient generating AI titles using optimized endpoint for video:', manuscriptOrVideoName, 'category:', category);
       
-      console.log('📥 AI titles response status:', response.status, response.statusText);
+      const endpoint = `${this.baseUrl}/api/ai/titles/${encodeURIComponent(manuscriptOrVideoName)}?category=${encodeURIComponent(category)}`;
       
-      if (!response.ok) {
-        if (response.status === 400) {
-          throw new Error('Invalid manuscript content provided');
-        } else if (response.status === 500) {
-          throw new Error('AI service temporarily unavailable');
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST'
+        });
+        
+        console.log('📥 AI titles response status:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error(`Video '${manuscriptOrVideoName}' not found`);
+          } else if (response.status === 400) {
+            throw new Error('Missing category parameter');
+          } else if (response.status === 500) {
+            throw new Error('AI service temporarily unavailable');
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        
+        const data = await response.json();
+        console.log('✅ ApiClient received AI titles (optimized):', data);
+        
+        // API returns { titles: string[] }
+        return data.titles || [];
+        
+      } catch (error) {
+        console.error('❌ ApiClient AI title generation failed (optimized):', error);
+        
+        if (error instanceof Error) {
+          throw new Error(`AI title generation failed: ${error.message}`);
+        } else {
+          throw new Error('AI title generation failed: Unknown error occurred');
+        }
       }
+    } else {
+      // Legacy endpoint for backward compatibility
+      console.log('🤖 ApiClient generating AI titles using legacy endpoint for manuscript length:', manuscriptOrVideoName?.length || 0);
       
-      const data = await response.json();
-      console.log('✅ ApiClient received AI titles:', data);
+      const endpoint = `${this.baseUrl}/api/ai/titles`;
       
-      // API returns { titles: string[] }
-      return data.titles || [];
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ manuscript: manuscriptOrVideoName || '' })
+        });
+        
+        console.log('📥 AI titles response status:', response.status, response.statusText);
+        
+        if (!response.ok) {
+          if (response.status === 400) {
+            throw new Error('Invalid manuscript content provided');
+          } else if (response.status === 500) {
+            throw new Error('AI service temporarily unavailable');
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ ApiClient received AI titles (legacy):', data);
+        
+        // API returns { titles: string[] }
+        return data.titles || [];
+        
+      } catch (error) {
+        console.error('❌ ApiClient AI title generation failed (legacy):', error);
+        
+        if (error instanceof Error) {
+          throw new Error(`AI title generation failed: ${error.message}`);
+        } else {
+          throw new Error('AI title generation failed: Unknown error occurred');
+        }
+      }
+    }
+  }
+
+  /**
+   * Generate AI description for video content
+   * Uses the optimized /api/ai/description/{videoName}?category={category} endpoint when video context is available,
+   * or falls back to the legacy /api/ai/description endpoint
+   */
+  async generateAIDescription(manuscriptOrVideoName?: string, category?: string): Promise<string> {
+    const useOptimizedEndpoint = manuscriptOrVideoName && category;
+    
+    if (useOptimizedEndpoint) {
+      console.log('🤖 ApiClient generating AI description using optimized endpoint for video:', manuscriptOrVideoName, 'category:', category);
       
-    } catch (error) {
-      console.error('❌ ApiClient AI title generation failed:', error);
+      const endpoint = `${this.baseUrl}/api/ai/description/${encodeURIComponent(manuscriptOrVideoName)}?category=${encodeURIComponent(category)}`;
       
-      if (error instanceof Error) {
-        throw new Error(`AI title generation failed: ${error.message}`);
-      } else {
-        throw new Error('AI title generation failed: Unknown error occurred');
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST'
+        });
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error(`Video '${manuscriptOrVideoName}' not found`);
+          } else if (response.status === 400) {
+            throw new Error('Missing category parameter');
+          } else if (response.status === 500) {
+            throw new Error('AI service temporarily unavailable');
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ ApiClient received AI description (optimized):', data);
+        
+        return data.description || '';
+        
+      } catch (error) {
+        console.error('❌ ApiClient AI description generation failed (optimized):', error);
+        throw new Error(`AI description generation failed: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+      }
+    } else {
+      // Legacy endpoint for backward compatibility
+      const endpoint = `${this.baseUrl}/api/ai/description`;
+      
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ manuscript: manuscriptOrVideoName || '' })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data.description || '';
+        
+      } catch (error) {
+        console.error('❌ ApiClient AI description generation failed (legacy):', error);
+        throw new Error(`AI description generation failed: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+      }
+    }
+  }
+
+  /**
+   * Generate AI tags for video content
+   * Uses the optimized /api/ai/tags/{videoName}?category={category} endpoint when video context is available,
+   * or falls back to the legacy /api/ai/tags endpoint
+   */
+  async generateAITags(manuscriptOrVideoName?: string, category?: string): Promise<string[]> {
+    const useOptimizedEndpoint = manuscriptOrVideoName && category;
+    
+    if (useOptimizedEndpoint) {
+      console.log('🤖 ApiClient generating AI tags using optimized endpoint for video:', manuscriptOrVideoName, 'category:', category);
+      
+      const endpoint = `${this.baseUrl}/api/ai/tags/${encodeURIComponent(manuscriptOrVideoName)}?category=${encodeURIComponent(category)}`;
+      
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST'
+        });
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error(`Video '${manuscriptOrVideoName}' not found`);
+          } else if (response.status === 400) {
+            throw new Error('Missing category parameter');
+          } else if (response.status === 500) {
+            throw new Error('AI service temporarily unavailable');
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ ApiClient received AI tags (optimized):', data);
+        
+        return data.tags || [];
+        
+      } catch (error) {
+        console.error('❌ ApiClient AI tags generation failed (optimized):', error);
+        throw new Error(`AI tags generation failed: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+      }
+    } else {
+      // Legacy endpoint for backward compatibility
+      const endpoint = `${this.baseUrl}/api/ai/tags`;
+      
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ manuscript: manuscriptOrVideoName || '' })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data.tags || [];
+        
+      } catch (error) {
+        console.error('❌ ApiClient AI tags generation failed (legacy):', error);
+        throw new Error(`AI tags generation failed: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+      }
+    }
+  }
+
+  /**
+   * Generate AI tweets for video content
+   * Uses the optimized /api/ai/tweets/{videoName}?category={category} endpoint when video context is available,
+   * or falls back to the legacy /api/ai/tweets endpoint
+   */
+  async generateAITweets(manuscriptOrVideoName?: string, category?: string): Promise<string[]> {
+    const useOptimizedEndpoint = manuscriptOrVideoName && category;
+    
+    if (useOptimizedEndpoint) {
+      console.log('🤖 ApiClient generating AI tweets using optimized endpoint for video:', manuscriptOrVideoName, 'category:', category);
+      
+      const endpoint = `${this.baseUrl}/api/ai/tweets/${encodeURIComponent(manuscriptOrVideoName)}?category=${encodeURIComponent(category)}`;
+      
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST'
+        });
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error(`Video '${manuscriptOrVideoName}' not found`);
+          } else if (response.status === 400) {
+            throw new Error('Missing category parameter');
+          } else if (response.status === 500) {
+            throw new Error('AI service temporarily unavailable');
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ ApiClient received AI tweets (optimized):', data);
+        
+        return data.tweets || [];
+        
+      } catch (error) {
+        console.error('❌ ApiClient AI tweets generation failed (optimized):', error);
+        throw new Error(`AI tweets generation failed: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+      }
+    } else {
+      // Legacy endpoint for backward compatibility
+      const endpoint = `${this.baseUrl}/api/ai/tweets`;
+      
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ manuscript: manuscriptOrVideoName || '' })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data.tweets || [];
+        
+      } catch (error) {
+        console.error('❌ ApiClient AI tweets generation failed (legacy):', error);
+        throw new Error(`AI tweets generation failed: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+      }
+    }
+  }
+
+  /**
+   * Generate AI highlights for video content
+   * Uses the optimized /api/ai/highlights/{videoName}?category={category} endpoint when video context is available,
+   * or falls back to the legacy /api/ai/highlights endpoint
+   */
+  async generateAIHighlights(manuscriptOrVideoName?: string, category?: string): Promise<string[]> {
+    const useOptimizedEndpoint = manuscriptOrVideoName && category;
+    
+    if (useOptimizedEndpoint) {
+      console.log('🤖 ApiClient generating AI highlights using optimized endpoint for video:', manuscriptOrVideoName, 'category:', category);
+      
+      const endpoint = `${this.baseUrl}/api/ai/highlights/${encodeURIComponent(manuscriptOrVideoName)}?category=${encodeURIComponent(category)}`;
+      
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST'
+        });
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error(`Video '${manuscriptOrVideoName}' not found`);
+          } else if (response.status === 400) {
+            throw new Error('Missing category parameter');
+          } else if (response.status === 500) {
+            throw new Error('AI service temporarily unavailable');
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ ApiClient received AI highlights (optimized):', data);
+        
+        return data.highlights || [];
+        
+      } catch (error) {
+        console.error('❌ ApiClient AI highlights generation failed (optimized):', error);
+        throw new Error(`AI highlights generation failed: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+      }
+    } else {
+      // Legacy endpoint for backward compatibility
+      const endpoint = `${this.baseUrl}/api/ai/highlights`;
+      
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ manuscript: manuscriptOrVideoName || '' })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return data.highlights || [];
+        
+      } catch (error) {
+        console.error('❌ ApiClient AI highlights generation failed (legacy):', error);
+        throw new Error(`AI highlights generation failed: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+      }
+    }
+  }
+
+  /**
+   * Generate AI description with tags for video content
+   * Uses the optimized /api/ai/description-tags/{videoName}?category={category} endpoint when video context is available,
+   * or falls back to the legacy /api/ai/description-tags endpoint
+   */
+  async generateAIDescriptionTags(manuscriptOrVideoName?: string, category?: string): Promise<string> {
+    const useOptimizedEndpoint = manuscriptOrVideoName && category;
+    
+    if (useOptimizedEndpoint) {
+      console.log('🤖 ApiClient generating AI description-tags using optimized endpoint for video:', manuscriptOrVideoName, 'category:', category);
+      
+      const endpoint = `${this.baseUrl}/api/ai/description-tags/${encodeURIComponent(manuscriptOrVideoName)}?category=${encodeURIComponent(category)}`;
+      
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST'
+        });
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error(`Video '${manuscriptOrVideoName}' not found`);
+          } else if (response.status === 400) {
+            throw new Error('Missing category parameter');
+          } else if (response.status === 500) {
+            throw new Error('AI service temporarily unavailable');
+          }
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('✅ ApiClient received AI description-tags (optimized):', data);
+        
+        // Handle both possible response formats: description_tags (API spec) or descriptionTags (legacy)
+        const descriptionTags = data.description_tags || data.descriptionTags || [];
+        
+        // Join array into a single string if it's an array, otherwise return as string
+        return Array.isArray(descriptionTags) ? descriptionTags.join('\n\n') : descriptionTags;
+        
+      } catch (error) {
+        console.error('❌ ApiClient AI description-tags generation failed (optimized):', error);
+        throw new Error(`AI description-tags generation failed: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
+      }
+    } else {
+      // Legacy endpoint for backward compatibility
+      const endpoint = `${this.baseUrl}/api/ai/description-tags`;
+      
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ manuscript: manuscriptOrVideoName || '' })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        // Handle both possible response formats: description_tags (API spec) or descriptionTags (legacy)
+        const descriptionTags = data.description_tags || data.descriptionTags || [];
+        
+        // Join array into a single string if it's an array, otherwise return as string
+        return Array.isArray(descriptionTags) ? descriptionTags.join('\n\n') : descriptionTags;
+        
+      } catch (error) {
+        console.error('❌ ApiClient AI description-tags generation failed (legacy):', error);
+        throw new Error(`AI description-tags generation failed: ${error instanceof Error ? error.message : 'Unknown error occurred'}`);
       }
     }
   }
@@ -490,6 +870,7 @@ export class ApiClient {
   private transformOptimizedVideo(optimizedVideo: OptimizedVideo): Video {
     return {
       id: optimizedVideo.id, // PRD #18: ID is already string format "category/filename"
+      name: optimizedVideo.name, // NEW: Include backend video name (e.g., "ai-kills-iac")
       title: optimizedVideo.title,
       description: '', // Not available in optimized format, could be added in future
       status: optimizedVideo.status,
