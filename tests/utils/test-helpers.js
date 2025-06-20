@@ -65,26 +65,24 @@ async function setupApiMocking(page) {
                 return;
             }
             
-            // Return mock success response for form submissions with small delay for loading state visibility
+            // Return mock success response for form submissions immediately for maximum test speed
             if ((url.includes('/api/editing/aspects/') || url.includes('/api/videos/') || 
                  url.includes('localhost:8080/api/editing/aspects/') || url.includes('localhost:8080/api/videos/')) && 
                 (method === 'POST' || method === 'PUT')) {
-                // Add a small delay to make loading state visible for testing
-                setTimeout(() => {
-                    try {
-                        request.respond({
-                            status: 200,
-                            contentType: 'application/json',
-                            body: JSON.stringify({
-                                success: true,
-                                message: 'Mock: Data saved successfully',
-                                data: { saved: true, timestamp: new Date().toISOString() }
-                            })
-                        });
-                    } catch (error) {
-                        console.log(`⚠️  Request already handled: ${error.message}`);
-                    }
-                }, 300); // 300ms delay to ensure loading state is visible for testing
+                // Respond immediately - no artificial delay for maximum test speed
+                try {
+                    request.respond({
+                        status: 200,
+                        contentType: 'application/json',
+                        body: JSON.stringify({
+                            success: true,
+                            message: 'Mock: Data saved successfully',
+                            data: { saved: true, timestamp: new Date().toISOString() }
+                        })
+                    });
+                } catch (error) {
+                    console.log(`⚠️  Request already handled: ${error.message}`);
+                }
                 return; // CRITICAL: Return immediately to prevent continue()
             }
             
