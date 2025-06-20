@@ -422,13 +422,16 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
     const [showTitleSelection, setShowTitleSelection] = useState(false);
     const [generatingAI, setGeneratingAI] = useState<string | null>(null);
 
-    const handleAiGenerate = async (fieldName: string) => {
+    const handleAiGenerate = async (field: EditingFieldMetadata) => {
+        const fieldDisplayName = field.name; // Display name for UI
+        const backendFieldName = field.fieldName; // Backend property name from metadata
+        
         try {
-            console.log(`🤖 AI generation requested for field: ${fieldName}`);
+            console.log(`🤖 AI generation requested for field: ${fieldDisplayName} (backend: ${backendFieldName})`);
             
             // Handle Title field with real AI generation using optimized endpoints
-            if (fieldName === 'Title') {
-                setGeneratingAI(fieldName);
+            if (backendFieldName === 'title' || fieldDisplayName === 'Title') {
+                setGeneratingAI(fieldDisplayName);
                 
                 let titles: string[];
                 
@@ -452,19 +455,18 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                 }
             } else {
                 // Handle other AI-supported fields using optimized endpoints when available
-                setGeneratingAI(fieldName);
+                setGeneratingAI(fieldDisplayName);
                 
                 let generatedContent: string | string[] = '';
                 
                 try {
                     if (videoData?.videoName && videoData?.category) {
-                        console.log(`🤖 Generating AI content for ${fieldName} using optimized endpoint for video:`, videoData.videoName, 'category:', videoData.category);
+                        console.log(`🤖 Generating AI content for ${fieldDisplayName} (backend: ${backendFieldName}) using optimized endpoint for video:`, videoData.videoName, 'category:', videoData.category);
                         
-                        // Map field names to appropriate AI generation methods
-                        // Normalize field name by removing spaces and converting to lowercase
-                        const normalizedFieldName = fieldName.toLowerCase().replace(/\s+/g, '');
+                        // Use backend fieldName directly instead of normalizing display name
+                        const apiFieldName = backendFieldName.toLowerCase();
                         
-                        switch (normalizedFieldName) {
+                        switch (apiFieldName) {
                             case 'description':
                                 generatedContent = await apiClient.generateAIDescription(videoData.videoName, videoData.category);
                                 break;
@@ -485,27 +487,34 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                             case 'descriptiontags':
                                 generatedContent = await apiClient.generateAIDescriptionTags(videoData.videoName, videoData.category);
                                 break;
+                            case 'animations':
+                                // NEW: Support for animations field using backend fieldName
+                                console.log('🤖 Animations field detected - checking for available AI endpoint');
+                                // For now, use placeholder until backend provides animations endpoint
+                                generatedContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldDisplayName)} - Backend fieldName: ${backendFieldName}`;
+                                break;
                             default:
-                                // For unsupported fields, use placeholder
-                                generatedContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldName)}`;
+                                // For unsupported fields, use placeholder but show backend fieldName for debugging
+                                console.log(`🤖 Unsupported field for AI generation: ${fieldDisplayName} (backend: ${backendFieldName})`);
+                                generatedContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldDisplayName)} - Backend fieldName: ${backendFieldName}`;
                                 break;
                         }
                     } else {
                         // Fallback when no video context is available
-                        console.log(`🤖 Generating AI content for ${fieldName} using placeholder (no video context available)`);
-                        generatedContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldName)}`;
+                        console.log(`🤖 Generating AI content for ${fieldDisplayName} using placeholder (no video context available)`);
+                        generatedContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldDisplayName)}`;
                     }
                     
-                    // Update the field with generated content
+                    // Update the field with generated content (use display name for form field)
                     if (typeof generatedContent === 'string') {
-                        handleChange(fieldName, generatedContent);
+                        handleChange(fieldDisplayName, generatedContent);
                     }
                     
                 } catch (error) {
-                    console.error(`Error generating AI content for ${fieldName}:`, error);
+                    console.error(`Error generating AI content for ${fieldDisplayName}:`, error);
                     // Fallback to placeholder content on error
-                    const placeholderContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldName)}`;
-                    handleChange(fieldName, placeholderContent);
+                    const placeholderContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldDisplayName)}`;
+                    handleChange(fieldDisplayName, placeholderContent);
                 }
             }
         } catch (error) {
@@ -513,7 +522,7 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
             // Show error in form
             setErrors(prev => ({
                 ...prev,
-                [fieldName]: 'Failed to generate AI content. Please try again.'
+                [fieldDisplayName]: 'Failed to generate AI content. Please try again.'
             }));
         } finally {
             setGeneratingAI(null);
@@ -570,7 +579,7 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                         <button 
                             type="button" 
                             className={`ai-generate-btn ${generatingAI === field.name ? 'generating' : ''}`}
-                            onClick={() => handleAiGenerate(field.name)}
+                            onClick={() => handleAiGenerate(field)}
                             disabled={generatingAI === field.name}
                             aria-label={`Generate ${formatFieldLabel(field.name)} with AI`}
                             title={`Generate ${formatFieldLabel(field.name)} with AI`}
