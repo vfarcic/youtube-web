@@ -918,7 +918,7 @@ async function testModalUrlState(page, counters) {
         console.log('   🧪 TEST: Clicking Edit button should update URL...');
         
         await editButtonExists.click();
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Allow modal to open and URL to update
+        await new Promise(resolve => setTimeout(resolve, 200)); // Allow modal to open and URL to update
         
         const modalOpenUrl = await page.url();
         console.log('   URL after Edit click:', modalOpenUrl);
@@ -1021,7 +1021,7 @@ async function testModalUrlState(page, counters) {
             console.log('   🧪 TEST: Direct link should open modal...');
             const directLinkUrl = `${APP_URL}/videos?edit=86&video=86`;
             await page.goto(directLinkUrl, { waitUntil: 'networkidle0' });
-            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for full load and modal
+            await new Promise(resolve => setTimeout(resolve, 300)); // Wait for full load and modal
             
             // Use the same modal detection logic for direct link
             const directLinkModalHeadings = await page.$$('h2, h3, h4');
@@ -1077,7 +1077,7 @@ async function testModalUrlState(page, counters) {
 
     // Ensure we're in a modal state first  
     await page.goto(`${APP_URL}/videos?edit=85&video=85`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for modal to load
+    await new Promise(resolve => setTimeout(resolve, 300)); // Wait for modal to load
     
     // Look for aspect cards in the modal
     const aspectCard = await page.$('.aspect-card');
@@ -1092,7 +1092,7 @@ async function testModalUrlState(page, counters) {
         
         // Click the first aspect card
         await aspectCard.click();
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Allow URL update and form to load
+        await new Promise(resolve => setTimeout(resolve, 200)); // Allow URL update and form to load
         
         const afterAspectUrl = await page.url();
         console.log('   URL after aspect selection:', afterAspectUrl);
@@ -1113,7 +1113,7 @@ async function testModalUrlState(page, counters) {
             
             const directAspectUrl = `${APP_URL}/videos?edit=85&video=85&aspect=initial-details`;
             await page.goto(directAspectUrl, { waitUntil: 'networkidle0' });
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Wait for modal and form to load
+            await new Promise(resolve => setTimeout(resolve, 250)); // Wait for modal and form to load
             
             const directFormHeader = await page.$('.aspect-edit-form .form-header');
             aspectUrlTests.directLinkToAspectForm = !!directFormHeader;
@@ -1127,7 +1127,7 @@ async function testModalUrlState(page, counters) {
             const backButton = await page.$('.aspect-edit-form .form-header button');
             if (backButton) {
                 await backButton.click();
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 200));
                 
                 const backToSelectionUrl = await page.url();
                 console.log('   URL after back button:', backToSelectionUrl);
@@ -1174,7 +1174,7 @@ async function testModalUrlState(page, counters) {
     const editButtonForUrlTest = await page.$('.video-card .btn-edit');
     if (editButtonForUrlTest) {
         await editButtonForUrlTest.click();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 200));
     }
     
     const urlStructureTests = await page.evaluate(() => {
@@ -1298,7 +1298,7 @@ async function testVideoGridRefreshAfterModalClose(page, counters) {
     
     // Navigate to videos page
     await page.goto(`${APP_URL}/videos`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 250));
     
     let refreshTests = {
         initialVideoData: {},
@@ -1355,7 +1355,7 @@ async function testVideoGridRefreshAfterModalClose(page, counters) {
     const editButton = await page.$('.video-card .btn-edit');
     if (editButton) {
         await editButton.click();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 200));
         refreshTests.modalOpened = true;
         
         // Verify modal is open
@@ -1382,7 +1382,7 @@ async function testVideoGridRefreshAfterModalClose(page, counters) {
                 const submitButton = await page.$('.aspect-edit-form button[type="submit"]');
                 if (submitButton) {
                     await submitButton.click();
-                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    await new Promise(resolve => setTimeout(resolve, 250));
                 }
             }
             
@@ -1390,7 +1390,7 @@ async function testVideoGridRefreshAfterModalClose(page, counters) {
             const closeButton = await page.$('.modal-close');
             if (closeButton) {
                 await closeButton.click();
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 200));
                 refreshTests.modalClosed = true;
             }
         }
@@ -1492,7 +1492,7 @@ async function testVideoNameResolution(page, counters) {
     
     // Navigate to videos page to see video grid
     await page.goto(`${APP_URL}/videos`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     let nameResolutionTests = { 
         videoGridExists: false, 
@@ -1587,7 +1587,7 @@ async function testVideoNameResolution(page, counters) {
             });
             
             if (modalTestResult.clicked) {
-                await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for modal and API calls
+                await new Promise(resolve => setTimeout(resolve, 500)); // Wait for modal and API calls
                 
                 // Check if modal opened successfully
                 const modalOpen = await page.evaluate(() => {

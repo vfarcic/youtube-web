@@ -21,7 +21,7 @@ async function testAspectEditFormBasics(page, counters) {
     const editButton = await page.$('.video-card .btn-edit');
     if (editButton) {
         await editButton.click();
-        await new Promise(resolve => setTimeout(resolve, 1000)); // Allow modal to open
+        await new Promise(resolve => setTimeout(resolve, 200)); // Allow modal to open
     }
     
     // Click on an aspect card to open AspectEditForm (if modal structure exists)
@@ -155,7 +155,7 @@ async function testSmartFieldTypeDetection(page, counters) {
     
     // Navigate to videos page and open modal to test field type detection
     await page.goto(`${APP_URL}/videos`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 250));
     
     // Test field type detection function availability and behavior
     const fieldTypeTests = await page.evaluate(() => {
@@ -199,13 +199,13 @@ async function testSmartFieldTypeDetection(page, counters) {
     
     if (editButton) {
         await editButton.click();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         // Try to click an aspect card to get to form view
         const aspectCard = await page.$('.aspect-card');
         if (aspectCard) {
             await aspectCard.click();
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 200));
             
             // Test the rendered form's field type detection
             formFieldTests = await page.evaluate(() => {
@@ -318,7 +318,7 @@ async function testFormValidationAndErrorHandling(page, counters) {
     
     // Navigate to form for validation testing
     await page.goto(`${APP_URL}/videos?edit=85&video=85&aspect=definition`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     // Test 1: Required Field Validation
     const requiredFieldTests = await page.evaluate(() => {
@@ -360,7 +360,7 @@ async function testFormValidationAndErrorHandling(page, counters) {
             const submitButton = await page.$('.aspect-edit-form button[type="submit"]');
             if (submitButton) {
                 await submitButton.click();
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 200));
                 
                 // If that doesn't trigger validation, try form.submit()
                 const hasErrors = await page.evaluate(() => {
@@ -376,10 +376,10 @@ async function testFormValidationAndErrorHandling(page, counters) {
                             form.dispatchEvent(event);
                         }
                     });
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 200));
                 }
             }
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Additional wait time
+            await new Promise(resolve => setTimeout(resolve, 200)); // Additional wait time
             
             submitValidationTests = await page.evaluate(() => {
                 const form = document.querySelector('.aspect-edit-form');
@@ -647,7 +647,7 @@ async function testFocusOnValidationFailure(page, counters) {
     
     // Navigate to form for focus testing
     await page.goto(`${APP_URL}/videos?edit=85&video=85&aspect=definition`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     // Test: Focus should move to first failed field when validation fails
     console.log('   🧪 TEST: First failed field should receive focus on validation failure...');
@@ -689,7 +689,7 @@ async function testFocusOnValidationFailure(page, counters) {
             const submitButton = await page.$('.aspect-edit-form button[type="submit"]');
             if (submitButton) {
                 await submitButton.click();
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 200));
                 
                 // If that doesn't trigger validation, try form.submit()
                 const hasErrors = await page.evaluate(() => {
@@ -705,10 +705,10 @@ async function testFocusOnValidationFailure(page, counters) {
                             form.dispatchEvent(event);
                         }
                     });
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 200));
                 }
             }
-            await new Promise(resolve => setTimeout(resolve, 1000)); // Additional wait time
+            await new Promise(resolve => setTimeout(resolve, 200)); // Additional wait time
             
             // Check if the first field with an error received focus
             focusTests = await page.evaluate(() => {
@@ -805,7 +805,7 @@ async function testLabelFormatting(page, counters) {
     
     // Navigate to form for label testing
     await page.goto(`${APP_URL}/videos?edit=85&video=85&aspect=definition`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     // Test 1: Basic camelCase to "Formatted Label" conversion
     console.log('   🧪 TEST: camelCase field names should be formatted as "Formatted Label"...');
@@ -910,7 +910,7 @@ async function testAPIClientIntegration(page, counters) {
     
     // Navigate to form to test API integration
     await page.goto(`${APP_URL}/videos?edit=85&video=85&aspect=definition`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     // Test 1: Form loads with API data successfully
     console.log('   🧪 TEST: Form loads with API data and renders fields...');
@@ -960,7 +960,7 @@ async function testAPIClientIntegration(page, counters) {
     
     // Refresh to trigger API calls
     await page.reload({ waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 200));
     
     const hasAspectFieldsRequest = networkRequests.some(req => 
         req.url.includes('/aspects/') && req.url.includes('/fields')
@@ -1064,7 +1064,7 @@ async function testAIGenerationButtons(page, counters) {
     // Test 1: AI buttons appear for Definition aspect
     console.log('   🧪 TEST: AI buttons should appear for Definition aspect...');
     await page.goto(`${APP_URL}/videos?edit=85&video=85&aspect=definition`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     const definitionAITests = await page.evaluate(() => {
         const form = document.querySelector('.aspect-edit-form');
@@ -1094,7 +1094,7 @@ async function testAIGenerationButtons(page, counters) {
     // Test 2: AI buttons do NOT appear for other aspects (test with initial-details)
     console.log('   🧪 TEST: AI buttons should NOT appear for non-Definition aspects...');
     await page.goto(`${APP_URL}/videos?edit=85&video=85&aspect=initial-details`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     const nonDefinitionAITests = await page.evaluate(() => {
         const form = document.querySelector('.aspect-edit-form');
@@ -1117,7 +1117,7 @@ async function testAIGenerationButtons(page, counters) {
     // Test 3: AI button functionality (click test)
     console.log('   🧪 TEST: AI buttons should be clickable and functional...');
     await page.goto(`${APP_URL}/videos?edit=85&video=85&aspect=definition`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     let aiFunctionalityTests = { canTest: false };
     const aiButton = await page.$('.ai-generate-btn');
@@ -1133,7 +1133,7 @@ async function testAIGenerationButtons(page, counters) {
         if (fieldName) {
             // Click the AI button
             await aiButton.click();
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 200));
             
             aiFunctionalityTests = await page.evaluate((testFieldName) => {
                 const input = document.querySelector(`[name="${testFieldName}"]`);
@@ -1251,13 +1251,13 @@ async function testCompletionCriteriaLogic(page, counters) {
     // Test 1: Navigate to any available video and aspect form to test completion criteria
     console.log('   🧪 TEST: Completion criteria logic with available data...');
     await page.goto(`${APP_URL}/videos`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 250));
     
     // Find any video with an edit button and open it
     const editButton = await page.$('.video-card .btn-edit');
     if (editButton) {
         await editButton.click();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         // Click on any aspect card to open AspectEditForm
         const aspectCard = await page.$('.aspect-card');
@@ -1427,7 +1427,7 @@ async function testFormSubmissionAndAPIIntegration(page, counters) {
     
     // Navigate to videos page and open modal to test form submission
     await page.goto(`${APP_URL}/videos`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 250));
     
     // Open edit modal and navigate to form
     const editButton = await page.$('.video-card .btn-edit');
@@ -1441,7 +1441,7 @@ async function testFormSubmissionAndAPIIntegration(page, counters) {
     
     if (editButton) {
         await editButton.click();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         // Click on an aspect card to open AspectEditForm
         const aspectCard = await page.$('.aspect-card');
@@ -1930,7 +1930,7 @@ async function testProgressRefreshAfterSubmission(page, counters) {
     
     // Navigate to videos page and open modal
     await page.goto(`${APP_URL}/videos`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 250));
     
     // Open edit modal
     const editButton = await page.$('.video-card .btn-edit');
@@ -1945,7 +1945,7 @@ async function testProgressRefreshAfterSubmission(page, counters) {
     
     if (editButton) {
         await editButton.click();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 200));
         refreshTests.modalOpened = true;
         
         // Capture initial progress data from aspect selection
@@ -2006,7 +2006,7 @@ async function testProgressRefreshAfterSubmission(page, counters) {
                 await submitButton.click();
                 
                 // Wait for submission and refresh to complete
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                await new Promise(resolve => setTimeout(resolve, 300));
                 
                 // Check if refresh was triggered by looking for console logs
                 refreshTests.refreshTriggered = consoleLogs.some(log => 
@@ -2133,7 +2133,7 @@ async function testTitleFieldAIGeneration(page, counters) {
     
     // Step 1: Discover available videos dynamically
     await page.goto(`${APP_URL}/videos`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     // Find any video that has an edit button - try multiple selector strategies
     const videoData = await page.evaluate(() => {
@@ -2262,7 +2262,7 @@ async function testTitleFieldAIGeneration(page, counters) {
         }, modalContent.aspectName);
         
         if (aspectClickSuccess) {
-            await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for aspect to load
+            await new Promise(resolve => setTimeout(resolve, 500)); // Wait for aspect to load
         }
     }
     
@@ -2302,7 +2302,7 @@ async function testTitleFieldAIGeneration(page, counters) {
         const titleAIButton = await page.$('.form-group:has([name="Title"], [name="title"]) .ai-generate-btn');
         if (titleAIButton) {
             await titleAIButton.click();
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 300));
             
             aiGenerationTests = await page.evaluate(() => {
                 // Check if title selection modal appears with proper structure
@@ -2455,7 +2455,7 @@ async function testCheckboxFieldRendering(page, counters) {
     
     // Navigate directly to work-progress aspect which has checkbox fields
     await page.goto(`${APP_URL}/videos`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    await new Promise(resolve => setTimeout(resolve, 250));
     
     // Open modal and navigate to work-progress aspect
     const editButton = await page.$('.video-card .btn-edit');
@@ -2463,7 +2463,7 @@ async function testCheckboxFieldRendering(page, counters) {
     
     if (editButton) {
         await editButton.click();
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         // Look for work-progress aspect card specifically
         const aspectCards = await page.$$('.aspect-card');
@@ -2479,7 +2479,7 @@ async function testCheckboxFieldRendering(page, counters) {
         }
         
         if (workProgressFound) {
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 200));
             
             // Test the checkbox field rendering
             checkboxFieldTests = await page.evaluate(() => {
@@ -2590,7 +2590,7 @@ async function testDescriptionTagsFieldFix(page, counters) {
     
     // Navigate to a stable video and aspect with Description Tags field
     await page.goto(`${APP_URL}/videos`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     // Find and click edit on any video
     const editSuccess = await page.evaluate(() => {
@@ -2607,7 +2607,7 @@ async function testDescriptionTagsFieldFix(page, counters) {
         return false;
     }
     
-    await new Promise(resolve => setTimeout(resolve, 3000));
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // Navigate to an aspect that has Description Tags (try Definition first, then others)
     const aspectNavSuccess = await page.evaluate(() => {
@@ -2623,7 +2623,7 @@ async function testDescriptionTagsFieldFix(page, counters) {
     });
     
     if (aspectNavSuccess) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 300));
     }
     
     let descriptionTagsTests = { formExists: false, fieldExists: false, aiButtonExists: false };
@@ -2763,7 +2763,7 @@ async function testOptimizedAIEndpoints(page, counters) {
     
     // Navigate to Definition aspect which has Title field and AI buttons
     await page.goto(`${APP_URL}/videos?edit=ai%2Fai-kills-iac&video=ai%2Fai-kills-iac&aspect=definition`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     let optimizedEndpointTests = { formExists: false, videoContextAvailable: false };
     
@@ -2809,7 +2809,7 @@ async function testOptimizedAIEndpoints(page, counters) {
             const titleAIButton = await page.$('.form-group:has([name="Title"], [name="title"]) .ai-generate-btn');
             if (titleAIButton) {
                 await titleAIButton.click();
-                await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for API call
+                await new Promise(resolve => setTimeout(resolve, 500)); // Wait for API call
                 
                 // Analyze the API calls made
                 apiCallTests.totalApiCalls = apiCalls.length;

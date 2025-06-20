@@ -72,7 +72,7 @@ async function testAspectProgressTracking(page, counters) {
     
     // Navigate to videos page to test edit button
     await page.goto(`${APP_URL}/videos`, { waitUntil: 'networkidle0' });
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise(resolve => setTimeout(resolve, 300));
     
     const modalTests = {
         editButtonWorks: false,
@@ -92,7 +92,7 @@ async function testAspectProgressTracking(page, counters) {
             
             // Click edit button to open modal
             await editButton.click();
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            await new Promise(resolve => setTimeout(resolve, 300));
             
             // Check if modal opened
             const modal = await page.$('.modal-overlay');
@@ -131,7 +131,7 @@ async function testAspectProgressTracking(page, counters) {
                 const closeButton = await modal.$('.modal-close');
                 if (closeButton) {
                     await closeButton.click();
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 200));
                 }
             }
         }
@@ -151,7 +151,7 @@ async function testAspectProgressTracking(page, counters) {
     // Test direct navigation to edit page with video context
     if (videoName && category) {
         await page.goto(`${APP_URL}/edit?videoName=${encodeURIComponent(videoName)}&category=${encodeURIComponent(category)}`, { waitUntil: 'networkidle0' });
-        await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for API call
+        await new Promise(resolve => setTimeout(resolve, 500)); // Wait for API call
     } else {
         console.warn('   ⚠️ Skipping direct page test - no video data available');
         pageTests.pageLoads = false;

@@ -28,46 +28,58 @@ const DEFAULT_PHASE_COLORS: { [key: string]: string } = {
   '7': '#06b6d4'  // cyan - Ideas
 };
 
+// Simple in-memory cache to eliminate duplicate API calls
+let cachedPhases: Phase[] | null = null;
+let cachePromise: Promise<Phase[]> | null = null;
+let cacheError: string | null = null;
+
 export const usePhases = (): UsePhaseResult => {
-  const [phases, setPhases] = useState<Phase[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [phases, setPhases] = useState<Phase[]>(cachedPhases || []);
+  const [loading, setLoading] = useState(!cachedPhases);
+  const [error, setError] = useState<string | null>(cacheError);
 
   useEffect(() => {
-    const fetchPhases = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`${config.apiBaseUrl}${config.endpoints.phases}`);
-        
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        
-        // The API returns { "phases": [...] }
-        const phasesData = Array.isArray(data.phases) ? data.phases : [];
-        
-        // Sort phases by ID and add default colors
-        const sortedPhases = phasesData
-          .sort((a: Phase, b: Phase) => Number(a.id) - Number(b.id))
-          .map((phase: Phase) => ({
-            ...phase,
-            color: phase.color || DEFAULT_PHASE_COLORS[String(phase.id)] || '#6b7280'
-          }));
-        
-        setPhases(sortedPhases);
-        setError(null);
-      } catch (err) {
-        console.error('Failed to fetch phases:', err);
-        setError('Unable to load phases. Please try again.');
-        setPhases([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    // If we already have cached data, use it immediately
+    if (cachedPhases) {
+      setPhases(cachedPhases);
+      setLoading(false);
+      setError(cacheError);
+      return;
+    }
 
-    fetchPhases();
+    // If there's already a request in flight, wait for it
+    if (cachePromise) {
+      cachePromise
+        .then(data => {
+          setPhases(data);
+          setLoading(false);
+          setError(null);
+        })
+        .catch(err => {
+          setError(err.message);
+          setLoading(false);
+        });
+      return;
+    }
+
+    // Make a new API request and cache the promise
+    setLoading(true);
+    cachePromise = fetchPhasesData();
+    
+    cachePromise
+      .then(data => {
+        cachedPhases = data;
+        cacheError = null;
+        setPhases(data);
+        setLoading(false);
+        setError(null);
+      })
+      .catch(err => {
+        cacheError = err.message;
+        setError(err.message);
+        setLoading(false);
+        setPhases([]);
+      });
   }, []);
 
   const getPhaseById = (id: number | string): Phase | undefined => {
@@ -86,4 +98,33 @@ export const usePhases = (): UsePhaseResult => {
     getPhaseById,
     getPhaseColor
   };
-}; 
+};
+
+// Extracted fetch logic for caching
+async function fetchPhasesData(): Promise<Phase[]> {
+  try {
+    const response = await fetch(`${config.apiBaseUrl}${config.endpoints.phases}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // The API returns { "phases": [...] }
+    const phasesData = Array.isArray(data.phases) ? data.phases : [];
+    
+    // Sort phases by ID and add default colors
+    const sortedPhases = phasesData
+      .sort((a: Phase, b: Phase) => Number(a.id) - Number(b.id))
+      .map((phase: Phase) => ({
+        ...phase,
+        color: phase.color || DEFAULT_PHASE_COLORS[String(phase.id)] || '#6b7280'
+      }));
+    
+    return sortedPhases;
+  } catch (err) {
+    console.error('Failed to fetch phases:', err);
+    throw new Error('Unable to load phases. Please try again.');
+  }
+} 
