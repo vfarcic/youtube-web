@@ -791,6 +791,56 @@ export class ApiClient {
   }
 
   /**
+   * Generate AI animations for video content
+   * Uses the optimized /api/animations/{videoName}?category={category} endpoint
+   */
+  async generateAIAnimations(videoName: string, category: string): Promise<string> {
+    console.log('🤖 ApiClient generating AI animations using optimized endpoint for video:', videoName, 'category:', category);
+    
+    const endpoint = `${this.baseUrl}/api/animations/${encodeURIComponent(videoName)}?category=${encodeURIComponent(category)}`;
+    
+    try {
+      const response = await fetch(endpoint, {
+        method: 'GET'
+      });
+      
+      console.log('📥 AI animations response status:', response.status, response.statusText);
+      
+      if (!response.ok) {
+        if (response.status === 404) {
+          throw new Error(`Animations for video '${videoName}' not found or endpoint not implemented`);
+        } else if (response.status === 400) {
+          throw new Error('Missing category parameter');
+        } else if (response.status === 500) {
+          throw new Error('Animations service temporarily unavailable');
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      console.log('✅ ApiClient received AI animations:', data);
+      
+      // API returns { animations: Array<string> } - convert to string for text field
+      if (data.animations && Array.isArray(data.animations)) {
+        // Join animations array into a formatted string with single line breaks
+        return data.animations.join('\n');
+      }
+      
+      // Fallback for other response formats
+      return data.animations || data.manuscript || '';
+      
+    } catch (error) {
+      console.error('❌ ApiClient AI animations generation failed:', error);
+      
+      if (error instanceof Error) {
+        throw new Error(`AI animations generation failed: ${error.message}`);
+      } else {
+        throw new Error('AI animations generation failed: Unknown error occurred');
+      }
+    }
+  }
+
+  /**
    * Generate AI description with tags for video content
    * Uses the optimized /api/ai/description-tags/{videoName}?category={category} endpoint when video context is available,
    * or falls back to the legacy /api/ai/description-tags endpoint

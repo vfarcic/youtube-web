@@ -23,6 +23,7 @@ const { testHomepage } = require('./pages/homepage.test.js');
 const { testVideosPage, testVideoGridRefreshAfterModalClose, testVideoNameResolution } = require('./pages/videos.test.js');
 const { testAspectSelection } = require('./pages/aspect-selection.test.js');
 const { testAspectEditForm } = require('./pages/aspect-edit-form.test.js');
+const { testDefinitionAspect } = require('./pages/aspect-definition.test.js');
 const { testAspectProgressTracking } = require('./pages/aspect-progress-tracking.test.js');
 const { testCreatePage } = require('./pages/create.test.js');
 
@@ -86,6 +87,7 @@ AVAILABLE PAGES:
   video-grid-refresh          # Video grid refresh after modal close (TDD)
   aspect-selection           # Aspect selection page
   aspect-edit-form           # Form editing tests
+  aspect-definition          # Definition aspect backend integration (TDD)
   aspect-progress-tracking   # Progress tracking features
   create                     # Video creation page
 
@@ -172,6 +174,11 @@ const PAGE_TESTS = {
         name: 'Aspect Edit Form',
         description: 'Form editing and validation',
         testFunction: testAspectEditForm
+    },
+    'aspect-definition': {
+        name: 'Definition Aspect',
+        description: 'Definition aspect backend integration and TDD tests',
+        testFunction: testDefinitionAspect
     },
     'aspect-progress-tracking': {
         name: 'Aspect Progress Tracking',

@@ -488,10 +488,9 @@ const AspectEditForm: React.FC<AspectEditFormProps> = ({
                                 generatedContent = await apiClient.generateAIDescriptionTags(videoData.videoName, videoData.category);
                                 break;
                             case 'animations':
-                                // NEW: Support for animations field using backend fieldName
-                                console.log('🤖 Animations field detected - checking for available AI endpoint');
-                                // For now, use placeholder until backend provides animations endpoint
-                                generatedContent = `[AI Generated] Sample content for ${formatFieldLabel(fieldDisplayName)} - Backend fieldName: ${backendFieldName}`;
+                                // NEW: Support for animations field using backend endpoint
+                                console.log('🤖 Animations field detected - using animations endpoint');
+                                generatedContent = await apiClient.generateAIAnimations(videoData.videoName, videoData.category);
                                 break;
                             default:
                                 // For unsupported fields, use placeholder but show backend fieldName for debugging

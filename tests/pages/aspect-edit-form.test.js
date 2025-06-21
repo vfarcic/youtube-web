@@ -2913,6 +2913,13 @@ async function testBackendFieldNameUsage(page, counters) {
     return backendFieldNameTestResults.every(test => test.result);
 }
 
+/**
+ * TDD Test: Definition Phase Field Count Update (Backend Integration)
+ * RED phase: Test that Definition phase has 8 fields instead of 9
+ * The backend has moved Gist field from Definition to InitialDetails phase
+ */
+
+
 // Main test function for consolidated test runner
 async function testAspectEditForm(page, counters) {
     console.log('\n🔥 Running Aspect Edit Form Tests...');
